@@ -61,13 +61,14 @@
 #include "nsIDOMElement.h"
 #include "nsIDOMWindow2.h"
 #include "nsEmbedString.h"
+#include "nsMemory.h"
 
 #ifdef ALLOW_PRIVATE_API
 #include "nsIMarkupDocumentViewer.h"
 #endif
 
 static PRUnichar DOMLinkAdded[] = { 'D', 'O', 'M', 'L', 'i', 'n', 'k',
-				    'A', 'd', 'd', 'e', 'd' };
+				    'A', 'd', 'd', 'e', 'd', '\0' };
 
 EphyEventListener::EphyEventListener(void)
 : mOwner(nsnull)
@@ -106,8 +107,8 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 	nsEmbedCString rel;
 	NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, rel);	
 
-	if (strcasecmp (rel.get(), "SHORTCUT ICON") == 0 ||
-	    strcasecmp (rel.get(), "ICON") == 0)
+	if (g_ascii_strcasecmp (rel.get(), "SHORTCUT ICON") == 0 ||
+	    g_ascii_strcasecmp (rel.get(), "ICON") == 0)
 	{
 		PRUnichar hrefAttr[] = { 'h', 'r', 'e', 'f', '\0' };
 		nsEmbedString value;
@@ -209,8 +210,8 @@ EphyBrowser::GetListener (void)
   	nsCOMPtr<nsIDOMWindow> domWindowExternal;
   	mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWindowExternal));
   
-  	nsCOMPtr<nsIDOMWindow2> domWindow;
-        domWindow = do_QueryInterface (domWindowExternal);
+  	nsCOMPtr<nsIDOMWindow2> domWindow (do_QueryInterface (domWindowExternal));
+	NS_ENSURE_TRUE (domWindow, NS_ERROR_FAILURE);
 	
   	nsCOMPtr<nsIDOMEventTarget> rootWindow;
   	domWindow->GetWindowRoot (getter_AddRefs(rootWindow));
@@ -615,7 +616,7 @@ nsresult EphyBrowser::GetEncoding (nsACString &encoding)
 	char *charset;
 	docCharset->GetCharset (&charset);
 	encoding = charset;
-	g_free (charset);
+	nsMemory::Free (charset);
 
 	return NS_OK;
 }
@@ -678,6 +679,11 @@ nsresult EphyBrowser::GetCommandState (const char *command, PRBool *enabled)
 PRBool
 EphyBrowser::CompareFormsText (nsAString &aDefaultText, nsAString &aUserText)
 {
+	if (aDefaultText.Length() != aUserText.Length())
+	{
+		return FALSE;
+	}
+
 	/* Mozilla Bug 218277, 195946 and others */
 	const PRUnichar *text = aDefaultText.BeginReading();
 	for (PRUint32 i = 0; i < aDefaultText.Length(); i++)
@@ -688,16 +694,9 @@ EphyBrowser::CompareFormsText (nsAString &aDefaultText, nsAString &aUserText)
 		}
 	}
 
-	if (aDefaultText.Length() != aUserText.Length())
-	{
-		return FALSE;
-	}
-	else
-	{
-		return (memcmp (aDefaultText.BeginReading(),
-			        aUserText.BeginReading(),
-			        aUserText.Length()) == 0);
-	}
+	return (memcmp (aDefaultText.BeginReading(),
+		        aUserText.BeginReading(),
+		        aUserText.Length() * sizeof (PRUnichar)) == 0);
 }
 
 nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUint32 *aNumTextFields, PRBool *aHasTextArea)
@@ -762,7 +761,7 @@ nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUi
 			nsEmbedCString cType;
 			NS_UTF16ToCString (type, NS_CSTRING_ENCODING_UTF8, cType);
 
-			if (strcasecmp (cType.get(), "text") == 0)
+			if (g_ascii_strcasecmp (cType.get(), "text") == 0)
 			{
 				nsEmbedString defaultText, userText;
 				PRInt32 max_length;

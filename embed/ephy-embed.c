@@ -249,7 +249,16 @@ ephy_embed_base_init (gpointer g_class)
 			      G_TYPE_NONE,
 			      1,
 			      G_TYPE_FLOAT);
-
+/**
+ * EphyEmbed::ge-content-change:
+ * @embed:
+ * @uri: URI of the new content
+ *
+ * The ::ge_content_change signal is emitted when a new page content
+ * is being loadedinto the browser. It's a good place to do view
+ * related changes, for example to restore the zoom level of a page
+ * or to set an user style sheet.
+ **/
 		g_signal_new ("ge_content_change",
 			      EPHY_TYPE_EMBED,
 			      G_SIGNAL_RUN_FIRST,

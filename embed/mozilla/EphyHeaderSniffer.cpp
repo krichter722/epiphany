@@ -298,7 +298,7 @@ nsresult EphyHeaderSniffer::PerformSave (nsIURI* inOriginalURI)
 		}
 	}
     
-	if (defaultFileName.Length() && mURL)
+	if (!defaultFileName.Length() && mURL)
 	{
 		/* 4 Use the host. */
 		nsEmbedCString hostName;

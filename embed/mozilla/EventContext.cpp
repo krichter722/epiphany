@@ -142,6 +142,8 @@ nsresult EventContext::GatherTextUnder (nsIDOMNode* aNode, nsAString& aResult)
 		}
 	}
 
+	/* FIXME we should trim spaces here */
+
 	aResult = text;
 
 	return NS_OK;
@@ -222,7 +224,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 		nsEmbedCString tag;
 		NS_UTF16ToCString (uTag, NS_CSTRING_ENCODING_UTF8, tag);
 
-		if (strcasecmp (tag.get(), "img") == 0)
+		if (g_ascii_strcasecmp (tag.get(), "img") == 0)
 		{
 			info->context |= EMBED_CONTEXT_IMAGE;
 
@@ -235,7 +237,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 			if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 			SetStringProperty ("image", img);
 		}
-		else if (strcasecmp (tag.get(), "input") == 0)
+		else if (g_ascii_strcasecmp (tag.get(), "input") == 0)
 		{
 			nsCOMPtr<nsIDOMElement> element;
 			element = do_QueryInterface (node);
@@ -247,7 +249,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 			nsEmbedCString value;
 			NS_UTF16ToCString (uValue, NS_CSTRING_ENCODING_UTF8, value);
 
-			if (strcasecmp (value.get(), "image") == 0)
+			if (g_ascii_strcasecmp (value.get(), "image") == 0)
 			{
 				info->context |= EMBED_CONTEXT_IMAGE;
 				nsCOMPtr<nsIDOMHTMLInputElement> input;
@@ -263,21 +265,21 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
                                 if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 				SetStringProperty ("image", cImg.get());
 			}
-			else if (strcasecmp (value.get(), "radio") != 0 &&
-				 strcasecmp (value.get(), "submit") != 0 &&
-				 strcasecmp (value.get(), "reset") != 0 &&
-				 strcasecmp (value.get(), "hidden") != 0 &&
-				 strcasecmp (value.get(), "button") != 0 &&
-				 strcasecmp (value.get(), "checkbox") != 0)
+			else if (g_ascii_strcasecmp (value.get(), "radio") != 0 &&
+				 g_ascii_strcasecmp (value.get(), "submit") != 0 &&
+				 g_ascii_strcasecmp (value.get(), "reset") != 0 &&
+				 g_ascii_strcasecmp (value.get(), "hidden") != 0 &&
+				 g_ascii_strcasecmp (value.get(), "button") != 0 &&
+				 g_ascii_strcasecmp (value.get(), "checkbox") != 0)
 			{
 				info->context |= EMBED_CONTEXT_INPUT;
 			}
 		}
-		else if (strcasecmp (tag.get(), "textarea") == 0)
+		else if (g_ascii_strcasecmp (tag.get(), "textarea") == 0)
 		{
 			info->context |= EMBED_CONTEXT_INPUT;
 		}
-		else if (strcasecmp (tag.get(), "object") == 0)
+		else if (g_ascii_strcasecmp (tag.get(), "object") == 0)
 		{
 			nsCOMPtr<nsIDOMHTMLObjectElement> object;
 			object = do_QueryInterface (node);
@@ -331,7 +333,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 			nsEmbedCString cValue;
 			NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, cValue);
 
-			if (strcasecmp (cValue.get(), "simple") == 0)
+			if (g_ascii_strcasecmp (cValue.get(), "simple") == 0)
 			{
 				info->context |= EMBED_CONTEXT_LINK;
 				dom_elem->GetAttributeNS (nsEmbedString(xlinknsLiteral),
@@ -357,7 +359,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 			NS_UTF16ToCString (uTag, NS_CSTRING_ENCODING_UTF8, tag);
 
 			/* Link */
-			if (strcasecmp (tag.get(), "a") == 0)
+			if (g_ascii_strcasecmp (tag.get(), "a") == 0)
 			{
 				nsEmbedString tmp;
 
@@ -407,7 +409,7 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 					nsEmbedCString linkType;
 					NS_UTF16ToCString (tmp, NS_CSTRING_ENCODING_UTF8, linkType);
 
-					if (strcasecmp (linkType.get(), "text/smartbookmark") == 0)
+					if (g_ascii_strcasecmp (linkType.get(), "text/smartbookmark") == 0)
 					{
 						SetIntProperty ("link_is_smart", TRUE);
 						
@@ -436,12 +438,12 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 				}
 			
 			}
-			else if (strcasecmp (tag.get(), "option") == 0)
+			else if (g_ascii_strcasecmp (tag.get(), "option") == 0)
 			{
 				info->context = EMBED_CONTEXT_NONE;
 				return NS_OK;
 			}
-			if (strcasecmp (tag.get(), "area") == 0)
+			if (g_ascii_strcasecmp (tag.get(), "area") == 0)
 			{
 				info->context |= EMBED_CONTEXT_LINK;
 				nsCOMPtr <nsIDOMHTMLAreaElement> area =
@@ -457,8 +459,8 @@ nsresult EventContext::GetEventContext (nsIDOMEventTarget *EventTarget,
 					CheckLinkScheme (href);
 				}
 			}
-			else if (strcasecmp (tag.get(), "textarea") == 0 ||
-				 strcasecmp (tag.get(), "input") == 0)
+			else if (g_ascii_strcasecmp (tag.get(), "textarea") == 0 ||
+				 g_ascii_strcasecmp (tag.get(), "input") == 0)
 			{
 				info->context |= EMBED_CONTEXT_INPUT;
 			}
@@ -605,11 +607,11 @@ nsresult EventContext::GetMouseEventInfo (nsIDOMMouseEvent *aMouseEvent, Mozilla
 	nsEmbedCString cNodeName;
 	NS_UTF16ToCString (nodename, NS_CSTRING_ENCODING_UTF8, cNodeName);
 
-	if (strcasecmp (cNodeName.get(), "xul:scrollbarbutton") == 0 ||
-	    strcasecmp (cNodeName.get(), "xul:thumb") == 0 ||
-	    strcasecmp (cNodeName.get(), "xul:vbox") == 0 ||
-	    strcasecmp (cNodeName.get(), "xul:spacer") == 0 ||
-	    strcasecmp (cNodeName.get(), "xul:slider") == 0)
+	if (g_ascii_strcasecmp (cNodeName.get(), "xul:scrollbarbutton") == 0 ||
+	    g_ascii_strcasecmp (cNodeName.get(), "xul:thumb") == 0 ||
+	    g_ascii_strcasecmp (cNodeName.get(), "xul:vbox") == 0 ||
+	    g_ascii_strcasecmp (cNodeName.get(), "xul:spacer") == 0 ||
+	    g_ascii_strcasecmp (cNodeName.get(), "xul:slider") == 0)
 		return NS_ERROR_FAILURE;
 
 	nsCOMPtr<nsIDOMEventTarget> EventTarget;
@@ -739,14 +741,14 @@ nsresult EventContext::CheckLinkScheme (const nsAString &link)
 	rv = uri->GetScheme (scheme);
 	if (NS_FAILED (rv)) return NS_ERROR_FAILURE;
 
-	if (strcasecmp (scheme.get(), "http") ||
-	    strcasecmp (scheme.get(), "https") ||
-	    strcasecmp (scheme.get(), "ftp") ||
-	    strcasecmp (scheme.get(), "file") ||
-	    strcasecmp (scheme.get(), "data") ||
-	    strcasecmp (scheme.get(), "resource") ||
-	    strcasecmp (scheme.get(), "about") ||
-	    strcasecmp (scheme.get(), "gopher"))
+	if (g_ascii_strcasecmp (scheme.get(), "http") ||
+	    g_ascii_strcasecmp (scheme.get(), "https") ||
+	    g_ascii_strcasecmp (scheme.get(), "ftp") ||
+	    g_ascii_strcasecmp (scheme.get(), "file") ||
+	    g_ascii_strcasecmp (scheme.get(), "data") ||
+	    g_ascii_strcasecmp (scheme.get(), "resource") ||
+	    g_ascii_strcasecmp (scheme.get(), "about") ||
+	    g_ascii_strcasecmp (scheme.get(), "gopher"))
 	{
 		SetIntProperty ("link-has-web-scheme", TRUE);
 	}
