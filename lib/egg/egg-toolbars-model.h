@@ -85,9 +85,6 @@ struct EggToolbarsModelClass
   char * (* get_item_id)   (EggToolbarsModel *t,
 			    const char       *type,
 			    const char       *name);
-  char * (* get_item_name) (EggToolbarsModel *t,
-			    const char       *type,
-			    const char       *id);
 };
 
 GType		  egg_toolbars_model_get_type       (void);
@@ -113,13 +110,10 @@ char             *egg_toolbars_model_get_item_type  (EggToolbarsModel *t,
 char             *egg_toolbars_model_get_item_id    (EggToolbarsModel *t,
 						     const char       *type,
 			                             const char       *name);
-char             *egg_toolbars_model_get_item_name  (EggToolbarsModel *t,
-						     const char       *type,
-			                             const char       *id);
 gboolean	  egg_toolbars_model_add_item       (EggToolbarsModel *t,
 						     int	       toolbar_position,
 				                     int               position,
-						     const char       *id,
+						     const char       *name,
 						     const char       *type);
 void		  egg_toolbars_model_remove_toolbar (EggToolbarsModel *t,
 						     int               position);
@@ -128,10 +122,12 @@ void		  egg_toolbars_model_remove_item    (EggToolbarsModel *t,
 						     int               position);
 int		  egg_toolbars_model_n_items	    (EggToolbarsModel *t,
 						     int               toolbar_position);
-const char	 *egg_toolbars_model_item_nth	    (EggToolbarsModel *t,
+void		  egg_toolbars_model_item_nth	    (EggToolbarsModel *t,
 						     int	       toolbar_position,
 						     int               position,
-						     gboolean         *is_separator);
+						     gboolean         *is_separator,
+						     const char       **type,
+						     const char       **name);
 int		  egg_toolbars_model_n_toolbars	    (EggToolbarsModel *t);
 const char	 *egg_toolbars_model_toolbar_nth    (EggToolbarsModel *t,
 						     int               position);

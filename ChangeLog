@@ -1,3 +1,20 @@
+2004-06-08  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/egg/egg-editable-toolbar.c: (drag_data_get_cb),
+	(set_item_drag_source), (create_item_from_name), (create_item),
+	(drag_data_received_cb), (egg_editable_toolbar_set_edit_mode):
+	* lib/egg/egg-toolbar-editor.c: (model_has_action):
+	* lib/egg/egg-toolbars-model.c: (egg_toolbars_model_to_xml),
+	(toolbars_item_new), (free_item_node),
+	(egg_toolbars_model_add_separator), (impl_add_item),
+	(parse_item_list), (egg_toolbars_model_class_init),
+	(egg_toolbars_model_item_nth), (egg_toolbars_model_get_item_id):
+	* lib/egg/egg-toolbars-model.h:
+
+	Simplify custom items handling and preserve the custom
+	types instead of reducing them to normal actions once
+	they are added.
+
 2004-06-08  Christian Persch  <chpe@cvs.gnome.org>
 
 	* embed/mozilla/EventContext.cpp:

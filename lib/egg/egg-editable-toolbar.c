@@ -47,11 +47,6 @@ static void egg_editable_toolbar_finalize	(GObject *object);
 
 #define MIN_TOOLBAR_HEIGHT 20
 
-static GtkTargetEntry source_drag_types[] = {
-  {EGG_TOOLBAR_ITEM_TYPE, GTK_TARGET_SAME_APP, 0},
-};
-static int n_source_drag_types = G_N_ELEMENTS (source_drag_types);
-
 static GtkTargetEntry dest_drag_types[] = {
   {EGG_TOOLBAR_ITEM_TYPE, GTK_TARGET_SAME_APP, 0},
 };
@@ -243,16 +238,7 @@ drag_data_get_cb (GtkWidget          *widget,
 
   g_return_if_fail (EGG_IS_EDITABLE_TOOLBAR (etoolbar));
 
-  action = GTK_ACTION (g_object_get_data (G_OBJECT (widget), "gtk-action"));
-
-  if (action)
-    {
-      target = gtk_action_get_name (action);
-    }
-  else
-    {
-      target = "separator";
-    }
+  target = g_object_get_data (G_OBJECT (widget), "name");
 
   gtk_selection_data_set (selection_data,
 			  selection_data->target, 8, target, strlen (target));
@@ -285,13 +271,24 @@ unset_drag_cursor (GtkWidget *widget)
 }
 
 static void
-set_item_drag_source (GtkWidget *item,
-		      GtkAction *action,
-		      gboolean   is_separator)
+set_item_drag_source (GtkWidget  *item,
+		      GtkAction  *action,
+		      gboolean    is_separator,
+		      const char *type,
+		      const char *name)
 {
+  GtkTargetEntry target_entry;
+
+  target_entry.target = (char *)type;
+  target_entry.flags = GTK_TARGET_SAME_APP;
+  target_entry.info = 0;
+
   gtk_drag_source_set (item, GDK_BUTTON1_MASK,
-		       source_drag_types, n_source_drag_types,
+		       &target_entry, 1,
 		       GDK_ACTION_MOVE);
+
+  g_object_set_data_full (G_OBJECT (item), "name",
+			  g_strdup (name), g_free);
 
   if (is_separator)
     {
@@ -331,10 +328,11 @@ set_item_drag_source (GtkWidget *item,
 }
 
 static GtkWidget *
-create_item_from_action (EggEditableToolbar *t,
-			 const char *action_name,
-			 gboolean is_separator,
-			 GtkAction **ret_action)
+create_item_from_name (EggEditableToolbar *t,
+		       const char *type,
+		       const char *name,
+		       gboolean is_separator,
+		       GtkAction **ret_action)
 {
   GtkWidget *item;
   GtkAction *action;
@@ -346,6 +344,11 @@ create_item_from_action (EggEditableToolbar *t,
     }
   else
     {
+      EggToolbarsModel *model = t->priv->model;
+      char *action_name;
+
+      action_name = egg_toolbars_model_get_item_id (model, type, name);
+
       g_signal_emit (G_OBJECT (t), egg_editable_toolbar_signals[ACTION_REQUEST],
 		     0, action_name);
 
@@ -357,7 +360,9 @@ create_item_from_action (EggEditableToolbar *t,
       else
         {
           return NULL;
-        }  
+        }
+
+      g_free (action_name);
     }
 
   gtk_widget_show (item);
@@ -375,7 +380,7 @@ create_item_from_action (EggEditableToolbar *t,
     {
       set_drag_cursor (item);
       gtk_widget_set_sensitive (item, TRUE);
-      set_item_drag_source (item, action, is_separator);
+      set_item_drag_source (item, action, is_separator, type, name);
       gtk_tool_item_set_use_drag_window (GTK_TOOL_ITEM (item), TRUE);
     }
 
@@ -394,12 +399,12 @@ create_item (EggEditableToolbar *t,
 	     int                 position,
              GtkAction         **ret_action)
 {
-  const char *action_name;
+  const char *name, *type;
   gboolean is_separator;
 
-  action_name = egg_toolbars_model_item_nth
-		(model, toolbar_position, position, &is_separator);
-  return create_item_from_action (t, action_name, is_separator, ret_action);
+  egg_toolbars_model_item_nth (model, toolbar_position, position,
+			       &is_separator, &type, &name);
+  return create_item_from_name (t, type, name, is_separator, NULL);
 }
 
 static gboolean
@@ -419,13 +424,12 @@ drag_data_received_cb (GtkWidget          *widget,
 		       EggEditableToolbar *etoolbar)
 {
   char *type;
-  char *id;
+  const char *name = selection_data->data;
 
   GdkAtom target;
 	  
   target = gtk_drag_dest_find_target (widget, context, NULL);
   type = egg_toolbars_model_get_item_type (etoolbar->priv->model, target);
-  id = egg_toolbars_model_get_item_id (etoolbar->priv->model, type, selection_data->data);
 
   /* This function can be called for two reasons
    *
@@ -438,7 +442,7 @@ drag_data_received_cb (GtkWidget          *widget,
    *      actually add a new item to the toolbar.
    */
 
-  if (id == NULL)
+  if (name == NULL)
     {
       etoolbar->priv->pending = FALSE;
       g_free (type);
@@ -449,7 +453,8 @@ drag_data_received_cb (GtkWidget          *widget,
     {
       etoolbar->priv->pending = FALSE;
       etoolbar->priv->dragged_item =
-        create_item_from_action (etoolbar, id, data_is_separator (id), NULL);
+        create_item_from_name (etoolbar, type, selection_data->data,
+			       data_is_separator (name), NULL);
       g_object_ref (etoolbar->priv->dragged_item);
       gtk_object_sink (GTK_OBJECT (etoolbar->priv->dragged_item));
     }
@@ -468,7 +473,7 @@ drag_data_received_cb (GtkWidget          *widget,
       else
 	{
 	  egg_toolbars_model_add_item (etoolbar->priv->model,
-				       toolbar_pos, pos, id, type);
+				       toolbar_pos, pos, name, type);
 	}
       
       gtk_drag_finish (context, TRUE, context->action == GDK_ACTION_MOVE,
@@ -476,7 +481,6 @@ drag_data_received_cb (GtkWidget          *widget,
     }
 
   g_free (type);
-  g_free (id);
 }
 
 static void
@@ -1121,6 +1125,7 @@ egg_editable_toolbar_set_edit_mode (EggEditableToolbar *etoolbar,
 				    gboolean            mode)
 {
   int i, l, n_toolbars, n_items;
+  EggToolbarsModel *model = etoolbar->priv->model;
 
   etoolbar->priv->edit_mode = mode;
 
@@ -1134,14 +1139,16 @@ egg_editable_toolbar_set_edit_mode (EggEditableToolbar *etoolbar,
       for (l = 0; l < n_items; l++)
         {
 	  GtkToolItem *item;
-	  const char *action_name;
+	  const char *name, *type;
+	  char *action_name;
           gboolean is_separator;
 	  GtkAction *action;
 
-          action_name = egg_toolbars_model_item_nth
-		(etoolbar->priv->model, i, l,
-		 &is_separator);
+          egg_toolbars_model_item_nth (model, i, l, &is_separator,
+				       &type, &name);
+	  action_name = egg_toolbars_model_get_item_id (model, type, name);
 	  action = find_action (etoolbar, action_name);
+	  g_free (action_name);
 
 	  item = gtk_toolbar_get_nth_item (GTK_TOOLBAR (toolbar), l);
 	  gtk_tool_item_set_use_drag_window (item, mode);
@@ -1150,7 +1157,8 @@ egg_editable_toolbar_set_edit_mode (EggEditableToolbar *etoolbar,
 	    {
               set_drag_cursor (GTK_WIDGET (item));
 	      gtk_widget_set_sensitive (GTK_WIDGET (item), TRUE);
-              set_item_drag_source (GTK_WIDGET (item), action, is_separator);
+              set_item_drag_source (GTK_WIDGET (item), action, is_separator,
+				    type, name);
             }
 	  else
             {
