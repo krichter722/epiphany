@@ -24,119 +24,190 @@
 #include "ephy-favorites-menu.h"
 #include "ephy-state.h"
 #include "ephy-gobject-misc.h"
-#include "statusbar.h"
-#include "toolbar.h"
 #include "ppview-toolbar.h"
 #include "window-commands.h"
 #include "find-dialog.h"
 #include "history-dialog.h"
 #include "popup-commands.h"
 #include "ephy-shell.h"
-#include "ephy-bonobo-extensions.h"
 #include "eel-gconf-extensions.h"
 #include "ephy-prefs.h"
 #include "ephy-embed-utils.h"
 #include "ephy-debug.h"
+#include "ephy-file-helpers.h"
 
 #include <string.h>
-#include <bonobo/bonobo-window.h>
-#include <bonobo/bonobo-i18n.h>
-#include <bonobo/bonobo-ui-util.h>
-#include <bonobo/bonobo-ui-component.h>
+#include <libgnome/gnome-i18n.h>
 #include <libgnomevfs/gnome-vfs-uri.h>
 #include <gtk/gtk.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
+#include "egg-action-group.h"
+#include "egg-menu-merge.h"
 
 #define CHARSET_MENU_PATH "/menu/View/EncodingMenuPlaceholder"
 #define GO_FAVORITES_PATH "/menu/Go/Favorites"
 
-#define GO_BACK_CMD_PATH "/commands/GoBack"
-#define GO_FORWARD_CMD_PATH "/commands/GoForward"
-#define GO_UP_CMD_PATH "/commands/GoUp"
-#define EDIT_FIND_NEXT_CMD_PATH "/commands/EditFindNext"
-#define EDIT_FIND_PREV_CMD_PATH "/commands/EditFindPrev"
-#define VIEW_MENUBAR_PATH "/commands/View Menubar"
-#define VIEW_STATUSBAR_PATH "/commands/View Statusbar"
-#define VIEW_TOOLBAR_PATH "/commands/View Toolbar"
-#define VIEW_BOOKMARKSBAR_PATH "/commands/View BookmarksBar"
-#define VIEW_FULLSCREEN_PATH "/commands/View Fullscreen"
+#define GO_BACK_ACTION "GoBack"
+#define GO_FORWARD_ACTION "GoForward"
+#define GO_UP_ACTION "GoUp"
+#define EDIT_FIND_NEXT_ACTION "EditFindNext"
+#define EDIT_FIND_PREV_ACTION "EditFindPrev"
+#define VIEW_STATUSBAR_ACTION "ViewStatusbar"
+#define VIEW_TOOLBAR_ACTION "ViewToolbar"
+#define VIEW_FULLSCREEN_ACTION "ViewFullscreen"
 
-#define ID_VIEW_MENUBAR "View Menubar"
-#define ID_VIEW_STATUSBAR "View Statusbar"
-#define ID_VIEW_TOOLBAR "View Toolbar"
-#define ID_VIEW_BOOKMARKSBAR "View BookmarksBar"
-#define ID_VIEW_FULLSCREEN "View Fullscreen"
+static EggActionGroupEntry ephy_menu_entries [] = {
 
-static BonoboUIVerb ephy_verbs [] = {
-        BONOBO_UI_VERB ("EditFind", (BonoboUIVerbFn)window_cmd_edit_find),
-	BONOBO_UI_VERB ("FilePrint", (BonoboUIVerbFn)window_cmd_file_print),
-	BONOBO_UI_VERB ("GoStop", (BonoboUIVerbFn)window_cmd_go_stop),
-	BONOBO_UI_VERB ("GoReload", (BonoboUIVerbFn)window_cmd_go_reload),
-	BONOBO_UI_VERB ("GoBack", (BonoboUIVerbFn)window_cmd_go_back),
-	BONOBO_UI_VERB ("GoForward", (BonoboUIVerbFn)window_cmd_go_forward),
-	BONOBO_UI_VERB ("GoGo", (BonoboUIVerbFn)window_cmd_go_go),
-	BONOBO_UI_VERB ("GoUp", (BonoboUIVerbFn)window_cmd_go_up),
-	BONOBO_UI_VERB ("GoHome", (BonoboUIVerbFn)window_cmd_go_home),
-	BONOBO_UI_VERB ("GoMyportal", (BonoboUIVerbFn)window_cmd_go_myportal),
-	BONOBO_UI_VERB ("GoLocation", (BonoboUIVerbFn)window_cmd_go_location),
-	BONOBO_UI_VERB ("FileNew", (BonoboUIVerbFn)window_cmd_new),
-	BONOBO_UI_VERB ("FileNewWindow", (BonoboUIVerbFn)window_cmd_new_window),
-	BONOBO_UI_VERB ("FileNewTab", (BonoboUIVerbFn)window_cmd_new_tab),
-	BONOBO_UI_VERB ("FileOpen", (BonoboUIVerbFn)window_cmd_file_open),
-	BONOBO_UI_VERB ("FileSaveAs", (BonoboUIVerbFn)window_cmd_file_save_as),
-	BONOBO_UI_VERB ("FileCloseTab", (BonoboUIVerbFn)window_cmd_file_close_tab),
-	BONOBO_UI_VERB ("FileCloseWindow", (BonoboUIVerbFn)window_cmd_file_close_window),
-	BONOBO_UI_VERB ("FileSendTo", (BonoboUIVerbFn)window_cmd_file_send_to),
-	BONOBO_UI_VERB ("EditCut", (BonoboUIVerbFn)window_cmd_edit_cut),
-	BONOBO_UI_VERB ("EditCopy", (BonoboUIVerbFn)window_cmd_edit_copy),
-	BONOBO_UI_VERB ("EditPaste", (BonoboUIVerbFn)window_cmd_edit_paste),
-	BONOBO_UI_VERB ("EditSelectAll", (BonoboUIVerbFn)window_cmd_edit_select_all),
-	BONOBO_UI_VERB ("EditPrefs", (BonoboUIVerbFn)window_cmd_edit_prefs),
-	BONOBO_UI_VERB ("SettingsToolbarEditor", (BonoboUIVerbFn)window_cmd_settings_toolbar_editor),
-	BONOBO_UI_VERB ("Zoom In", (BonoboUIVerbFn)window_cmd_view_zoom_in),
-	BONOBO_UI_VERB ("EditFindNext", (BonoboUIVerbFn)window_cmd_edit_find_next),
-	BONOBO_UI_VERB ("EditFindPrev", (BonoboUIVerbFn)window_cmd_edit_find_prev),
-	BONOBO_UI_VERB ("Zoom Out", (BonoboUIVerbFn)window_cmd_view_zoom_out),
-	BONOBO_UI_VERB ("Zoom Normal", (BonoboUIVerbFn)window_cmd_view_zoom_normal),
-	BONOBO_UI_VERB ("ViewPageSource", (BonoboUIVerbFn)window_cmd_view_page_source),
-	BONOBO_UI_VERB ("BookmarksAddDefault", (BonoboUIVerbFn)window_cmd_bookmarks_add_default),
-	BONOBO_UI_VERB ("BookmarksEdit", (BonoboUIVerbFn)window_cmd_bookmarks_edit),
-	BONOBO_UI_VERB ("ToolsHistory", (BonoboUIVerbFn)window_cmd_tools_history),
-	BONOBO_UI_VERB ("ToolsPDM", (BonoboUIVerbFn)window_cmd_tools_pdm),
-	BONOBO_UI_VERB ("TabsNext", (BonoboUIVerbFn)window_cmd_tabs_next),
-	BONOBO_UI_VERB ("TabsPrevious", (BonoboUIVerbFn)window_cmd_tabs_previous),
-	BONOBO_UI_VERB ("TabsMoveLeft", (BonoboUIVerbFn)window_cmd_tabs_move_left),
-	BONOBO_UI_VERB ("TabsMoveRight", (BonoboUIVerbFn)window_cmd_tabs_move_right),
-	BONOBO_UI_VERB ("TabsDetach", (BonoboUIVerbFn)window_cmd_tabs_detach),
-	BONOBO_UI_VERB ("HelpContents", (BonoboUIVerbFn)window_cmd_help_manual),
-	BONOBO_UI_VERB ("About", (BonoboUIVerbFn)window_cmd_help_about),
+	/* Toplevel */
+	{ "File", N_("_File"), NULL, NULL, NULL, NULL, NULL },
+	{ "Edit", N_("_Edit"), NULL, NULL, NULL, NULL, NULL },
+	{ "View", N_("_View"), NULL, NULL, NULL, NULL, NULL },
+	{ "Go", N_("_Go"), NULL, NULL, NULL, NULL, NULL },
+	{ "Tabs", N_("_Tabs"), NULL, NULL, NULL, NULL, NULL },
+	{ "Help", N_("_Help"), NULL, NULL, NULL, NULL, NULL },
 
-        BONOBO_UI_VERB_END
+	/* File menu */
+	{ "FileNewWindow", N_("_New Window"), GTK_STOCK_NEW, "<shift><control>N",
+	  N_("Create a new window"),
+	  G_CALLBACK (window_cmd_file_new_window), NULL },
+	{ "FileNewTab", N_("New _Tab"), GTK_STOCK_NEW, "<shift><control>N",
+	  N_("Create a new tab"),
+	  G_CALLBACK (window_cmd_file_new_tab), NULL },
+	{ "FileOpen", N_("_Open..."), GTK_STOCK_OPEN, "<control>O",
+	  N_("Open a file"),
+	  G_CALLBACK (window_cmd_file_open), NULL },
+	{ "FileSaveAs", N_("Save _As..."), GTK_STOCK_SAVE, "<shift><control>S",
+	  N_("Save the current page"),
+	  G_CALLBACK (window_cmd_file_save_as), NULL },
+	{ "FilePrint", N_("_Print..."), GTK_STOCK_PRINT, "<control>P",
+	  N_("Print the current page"),
+	  G_CALLBACK (window_cmd_file_print), NULL },
+	{ "FileSendTo", N_("S_end To..."), NULL, NULL,
+	  N_("Send a link of the current page"),
+	  G_CALLBACK (window_cmd_file_send_to), NULL },
+	{ "FileAddBookmark", N_("_Add Bookmark..."), GTK_STOCK_ADD, "<control>D",
+	  N_("Add a bookmark for the current page"),
+	  G_CALLBACK (window_cmd_file_add_bookmark), NULL },
+	{ "FileCloseTab", N_("_Close Tab"), GTK_STOCK_CLOSE, "<control>W",
+	  N_("Send a link of the current page"),
+	  G_CALLBACK (window_cmd_file_close_tab), NULL },
+	{ "FileCloseWindow", N_("Close _Window"), NULL, "<shift><control>W",
+	  N_("Send a link of the current page"),
+	  G_CALLBACK (window_cmd_file_close_window), NULL },
+
+	/* Edit menu */
+	{ "EditCut", N_("Cu_t"), GTK_STOCK_CUT, "<control>X",
+	  N_("Cut the selection"),
+	  G_CALLBACK (window_cmd_edit_cut), NULL },
+	{ "EditCopy", N_("_Copy"), GTK_STOCK_COPY, "<control>C",
+	  N_("Copy the selection"),
+	  G_CALLBACK (window_cmd_edit_copy), NULL },
+	{ "EditPaste", N_("_Paste"), GTK_STOCK_PASTE, "<control>V",
+	  N_("Paste clipboard"),
+	  G_CALLBACK (window_cmd_edit_paste), NULL },
+	{ "EditSelectAll", N_("Select _All"), NULL, "<control>A",
+	  N_("Select the entire page"),
+	  G_CALLBACK (window_cmd_edit_select_all), NULL },
+	{ "EditFind", N_("_Find"), GTK_STOCK_FIND, "<control>F",
+	  N_("Find a string"),
+	  G_CALLBACK (window_cmd_edit_find), NULL },
+	{ "EditFindNext", N_("Find Ne_xt"), NULL, "<control>G",
+	  N_("Find next occurence of the string"),
+	  G_CALLBACK (window_cmd_edit_find_next), NULL },
+	{ "EditFindPrev", N_("Find Pre_vious"), NULL, "<shift><control>G",
+	  N_("Find previous occurence of the string"),
+	  G_CALLBACK (window_cmd_edit_find_prev), NULL },
+	{ "EditPersonalData", N_("P_ersonal Data"), NULL, "<control>F",
+	  N_("View and remove cookies and passwords"),
+	  G_CALLBACK (window_cmd_edit_personal_data), NULL },
+	{ "EditToolbar", N_("T_oolbars"), NULL, NULL,
+	  N_("Costumize toolbars"),
+	  G_CALLBACK (window_cmd_edit_toolbar), NULL },
+	{ "EditPreferences", N_("P_references"), GTK_STOCK_PREFERENCES, NULL,
+	  N_("Configure the web browser"),
+	  G_CALLBACK (window_cmd_edit_prefs), NULL },
+
+	/* View menu */
+	{ "ViewStop", N_("_Stop"), GTK_STOCK_STOP, "Escape",
+	  N_("Stop current data transfer"),
+	  G_CALLBACK (window_cmd_view_reload), NULL },
+	{ "ViewReload", N_("_Reload"), GTK_STOCK_REFRESH, "<control>R",
+	  N_("Display the latest content of the current page"),
+	  G_CALLBACK (window_cmd_view_stop), NULL },
+	{ "ViewStatusbar", N_("St_atusbar"), NULL, NULL,
+	  N_("Show or hide statusbar"),
+	  G_CALLBACK (window_cmd_view_statusbar), NULL },
+	{ "ViewFullscreen", N_("_Fullscreen"), NULL, NULL,
+	  N_("Browse at full screen"),
+	  G_CALLBACK (window_cmd_view_fullscreen), NULL },
+	{ "ViewZoomIn", N_("Zoom _In"), GTK_STOCK_ZOOM_IN, "<control>plus",
+	  N_("Show the contents in more detail"),
+	  G_CALLBACK (window_cmd_view_zoom_in), NULL },
+	{ "ViewZoomOut", N_("Zoom _Out"), GTK_STOCK_ZOOM_OUT, "<control>minus",
+	  N_("Show the contents in less detail"),
+	  G_CALLBACK (window_cmd_view_zoom_out), NULL },
+	{ "ViewZoomNormal", N_("_Normal Size"), GTK_STOCK_ZOOM_100, NULL,
+	  N_("Show the contents at the normal size"),
+	  G_CALLBACK (window_cmd_view_zoom_normal), NULL },
+	{ "ViewPageSource", N_("_Page Source"), NULL, NULL,
+	  N_("View the source code of the page"),
+	  G_CALLBACK (window_cmd_view_page_source), NULL },
+
+	/* Go menu */
+	{ "GoBack", N_("_Back"), GTK_STOCK_GO_BACK, "<alt>left",
+	  N_("Go to the previous visited page"),
+	  G_CALLBACK (window_cmd_go_back), NULL },
+	{ "GoForward", N_("_Forward"), GTK_STOCK_GO_FORWARD, "<alt>right",
+	  N_("Go to the next visited page"),
+	  G_CALLBACK (window_cmd_go_forward), NULL },
+	{ "GoUp", N_("_Up"), GTK_STOCK_GO_UP, "<alt>up",
+	  N_("Go up one level"),
+	  G_CALLBACK (window_cmd_go_up), NULL },
+	{ "GoHome", N_("_Home"), GTK_STOCK_HOME, "<alt>home",
+	  N_("Go to the home page"),
+	  G_CALLBACK (window_cmd_go_home), NULL },
+	{ "GoLocation", N_("_Location..."), NULL, "<control>L",
+	  N_("Go to a specified location"),
+	  G_CALLBACK (window_cmd_go_location), NULL },
+	{ "GoHistory", N_("_History"), NULL, "<control>H",
+	  N_("Go to an already visited page"),
+	  G_CALLBACK (window_cmd_go_history), NULL },
+	{ "GoBookmarks", N_("_Bookmarks"), NULL, "<control>B",
+	  N_("Go to a bookmark"),
+	  G_CALLBACK (window_cmd_go_history), NULL },
+
+	/* Tabs menu */
+	{ "TabsPrevious", N_("_Previous Tab"), NULL, "<control>page_up",
+	  N_("Activate previous tab"),
+	  G_CALLBACK (window_cmd_tabs_previous), NULL },
+	{ "TabsNext", N_("_Next Tab"), NULL, "<control>page_down",
+	  N_("Activate next tab"),
+	  G_CALLBACK (window_cmd_tabs_next), NULL },
+	{ "TabsMoveLeft", N_("Move Tab _Left"), NULL, "<shift><control>page_up",
+	  N_("Move current tab to left"),
+	  G_CALLBACK (window_cmd_tabs_move_left), NULL },
+	{ "TabsMoveRight", N_("Move Tab _Right"), NULL, "<shift><control>page_up",
+	  N_("Move current tab to right"),
+	  G_CALLBACK (window_cmd_tabs_move_right), NULL },
+	{ "TabsDetach", N_("_Detach Tab"), NULL, "<shift><control>M",
+	  N_("Detach current tab"),
+	  G_CALLBACK (window_cmd_tabs_detach), NULL },
+
+	/* Help menu */
+	{ "HelpAbout", N_("_About"), NULL, NULL,
+	  N_("Display credits for the web browser creators"),
+	  G_CALLBACK (window_cmd_help_about), NULL },
 };
-
-static BonoboUIVerb ephy_popup_verbs [] = {
-        BONOBO_UI_VERB ("EPOpenInNewWindow", (BonoboUIVerbFn)popup_cmd_new_window),
-	BONOBO_UI_VERB ("EPOpenInNewTab", (BonoboUIVerbFn)popup_cmd_new_tab),
-	BONOBO_UI_VERB ("EPAddBookmark", (BonoboUIVerbFn)popup_cmd_add_bookmark),
-	BONOBO_UI_VERB ("EPOpenImageInNewWindow", (BonoboUIVerbFn)popup_cmd_image_in_new_window),
-	BONOBO_UI_VERB ("EPOpenImageInNewTab", (BonoboUIVerbFn)popup_cmd_image_in_new_tab),
-	BONOBO_UI_VERB ("DPOpenFrameInNewWindow", (BonoboUIVerbFn)popup_cmd_frame_in_new_window),
-	BONOBO_UI_VERB ("DPOpenFrameInNewTab", (BonoboUIVerbFn)popup_cmd_frame_in_new_tab),
-	BONOBO_UI_VERB ("DPAddFrameBookmark", (BonoboUIVerbFn)popup_cmd_add_frame_bookmark),
-	BONOBO_UI_VERB ("DPViewSource", (BonoboUIVerbFn)popup_cmd_view_source),
-
-        BONOBO_UI_VERB_END
-};
+static guint ephy_menu_n_entries = G_N_ELEMENTS (ephy_menu_entries);
 
 struct EphyWindowPrivate
 {
+	GtkWidget *main_vbox;
 	EphyFavoritesMenu *fav_menu;
 	PPViewToolbar *ppview_toolbar;
-	Toolbar *toolbar;
-	Statusbar *statusbar;
 	GtkNotebook *notebook;
 	EphyTab *active_tab;
 	GtkWidget *sidebar;
@@ -191,7 +262,7 @@ ephy_window_get_type (void)
                         (GInstanceInitFunc) ephy_window_init
                 };
 
-                ephy_window_type = g_type_register_static (BONOBO_TYPE_WINDOW,
+                ephy_window_type = g_type_register_static (GTK_TYPE_WINDOW,
 							   "EphyWindow",
 							   &our_info, 0);
         }
@@ -212,8 +283,7 @@ ephy_window_class_init (EphyWindowClass *klass)
 	widget_class->show = ephy_window_show;
 }
 
-static
-gboolean
+static gboolean
 ephy_window_key_press_event_cb (GtkWidget *widget,
 				GdkEventKey *event,
 				EphyWindow *window)
@@ -287,59 +357,57 @@ ephy_window_state_event_cb (GtkWidget *widget,
 }
 
 static void
-setup_bonobo_window (EphyWindow *window,
-		     BonoboUIComponent **ui_component)
+add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 {
-	BonoboWindow *win = BONOBO_WINDOW(window);
-	BonoboUIContainer *container;
-	Bonobo_UIContainer corba_container;
+	g_print ("ADD WIDGET");
+	gtk_box_pack_start (GTK_BOX (window->priv->main_vbox),
+			    widget, FALSE, FALSE, 0);
+	gtk_widget_show (widget);
+}
 
-	container = bonobo_window_get_ui_container (win);
+static void
+setup_window (EphyWindow *window)
+{
+	EggActionGroup *action_group;
+	EggMenuMerge *merge;
 
-        bonobo_ui_engine_config_set_path (bonobo_window_get_ui_engine (win),
-                                          "/apps/ephy/UIConfig/kvps");
+	window->priv->main_vbox = gtk_vbox_new (FALSE, 0);
+	gtk_widget_show (window->priv->main_vbox);
+	gtk_container_add (GTK_CONTAINER (window),
+			   window->priv->main_vbox);
 
-        corba_container = BONOBO_OBJREF (container);
+	action_group = egg_action_group_new ("WindowActions");
+	egg_action_group_add_actions (action_group, ephy_menu_entries,
+				      ephy_menu_n_entries);
 
-	*ui_component = bonobo_ui_component_new_default ();
+	merge = egg_menu_merge_new ();
+	egg_menu_merge_insert_action_group (merge, action_group, 0);
+	g_signal_connect (merge, "add_widget", G_CALLBACK (add_widget), window);
+	egg_menu_merge_add_ui_from_file (merge, ephy_file ("epiphany-ui.xml"), NULL);
+	gtk_window_add_accel_group (GTK_WINDOW (window), merge->accel_group);
+	window->ui_merge = G_OBJECT (merge);
 
-	bonobo_ui_component_set_container (*ui_component,
-					   corba_container,
-					   NULL);
-
-	bonobo_ui_util_set_ui (*ui_component,
-			       DATADIR,
-			       "epiphany-ui.xml",
-			       "ephy", NULL);
-
-	/* Key handling */
-	g_signal_connect(G_OBJECT(win),
+	g_signal_connect(window,
 			 "key-press-event",
                          G_CALLBACK(ephy_window_key_press_event_cb),
                          window);
-
-	g_signal_connect (G_OBJECT(win), "configure_event",
+	g_signal_connect (window, "configure_event",
 			  G_CALLBACK (ephy_window_configure_event_cb), NULL);
-	g_signal_connect (G_OBJECT(win), "window_state_event",
+	g_signal_connect (window, "window_state_event",
 			  G_CALLBACK (ephy_window_state_event_cb), NULL);
-
-	g_signal_connect (G_OBJECT(win),
+	g_signal_connect (window,
 			  "selection-received",
 			  G_CALLBACK (ephy_window_selection_received_cb),
 			  window);
 }
 
 static EphyEmbedPopupBW *
-setup_popup_factory (EphyWindow *window,
-		     BonoboUIComponent *ui_component)
+setup_popup_factory (EphyWindow *window)
 {
 	EphyEmbedPopupBW *popup;
 
 	popup = ephy_window_get_popup_factory (window);
 	g_object_set_data (G_OBJECT(popup), "EphyWindow", window);
-	bonobo_ui_component_add_verb_list_with_data (ui_component,
-						     ephy_popup_verbs,
-						     popup);
 
 	return popup;
 }
@@ -369,89 +437,6 @@ setup_notebook (EphyWindow *window)
 }
 
 static void
-view_toolbar_changed_cb (BonoboUIComponent *component,
-                         const char *path,
-                         Bonobo_UIComponent_EventType type,
-                         const char *state,
-                         EphyWindow *window)
-{
-	EmbedChromeMask mask;
-
-	if (window->priv->ignore_layout_toggles) return;
-
-        mask = ephy_window_get_chrome (window);
-        mask ^= EMBED_CHROME_TOOLBARON;
-        ephy_window_set_chrome (window, mask);
-}
-
-static void
-view_statusbar_changed_cb (BonoboUIComponent *component,
-                           const char *path,
-                           Bonobo_UIComponent_EventType type,
-                           const char *state,
-                           EphyWindow *window)
-{
-	EmbedChromeMask mask;
-
-	if (window->priv->ignore_layout_toggles) return;
-
-        mask = ephy_window_get_chrome (window);
-        mask ^= EMBED_CHROME_STATUSBARON;
-        ephy_window_set_chrome (window, mask);
-}
-
-static void
-view_fullscreen_changed_cb (BonoboUIComponent *component,
-                            const char *path,
-                            Bonobo_UIComponent_EventType type,
-                            const char *state,
-                            EphyWindow *window)
-{
-	EmbedChromeMask mask;
-
-	if (window->priv->ignore_layout_toggles) return;
-
-	mask = ephy_window_get_chrome (window);
-	mask ^= EMBED_CHROME_OPENASFULLSCREEN;
-	mask |= EMBED_CHROME_DEFAULT;
-	ephy_window_set_chrome (window, mask);
-}
-
-static void
-update_layout_toggles (EphyWindow *window)
-{
-	BonoboUIComponent *ui_component = BONOBO_UI_COMPONENT (window->ui_component);
-	EmbedChromeMask mask = window->priv->chrome_mask;
-
-	window->priv->ignore_layout_toggles = TRUE;
-
-	ephy_bonobo_set_toggle_state (ui_component, VIEW_TOOLBAR_PATH,
-				     mask & EMBED_CHROME_TOOLBARON);
-	ephy_bonobo_set_toggle_state (ui_component, VIEW_STATUSBAR_PATH,
-				     mask & EMBED_CHROME_STATUSBARON);
-	ephy_bonobo_set_toggle_state (ui_component, VIEW_FULLSCREEN_PATH,
-				     mask & EMBED_CHROME_OPENASFULLSCREEN);
-
-	window->priv->ignore_layout_toggles = FALSE;
-}
-
-static void
-setup_layout_menus (EphyWindow *window)
-{
-	BonoboUIComponent *ui_component = BONOBO_UI_COMPONENT (window->ui_component);
-
-	bonobo_ui_component_add_listener (ui_component, ID_VIEW_TOOLBAR,
-					  (BonoboUIListenerFn)view_toolbar_changed_cb,
-					  window);
-	bonobo_ui_component_add_listener (ui_component, ID_VIEW_STATUSBAR,
-					  (BonoboUIListenerFn)view_statusbar_changed_cb,
-					  window);
-	bonobo_ui_component_add_listener (ui_component, ID_VIEW_FULLSCREEN,
-					  (BonoboUIListenerFn)view_fullscreen_changed_cb,
-					  window);
-}
-
-static void
 favicon_cache_changed_cb (EphyFaviconCache *cache, char *url, EphyWindow *window)
 {
 	ephy_window_update_control (window, FaviconControl);
@@ -460,7 +445,6 @@ favicon_cache_changed_cb (EphyFaviconCache *cache, char *url, EphyWindow *window
 static void
 ephy_window_init (EphyWindow *window)
 {
-	BonoboUIComponent *ui_component;
 	Session *session;
 	EphyFaviconCache *cache;
 
@@ -482,42 +466,31 @@ ephy_window_init (EphyWindow *window)
 				 0);
 
 	/* Setup the window and connect verbs */
-	setup_bonobo_window (window, &ui_component);
-	window->ui_component = G_OBJECT (ui_component);
-	bonobo_ui_component_add_verb_list_with_data (ui_component,
-						     ephy_verbs,
-						     window);
-	setup_layout_menus (window);
+	setup_window (window);
 
 	/* Setup the embed popups factory */
-	window->priv->embed_popup = setup_popup_factory (window,
-							 ui_component);
-
-	bonobo_ui_component_freeze (ui_component, NULL);
+	window->priv->embed_popup = setup_popup_factory (window);
 
 	/* Setup menubar */
-	ephy_embed_utils_build_charsets_submenu (ui_component,
+	ephy_embed_utils_build_charsets_submenu (window->ui_merge,
                                                  CHARSET_MENU_PATH,
-                                                 (BonoboUIVerbFn)window_cmd_set_charset,
+                                                 (GCallback)window_cmd_set_charset,
                                                  window);
 	window->priv->fav_menu = ephy_favorites_menu_new (window);
 	ephy_favorites_menu_set_path (window->priv->fav_menu, GO_FAVORITES_PATH);
 
 	/* Setup toolbar and statusbar */
-	window->priv->toolbar = toolbar_new (window);
-	window->priv->statusbar = statusbar_new (window);
 	window->priv->ppview_toolbar = ppview_toolbar_new (window);
 
 	/* Setup window contents */
 	window->priv->notebook = setup_notebook (window);
-	bonobo_window_set_contents (BONOBO_WINDOW (window),
-				    GTK_WIDGET (window->priv->notebook));
-
-	bonobo_ui_component_thaw (ui_component, NULL);
+	gtk_box_pack_end (GTK_BOX (window->priv->main_vbox),
+			  GTK_WIDGET (window->priv->notebook),
+			  TRUE, TRUE, 0);
 
 	g_object_ref (ephy_shell);
 
-	/*Once window is fully created, add it to the session list*/
+	/* Once window is fully created, add it to the session list*/
 	session_add_window (session, window);
 }
 
@@ -577,9 +550,6 @@ ephy_window_finalize (GObject *object)
 		g_object_unref (G_OBJECT (window->priv->embed_popup));
 	}
 
-	g_object_unref (G_OBJECT (window->priv->toolbar));
-	g_object_unref (G_OBJECT (window->priv->statusbar));
-
 	if (window->priv->find_dialog)
 	{
 		g_object_unref (G_OBJECT (window->priv->find_dialog));
@@ -605,16 +575,6 @@ EphyWindow *
 ephy_window_new (void)
 {
 	return EPHY_WINDOW (g_object_new (EPHY_WINDOW_TYPE, NULL));
-}
-
-static void
-dock_item_set_visibility (EphyWindow *window,
-			  const char *path,
-			  gboolean visibility)
-{
-	ephy_bonobo_set_hidden (BONOBO_UI_COMPONENT(window->ui_component),
-                               path,
-                               !visibility);
 }
 
 EmbedChromeMask
@@ -718,14 +678,14 @@ void
 ephy_window_set_chrome (EphyWindow *window,
 			EmbedChromeMask flags)
 {
-	gboolean toolbar, ppvtoolbar, statusbar;
+	//gboolean toolbar, ppvtoolbar, statusbar;
 
 	if (flags & EMBED_CHROME_DEFAULT)
 	{
 		translate_default_chrome (&flags);
 	}
 
-	dock_item_set_visibility (window, "/menu",
+/*	dock_item_set_visibility (window, "/menu",
 				  flags & EMBED_CHROME_MENUBARON);
 
 	toolbar = (flags & EMBED_CHROME_TOOLBARON) != FALSE;
@@ -740,7 +700,7 @@ ephy_window_set_chrome (EphyWindow *window,
 	ppview_toolbar_set_old_chrome (window->priv->ppview_toolbar,
 				       window->priv->chrome_mask);
 	ppview_toolbar_set_visibility (window->priv->ppview_toolbar,
-				       ppvtoolbar);
+				       ppvtoolbar);*/
 
 	/* set fullscreen only when it's really changed */
 	if ((window->priv->chrome_mask & EMBED_CHROME_OPENASFULLSCREEN) !=
@@ -752,8 +712,6 @@ ephy_window_set_chrome (EphyWindow *window,
 	}
 
 	window->priv->chrome_mask = flags;
-
-	update_layout_toggles (window);
 
 	save_window_chrome (window);
 }
@@ -860,7 +818,7 @@ ephy_window_load_url (EphyWindow *window,
 
 void ephy_window_activate_location (EphyWindow *window)
 {
-	toolbar_activate_location (window->priv->toolbar);
+	//toolbar_activate_location (window->priv->toolbar);
 }
 
 void
@@ -901,8 +859,8 @@ update_status_message (EphyWindow *window)
 	message = ephy_tab_get_status_message (tab);
 	g_return_if_fail (message != NULL);
 
-	statusbar_set_message (STATUSBAR(window->priv->statusbar),
-			       message);
+	/*statusbar_set_message (STATUSBAR(window->priv->statusbar),
+			       message);*/
 }
 
 static void
@@ -915,9 +873,9 @@ update_progress (EphyWindow *window)
 	g_return_if_fail (tab != NULL);
 
 	load_percent = ephy_tab_get_load_percent (tab);
-
+/*
 	statusbar_set_progress (STATUSBAR(window->priv->statusbar),
-			        load_percent);
+			        load_percent);*/
 }
 
 static void
@@ -979,9 +937,9 @@ update_security (EphyWindow *window)
 		tooltip = g_strdup_printf (_("Security level: %s"), state);
 
 	}
-
+/*
 	statusbar_set_security_state (STATUSBAR (window->priv->statusbar),
-			              secure, tooltip);
+			              secure, tooltip);*/
 	g_free (tooltip);
 }
 
@@ -1010,29 +968,18 @@ update_nav_control (EphyWindow *window)
 	up = ephy_embed_can_go_up (embed);
 	stop = ephy_tab_get_load_status (tab) & TAB_LOAD_STARTED;
 
-	toolbar_button_set_sensitive (window->priv->toolbar,
-				      TOOLBAR_BACK_BUTTON,
-				      back == G_OK ? TRUE : FALSE);
-	toolbar_button_set_sensitive (window->priv->toolbar,
-				      TOOLBAR_FORWARD_BUTTON,
-				      forward == G_OK ? TRUE : FALSE);
-	toolbar_button_set_sensitive (window->priv->toolbar,
-				      TOOLBAR_UP_BUTTON,
-				      up == G_OK ? TRUE : FALSE);
-	toolbar_button_set_sensitive (window->priv->toolbar,
-				      TOOLBAR_STOP_BUTTON,
-				      stop);
 	if (ephy_embed_zoom_get (embed, &zoom) == G_OK)
 	{
-		toolbar_set_zoom (window->priv->toolbar, zoom);
+//		toolbar_set_zoom (window->priv->toolbar, zoom);
 	}
 
+	/*
 	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
 			          GO_BACK_CMD_PATH, !back);
 	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
 			          GO_FORWARD_CMD_PATH, !forward);
 	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
-			          GO_UP_CMD_PATH, !up);
+			          GO_UP_CMD_PATH, !up);*/
 }
 
 static void
@@ -1066,8 +1013,8 @@ update_location_control (EphyWindow *window)
 
 	if (!location) location = "";
 
-	toolbar_set_location (window->priv->toolbar,
-			      location);
+	/*toolbar_set_location (window->priv->toolbar,
+			      location);*/
 }
 
 static void
@@ -1094,7 +1041,7 @@ update_favicon_control (EphyWindow *window)
 	}
 	gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
 
-	toolbar_update_favicon (window->priv->toolbar);
+	//toolbar_update_favicon (window->priv->toolbar);
 }
 
 static void
@@ -1108,11 +1055,11 @@ update_find_control (EphyWindow *window)
 			(FIND_DIALOG(window->priv->find_dialog));
 		can_go_prev = find_dialog_can_go_prev
 			(FIND_DIALOG(window->priv->find_dialog));
-
+/*
 		ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
 					  EDIT_FIND_NEXT_CMD_PATH, can_go_next);
 		ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
-					  EDIT_FIND_PREV_CMD_PATH, can_go_prev);
+					  EDIT_FIND_PREV_CMD_PATH, can_go_prev);*/
 	}
 }
 
@@ -1154,13 +1101,13 @@ update_spinner_control (EphyWindow *window)
 
 		if (ephy_tab_get_load_status (tab) & TAB_LOAD_STARTED)
 		{
-			toolbar_spinner_start (window->priv->toolbar);
+			//toolbar_spinner_start (window->priv->toolbar);
 			return;
 		}
 	}
 	g_list_free (l);
 
-	toolbar_spinner_stop (window->priv->toolbar);
+//	toolbar_spinner_stop (window->priv->toolbar);
 }
 
 void
@@ -1218,7 +1165,7 @@ void
 ephy_window_update_all_controls (EphyWindow *window)
 {
 	g_return_if_fail (IS_EPHY_WINDOW (window));
-	
+
 	if (ephy_window_get_active_tab (window) != NULL)
 	{
 		update_nav_control (window);
@@ -1260,7 +1207,7 @@ ephy_window_get_active_embed (EphyWindow *window)
 EphyEmbedPopupBW *
 ephy_window_get_popup_factory (EphyWindow *window)
 {
-	if (!window->priv->embed_popup)
+/*	if (!window->priv->embed_popup)
 	{
 		window->priv->embed_popup = ephy_embed_popup_bw_new
 			(BONOBO_WINDOW(window));
@@ -1269,7 +1216,7 @@ ephy_window_get_popup_factory (EphyWindow *window)
 			 BONOBO_UI_COMPONENT (window->ui_component));
 	}
 
-	return window->priv->embed_popup;
+	return window->priv->embed_popup;*/
 }
 
 GList *
@@ -1297,7 +1244,7 @@ static void
 save_old_embed_status (EphyTab *tab, EphyWindow *window)
 {
 	/* save old tab location status */
-	ephy_tab_set_location (tab, toolbar_get_location (window->priv->toolbar));
+	//ephy_tab_set_location (tab, toolbar_get_location (window->priv->toolbar));
 }
 
 static void
@@ -1335,9 +1282,9 @@ update_embed_dialogs (EphyWindow *window,
 
 static void
 ephy_window_notebook_switch_page_cb (GtkNotebook *notebook,
-				       GtkNotebookPage *page,
-				       guint page_num,
-				       EphyWindow *window)
+				     GtkNotebookPage *page,
+				     guint page_num,
+				     EphyWindow *window)
 {
 	EphyTab *tab, *old_tab;
 
@@ -1433,7 +1380,8 @@ ephy_window_set_zoom (EphyWindow *window,
 Toolbar *
 ephy_window_get_toolbar (EphyWindow *window)
 {
-	return window->priv->toolbar;
+	//return window->priv->toolbar;
+	return NULL;
 }
 
 void

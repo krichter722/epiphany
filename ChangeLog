@@ -1,3 +1,12 @@
+2003-01-14  Marco Pesenti Gritti  <marco@it.gnome.org>
+	
+	* src/ephy-window.c:
+	* src/ephy-window.h:
+	* src/window-commands.c:
+	* src/window-commands.h:
+
+	Some work on the new menu stuff
+
 2003-01-13  Marco Pesenti Gritti  <marco@it.gnome.org>
 
 	* embed/mozilla/FilePicker.cpp:
