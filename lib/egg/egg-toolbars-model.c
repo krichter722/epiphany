@@ -442,6 +442,8 @@ egg_toolbars_model_load (EggToolbarsModel *t,
 
   g_return_val_if_fail (EGG_IS_TOOLBARS_MODEL (t), FALSE);
 
+  if (!xml_file || !g_file_test (xml_file, G_FILE_TEST_EXISTS)) return FALSE;
+
   doc = xmlParseFile (xml_file);
   if (doc == NULL)
   {
@@ -450,7 +452,6 @@ egg_toolbars_model_load (EggToolbarsModel *t,
   }
   root = xmlDocGetRootElement (doc);
 
-  t->priv->toolbars = g_node_new (NULL);
   parse_toolbars (t, root->children);
 
   xmlFreeDoc (doc);
@@ -554,7 +555,7 @@ egg_toolbars_model_init (EggToolbarsModel *t)
 {
   t->priv =EGG_TOOLBARS_MODEL_GET_PRIVATE (t);
 
-  t->priv->toolbars = NULL;
+  t->priv->toolbars = g_node_new (NULL);
 }
 
 static void

@@ -54,7 +54,7 @@ struct EggEditableToolbarClass
   GtkVBoxClass parent_class;
 
   void (* action_request) (EggEditableToolbar *etoolbar,
-			   char *action_name);
+			   const char *action_name);
 };
 
 GType               egg_editable_toolbar_get_type        (void);
