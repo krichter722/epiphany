@@ -1,6 +1,18 @@
 2003-10-15  Xan Lopez  <xan@masilla.org>
 
 	* data/glade/epiphany.glade:
+	* embed/downloader-view.c: (downloader_view_init),
+	(downloader_view_finalize), (download_changed_cb),
+	(downloader_view_add_download), (downloader_view_build_ui),
+	(download_dialog_pause_cb), (downloader_view_remove_download),
+	(download_dialog_abort_cb), (download_dialog_delete_cb):
+
+	Re-add abort UI, drop details
+	Serious glade cleanup is left as an exercise for the reader
+
+2003-10-15  Xan Lopez  <xan@masilla.org>
+
+	* data/glade/epiphany.glade:
 	* embed/downloader-view.c: (downloader_view_add_download),
 	(download_dialog_pause_cb), (download_dialog_abort_cb):
 	* embed/downloader-view.h:
