@@ -1,5 +1,11 @@
 2004-05-23  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/GtkNSSDialogs.cpp:
+
+	Port to embed strings
+
+2004-05-23  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/mozilla/EphyAboutRedirector.cpp:
 	* embed/mozilla/EphyContentPolicy.cpp:
 	* embed/mozilla/GlobalHistory.cpp:
