@@ -232,21 +232,25 @@ downloader_view_new (void)
 }
 
 static void
-downloader_view_update_controls (DownloaderViewPrivate *priv)
+download_changed_cb (DownloaderView *dv, EphyDownload *download)
 {
-}
+	DownloadDetails *details;
+	GtkTreePath *path;
+	GtkTreeIter iter;
+	int percent;
 
-static void
-downloader_view_update_details (DownloaderViewPrivate *priv,
-				DownloadDetails *details)
-{
-}
+	details = g_hash_table_lookup (dv->priv->details_hash,
+				       download);
+	g_return_if_fail (details != NULL);
 
-static void
-downloader_view_set_download_info (DownloaderViewPrivate *priv,
-				   DownloadDetails *details,
-				   GtkTreeIter *iter)
-{
+	percent = ephy_download_get_percent (download);
+	path = gtk_tree_row_reference_get_path (details->ref);
+	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
+			    &iter,
+			    COL_PERCENT, percent,
+			    -1);
+
+	gtk_tree_path_free (path);
 }
 
 void
@@ -257,7 +261,7 @@ downloader_view_add_download (DownloaderView *dv,
 	DownloadDetails *details;
 	GtkTreeSelection *selection;
 	GtkTreePath *path;
-	char *target;
+	char *name;
 
 	details = g_new0 (DownloadDetails, 1);
 
@@ -273,20 +277,21 @@ downloader_view_add_download (DownloaderView *dv,
 				(GTK_TREE_MODEL (dv->priv->model),path);
 	gtk_tree_path_free (path);
 
-	target = ephy_download_get_target (download);
+	name = ephy_download_get_name (download);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
-			    COL_FILENAME, target,
+			    COL_PERCENT, name,
 			    COL_PERSIST_OBJECT, download,
 			    -1);
-	g_free (target);
+	g_free (name);
 
 	selection = gtk_tree_view_get_selection
 		(GTK_TREE_VIEW(dv->priv->treeview));
 	gtk_tree_selection_unselect_all (selection);
 	gtk_tree_selection_select_iter (selection, &iter);
 
-	downloader_view_set_download_info (dv->priv, details, &iter);
+	g_signal_connect (download, "changed",
+			  G_CALLBACK (download_changed_cb), dv);
 
 	ephy_dialog_show (EPHY_DIALOG (dv));
 }
@@ -331,7 +336,7 @@ downloader_view_build_ui (DownloaderView *dv)
 	gtk_widget_show (priv->details_location);
 
 	liststore = gtk_list_store_new (5,
-					G_TYPE_STRING,
+					G_TYPE_INT,
 					G_TYPE_STRING,
 					G_TYPE_STRING,
 					G_TYPE_STRING,
@@ -446,49 +451,6 @@ static void
 downloader_treeview_selection_changed_cb (GtkTreeSelection *selection,
 					  DownloaderView *dv)
 {
-	GtkTreeIter iter;
-	GValue val = {0, };
-	gpointer *persist_object;
-	DownloadDetails *details = NULL;
-	GtkWidget *details_button;
-	GtkWidget *details_frame;
-	DownloaderViewPrivate *priv= dv->priv;
-
-	details_button = ephy_dialog_get_control (EPHY_DIALOG(dv),
-						  PROP_DETAILS_BUTTON);
-	details_frame = ephy_dialog_get_control (EPHY_DIALOG(dv),
-						 PROP_DETAILS_FRAME);
-
-	if (gtk_tree_selection_count_selected_rows (selection) > 0)
-	{
-		gtk_tree_model_get_value (priv->model, &iter, COL_PERSIST_OBJECT, &val);
-		persist_object = g_value_get_pointer (&val);
-		g_value_unset (&val);
-
-		details = g_hash_table_lookup (priv->details_hash,
-					       persist_object);
-		g_return_if_fail (details);
-
-		gtk_widget_set_sensitive (details_button, TRUE);
-		gtk_widget_set_sensitive (details_frame, TRUE);
-
-		downloader_view_update_details (priv, details);
-		downloader_view_update_controls (priv);
-	}
-	else
-	{
-		gtk_label_set_text (GTK_LABEL (priv->details_location), "");
-		gtk_label_set_text (GTK_LABEL (priv->details_status), "");
-		gtk_label_set_text (GTK_LABEL (priv->details_elapsed), "");
-		gtk_label_set_text (GTK_LABEL (priv->details_remaining), "");
-		gtk_progress_bar_set_fraction
-			(GTK_PROGRESS_BAR (priv->details_progress),
-			 0);
-
-		gtk_widget_set_sensitive (details_frame, FALSE);
-		if (!gtk_tree_model_get_iter_first (priv->model, &iter))
-			gtk_widget_set_sensitive (details_button, FALSE);
-	}
 }
 
 gboolean

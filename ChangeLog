@@ -1,5 +1,19 @@
 2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/downloader-view.c: (download_changed_cb),
+	(downloader_view_add_download), (downloader_view_build_ui),
+	(downloader_treeview_selection_changed_cb):
+	* embed/ephy-download.c: (ephy_download_class_init),
+	(ephy_download_new), (ephy_download_get_name):
+	* embed/ephy-download.h:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+
+	Implement a download changed signal and try to update
+	percent in the treeview.
+
+2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/ephy-download.c: (ephy_download_get_source),
 	(ephy_download_get_target), (ephy_download_get_percent):
 	* embed/ephy-download.h:

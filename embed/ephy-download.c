@@ -24,12 +24,22 @@
 
 #include "ephy-download.h"
 
+#include <libgnomevfs/gnome-vfs-uri.h>
+
 static void
 ephy_download_class_init (EphyDownloadClass *klass);
 static void
 ephy_download_init (EphyDownload *dv);
 
+enum
+{
+	CHANGED,
+	LAST_SIGNAL
+};
+
 static GObjectClass *parent_class = NULL;
+
+static guint ephy_download_signals[LAST_SIGNAL] = { 0 };
 
 GType
 ephy_download_get_type (void)
@@ -63,6 +73,16 @@ static void
 ephy_download_class_init (EphyDownloadClass *klass)
 {
         parent_class = g_type_class_peek_parent (klass);
+
+	ephy_download_signals[CHANGED] =
+                g_signal_new ("changed",
+                              EPHY_TYPE_DOWNLOAD,
+                              G_SIGNAL_RUN_FIRST,
+                              G_STRUCT_OFFSET (EphyDownloadClass, changed),
+                              NULL, NULL,
+                              g_cclosure_marshal_VOID__VOID,
+                              G_TYPE_NONE,
+                              0);
 }
 
 static void
@@ -74,6 +94,29 @@ EphyDownload *
 ephy_download_new (void)
 {
 	return EPHY_DOWNLOAD (g_object_new (EPHY_TYPE_DOWNLOAD, NULL));
+}
+
+char *
+ephy_download_get_name (EphyDownload *download)
+{
+	GnomeVFSURI *uri;
+	char *target;
+	char *result;
+
+	target = ephy_download_get_target (download);
+
+	uri = gnome_vfs_uri_new (target);
+	if (uri)
+	{
+		result = gnome_vfs_uri_extract_short_name (uri);
+		gnome_vfs_uri_unref (uri);
+	}
+	else
+	{
+		result = g_strdup ("Unknown");
+	}
+
+	return result;
 }
 
 char *

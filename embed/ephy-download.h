@@ -57,11 +57,15 @@ struct EphyDownloadClass
 	void   (* cancel)      (EphyDownload *download);
 	void   (* pause)       (EphyDownload *download);
 	void   (* resume)      (EphyDownload *download);
+
+	void   (* changed)     (EphyDownload *download);
 };
 
 GType           ephy_download_get_type          (void);
 
 EphyDownload   *ephy_download_new               (void);
+
+char	       *ephy_download_get_name		(EphyDownload *download);
 
 char	       *ephy_download_get_source	(EphyDownload *download);
 

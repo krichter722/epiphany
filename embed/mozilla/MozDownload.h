@@ -50,6 +50,7 @@
 #include "nsIWebBrowserPersist.h"
 
 #include "downloader-view.h"
+#include "ephy-download.h"
 #include "ephy-embed-shell.h"
 
 //*****************************************************************************
@@ -114,6 +115,7 @@ protected:
     PRInt32 mRateChangeLimit;
     PRInt64 mLastUpdate;
     PRInt32 mInterval;
+    EphyDownload   *mEphyDownload;
     DownloaderView *mDownloaderView;
     MozillaEmbedPersist *mEmbedPersist;
 };

@@ -90,10 +90,9 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 	DownloaderView *dview;
 	dview = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
 			             (embed_shell));
-	EphyDownload *download;
-	download = mozilla_download_new ();
-	MOZILLA_DOWNLOAD (download)->moz_download = this;
-	downloader_view_add_download (dview, download);
+	mEphyDownload = mozilla_download_new ();
+	MOZILLA_DOWNLOAD (mEphyDownload)->moz_download = this;
+	downloader_view_add_download (dview, mEphyDownload);
     }
     catch (...) {
         return NS_ERROR_FAILURE;
@@ -258,7 +257,9 @@ MozDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest
         mPercentComplete = -1;
     else
         mPercentComplete = (PRInt32)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0 + 0.5);
-    
+
+    g_signal_emit_by_name (mEphyDownload, "changed");
+
     return NS_OK;
 }
 
