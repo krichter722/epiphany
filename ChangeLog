@@ -1,3 +1,16 @@
+2003-10-02  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c: (completion_func),
+	(ephy_location_entry_init), (ephy_location_entry_add_completion):
+
+	Costum match function to deal with prefixes.
+
+	* lib/widgets/ephy-tree-model-node.c:
+	(ephy_tree_model_node_get_column_type),
+	(ephy_tree_model_node_get_value):
+
+	Fix column indexes.
+
 2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* lib/widgets/ephy-location-entry.c: (entry_button_press_cb),

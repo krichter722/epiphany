@@ -378,7 +378,7 @@ ephy_tree_model_node_get_column_type (GtkTreeModel *tree_model,
 	if (index == EPHY_TREE_MODEL_NODE_COL_VISIBLE)
 		return G_TYPE_BOOLEAN;
 
-	list_index = index - EPHY_TREE_MODEL_NODE_BUILTIN_COLUMNS - 1;
+	list_index = index - EPHY_TREE_MODEL_NODE_BUILTIN_COLUMNS;
 	col = g_ptr_array_index (model->priv->columns, list_index);
 
 	return col->type;
@@ -420,7 +420,7 @@ ephy_tree_model_node_get_value (GtkTreeModel *tree_model,
 	}
 	else
 	{
-		list_index = column - EPHY_TREE_MODEL_NODE_BUILTIN_COLUMNS - 1;
+		list_index = column - EPHY_TREE_MODEL_NODE_BUILTIN_COLUMNS;
 		col = g_ptr_array_index (model->priv->columns, list_index);
 
 		g_return_if_fail (col != NULL);

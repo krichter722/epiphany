@@ -30,19 +30,33 @@
 #include <gtk/gtkcomboboxentry.h>
 #include <gtk/gtkentry.h>
 #include <gtk/gtkwindow.h>
+#include <gtk/gtkcellrenderertext.h>
+#include <gtk/gtkcelllayout.h>
 #include <string.h>
 
 #define EPHY_LOCATION_ENTRY_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_LOCATION_ENTRY, EphyLocationEntryPrivate))
 
 struct _EphyLocationEntryPrivate
 {
+	GtkTreeModel *completion_model;
 	GtkListStore *combo_model;
 	GtkWidget *combo;
 	GtkWidget *entry;
 	char *before_completion;
 	gboolean user_changed;
 	gboolean activation_mode;
+	int compl_text_col;
 };
+
+static char *web_prefixes [] =
+{
+	"http://www.",
+        "http://",
+        "https://www.",
+        "https://",
+        "www."
+};
+static int n_web_prefixes = G_N_ELEMENTS (web_prefixes);
 
 static void ephy_location_entry_class_init (EphyLocationEntryClass *klass);
 static void ephy_location_entry_init (EphyLocationEntry *le);
@@ -193,6 +207,58 @@ entry_activate_cb (GtkEntry *entry, EphyLocationEntry *e)
 	g_free (content);
 }
 
+static gboolean
+completion_func (GtkEntryCompletion *completion,
+                 const char *key,
+		 GtkTreeIter *iter,
+		 gpointer data)
+{
+	int i;
+	char *item = NULL;
+	char *normalized_string;
+	char *case_normalized_string;
+	gboolean ret = FALSE;
+	EphyLocationEntry *le = EPHY_LOCATION_ENTRY (data);
+	GtkTreeModel *model;
+
+	model = gtk_entry_completion_get_model (completion);
+	gtk_tree_model_get (model, iter,
+                            le->priv->compl_text_col, &item,
+                            -1, NULL);
+
+	normalized_string = g_utf8_normalize (item, -1, G_NORMALIZE_ALL);
+	case_normalized_string = g_utf8_casefold (normalized_string, -1);
+
+	if (!strncmp (key, case_normalized_string, strlen (key)))
+	{
+		ret = TRUE;
+	}
+	else
+	{
+		for (i = 0; i < n_web_prefixes; i++)
+		{
+			char *key_prefixed;
+
+			key_prefixed = g_strconcat (web_prefixes[i], key, NULL);
+
+			if (!strncmp (key_prefixed, case_normalized_string,
+				      strlen (key_prefixed)))
+			{
+				ret = TRUE;
+				break;
+			}
+
+			g_free (key_prefixed);
+		}
+	}
+
+	g_free (item);
+	g_free (normalized_string);
+	g_free (case_normalized_string);
+
+	return ret;
+}
+
 static void
 ephy_location_entry_construct_contents (EphyLocationEntry *le)
 {
@@ -226,6 +292,7 @@ ephy_location_entry_init (EphyLocationEntry *le)
 
 	p->user_changed = TRUE;
 	p->activation_mode = FALSE;
+	p->completion_model = NULL;
 
 	ephy_location_entry_construct_contents (le);
 
@@ -262,17 +329,25 @@ ephy_location_entry_add_completion (EphyLocationEntry *le,
 {
 	EphyTreeModelNode *node_model;
 	GtkEntryCompletion *completion;
+	GtkCellRenderer *cell;
 	int action_col;
 
 	node_model = ephy_tree_model_node_new (root, NULL);
-	ephy_tree_model_node_add_prop_column
+	le->priv->completion_model = GTK_TREE_MODEL (node_model);
+	le->priv->compl_text_col = ephy_tree_model_node_add_prop_column
 		(node_model, G_TYPE_STRING, text_property);
 	action_col = ephy_tree_model_node_add_prop_column
 		(node_model, G_TYPE_STRING, action_property);
 
 	completion = gtk_entry_completion_new ();
 	gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (node_model));
-	gtk_entry_completion_set_text_column (completion, action_col);
+	gtk_entry_completion_set_match_func (completion, completion_func, le, NULL);
+
+	cell = gtk_cell_renderer_text_new ();
+	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion),
+				    cell, TRUE);
+	gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion),
+				       cell, "text", action_col);
 
 	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
