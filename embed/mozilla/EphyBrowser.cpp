@@ -40,6 +40,7 @@
 #include "nsIWebBrowserFocus.h"
 #include "nsICommandManager.h"
 #include "nsIWebBrowserPrint.h"
+#include "nsIDocCharset.h"
 #include "nsIDocShellTreeItem.h"
 #include "nsIDocShellTreeNode.h"
 #include "nsIDocShellTreeOwner.h"
@@ -660,15 +661,13 @@ nsresult EphyBrowser::GetEncoding (nsACString &encoding)
 {
 	NS_ENSURE_TRUE (mWebBrowser, NS_ERROR_FAILURE);
 
-	nsCOMPtr<nsIDOMDocument> domDoc;
-	GetTargetDocument (getter_AddRefs(domDoc));
-	NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
+	nsCOMPtr<nsIDocCharset> docCharset = do_GetInterface (mWebBrowser);
+	NS_ENSURE_TRUE (docCharset, NS_ERROR_FAILURE);
 
-	nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
-	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
-
-	encoding = doc->GetDocumentCharacterSet ();
-	NS_ENSURE_TRUE (encoding.Length(), NS_ERROR_FAILURE);
+	char *charset;
+	docCharset->GetCharset (&charset);
+	encoding = charset;
+	g_free (charset);
 
 	return NS_OK;
 }
@@ -728,6 +727,31 @@ nsresult EphyBrowser::GetCommandState (const char *command, PRBool *enabled)
 
 #define NUM_MODIFIED_TEXTFIELDS_REQUIRED	2
 
+PRBool
+EphyBrowser::CompareFormsText (nsAString &aDefaultText, nsAString &aUserText)
+{
+	/* Mozilla Bug 218277, 195946 and others */
+	const PRUnichar *text = aDefaultText.BeginReading();
+	for (PRUint32 i = 0; i < aDefaultText.Length(); i++)
+	{
+		if (text[i] == 0xa0)
+		{
+			aDefaultText.Replace (i, 1, ' ');
+		}
+	}
+
+	if (aDefaultText.Length() != aUserText.Length())
+	{
+		return FALSE;
+	}
+	else
+	{
+		return memcmp (aDefaultText.BeginReading(),
+			       aUserText.BeginReading(),
+			       aUserText.Length());
+	}
+}
+
 nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUint32 *aNumTextFields, PRBool *aHasTextArea)
 {
 	nsCOMPtr<nsIDOMHTMLDocument> htmlDoc = do_QueryInterface(aDomDoc);
@@ -768,14 +792,11 @@ nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUi
 			nsCOMPtr<nsIDOMHTMLTextAreaElement> areaElement = do_QueryInterface (domNode);
 			if (areaElement)
 			{
-				nsAutoString default_text, user_text;
-				areaElement->GetDefaultValue (default_text);
-				areaElement->GetValue (user_text);
+				nsEmbedString defaultText, userText;
+				areaElement->GetDefaultValue (defaultText);
+				areaElement->GetValue (userText);
 
-				/* Mozilla Bug 218277, 195946 and others */
-				default_text.ReplaceChar(0xa0, ' ');
-
-				if (!user_text.Equals (default_text))
+				if (CompareFormsText (defaultText, userText))
 				{
 					*aHasTextArea = PR_TRUE;
 					return NS_OK;
@@ -787,31 +808,31 @@ nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUi
 			nsCOMPtr<nsIDOMHTMLInputElement> inputElement = do_QueryInterface(domNode);
 			if (!inputElement) continue;
 	
-			nsAutoString type;
+			nsEmbedString type;
 			inputElement->GetType(type);
 
-			if (type.EqualsIgnoreCase("text"))
+			nsEmbedCString cType;
+			NS_UTF16ToCString (type, NS_CSTRING_ENCODING_UTF8, cType);
+
+			if (strcasecmp (cType.get(), "text") == 0)
 			{
-				nsAutoString default_text, user_text;
+				nsEmbedString defaultText, userText;
 				PRInt32 max_length;
-				inputElement->GetDefaultValue (default_text);
-				inputElement->GetValue (user_text);
+				inputElement->GetDefaultValue (defaultText);
+				inputElement->GetValue (userText);
 				inputElement->GetMaxLength (&max_length);
 
 				/* Guard against arguably broken forms where
-				 * default_text is longer than maxlength
-				 * (user_text is cropped, default_text is not)
+				 * defaultText is longer than maxlength
+				 * (userText is cropped, defaultText is not)
 				 * Mozilla bug 232057
 				 */
-				if (default_text.Length() > (PRUint32)max_length)
+				if (defaultText.Length() > (PRUint32)max_length)
 				{
-					default_text.Truncate (max_length);
+					defaultText.Cut (max_length, PR_UINT32_MAX);
 				}
 
-				/* Mozilla Bug 218277, 195946 and others */
-				default_text.ReplaceChar(0xa0, ' ');
-
-				if (!user_text.Equals (default_text))
+				if (CompareFormsText (defaultText, userText))
 				{
 					(*aNumTextFields)++;
 					if (*aNumTextFields >= NUM_MODIFIED_TEXTFIELDS_REQUIRED)
