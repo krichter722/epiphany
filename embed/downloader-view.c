@@ -257,6 +257,7 @@ downloader_view_add_download (DownloaderView *dv,
 	DownloadDetails *details;
 	GtkTreeSelection *selection;
 	GtkTreePath *path;
+	char *target;
 
 	details = g_new0 (DownloadDetails, 1);
 
@@ -272,10 +273,13 @@ downloader_view_add_download (DownloaderView *dv,
 				(GTK_TREE_MODEL (dv->priv->model),path);
 	gtk_tree_path_free (path);
 
+	target = ephy_download_get_target (download);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
+			    COL_FILENAME, target,
 			    COL_PERSIST_OBJECT, download,
 			    -1);
+	g_free (target);
 
 	selection = gtk_tree_view_get_selection
 		(GTK_TREE_VIEW(dv->priv->treeview));
