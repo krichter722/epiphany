@@ -28,6 +28,7 @@
 #include "ephy-location-action.h"
 #include "ephy-favicon-action.h"
 #include "ephy-navigation-action.h"
+#include "window-commands.h"
 
 static void toolbar_class_init (ToolbarClass *klass);
 static void toolbar_init (Toolbar *t);
@@ -149,24 +150,25 @@ toolbar_get_property (GObject *object,
 static void
 toolbar_setup_widgets (Toolbar *t)
 {
-	GtkWidget *titem;
-
 	egg_menu_merge_add_ui_from_file (t->priv->ui_merge,
 					 ephy_file ("epiphany-toolbar.xml"), NULL);
 	egg_menu_merge_ensure_update (t->priv->ui_merge);
-
-	titem = egg_menu_merge_get_widget
-		(t->priv->ui_merge, "/toolbar1/FaviconTItem");
-	t->priv->favicon = GTK_BIN (GTK_BIN(titem)->child)->child;
-
-	titem = egg_menu_merge_get_widget
-		(t->priv->ui_merge, "/toolbar1/LocationTItem");
-	t->priv->location_entry = GTK_BIN (titem)->child;
 }
 
 static void
 add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 {
+}
+
+static void
+go_location_cb (EggAction *action, char *location, EphyWindow *window)
+{
+	EphyEmbed *embed;
+
+	embed = ephy_window_get_active_embed (window);
+	g_return_if_fail (embed != NULL);
+
+	ephy_embed_load_url (embed, location);
 }
 
 static void
@@ -183,6 +185,8 @@ toolbar_setup_actions (Toolbar *t)
 			       "window", t->priv->window,
 			       "direction", EPHY_NAVIGATION_DIRECTION_BACK,
 			       NULL);
+	g_signal_connect (action, "activate",
+			  G_CALLBACK (window_cmd_go_back), t->priv->window);
 	egg_action_group_add_action (t->priv->action_group, action);
 	g_object_unref (action);
 
@@ -193,6 +197,8 @@ toolbar_setup_actions (Toolbar *t)
 			       "window", t->priv->window,
 			       "direction", EPHY_NAVIGATION_DIRECTION_FORWARD,
 			       NULL);
+	g_signal_connect (action, "activate",
+			  G_CALLBACK (window_cmd_go_forward), t->priv->window);
 	egg_action_group_add_action (t->priv->action_group, action);
 	g_object_unref (action);
 
@@ -203,6 +209,8 @@ toolbar_setup_actions (Toolbar *t)
 			       "direction", EPHY_NAVIGATION_DIRECTION_UP,
 			       "stock_id", GTK_STOCK_GO_UP,
 			       NULL);
+	g_signal_connect (action, "activate",
+			  G_CALLBACK (window_cmd_go_up), t->priv->window);
 	egg_action_group_add_action (t->priv->action_group, action);
 	g_object_unref (action);
 
@@ -215,6 +223,8 @@ toolbar_setup_actions (Toolbar *t)
 	action = g_object_new (EPHY_TYPE_LOCATION_ACTION,
 			       "name", "Location",
 			       NULL);
+	g_signal_connect (action, "go_location",
+			  G_CALLBACK (go_location_cb), t->priv->window);
 	egg_action_group_add_action (t->priv->action_group, action);
 	g_object_unref (action);
 

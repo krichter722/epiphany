@@ -129,7 +129,7 @@ popup_menu_under_arrow (EphyArrowToolButton *b, GdkEventButton *event)
 	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (p->arrow_widget), TRUE);
 	LOG ("Emit menu activated signal");
 	g_signal_emit (b, EphyArrowToolButtonSignals[EPHY_ARROW_TOOL_BUTTON_MENU_ACTIVATED], 0);
-	gtk_menu_popup (p->menu, NULL, NULL, ephy_gui_menu_position_under_widget, p->arrow_widget,
+	gtk_menu_popup (p->menu, NULL, NULL, ephy_gui_menu_position_under_widget, b,
 			event ? event->button : 0,
 			event ? event->time : gtk_get_current_event_time ());
 }

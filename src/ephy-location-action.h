@@ -34,12 +34,14 @@ typedef struct _EphyLocationActionClass EphyLocationActionClass;
 
 struct _EphyLocationAction
 {
-  EggAction parent;
+	EggAction parent;
 };
 
 struct _EphyLocationActionClass
 {
-  EggActionClass parent_class;
+	EggActionClass parent_class;
+
+	void (*go_location) (EphyLocationAction *action, char *location);
 };
 
 GType    ephy_location_action_get_type   (void);

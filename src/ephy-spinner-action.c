@@ -57,12 +57,16 @@ create_tool_item (EggAction *action)
 {
 	GtkWidget *item;
 	GtkWidget *spinner;
+	GtkWidget *button;
 
 	item = (* EGG_ACTION_CLASS (parent_class)->create_tool_item) (action);
 
+	button = gtk_button_new ();
+	gtk_widget_show (button);
+	gtk_container_add (GTK_CONTAINER (item), button);
 	spinner = ephy_spinner_new ();
 	ephy_spinner_set_small_mode (EPHY_SPINNER (spinner), TRUE);
-	gtk_container_add (GTK_CONTAINER (item), spinner);
+	gtk_container_add (GTK_CONTAINER (button), spinner);
 	egg_tool_item_set_pack_end (EGG_TOOL_ITEM (item), TRUE);
 	gtk_widget_show (spinner);
 
