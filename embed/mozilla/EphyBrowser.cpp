@@ -56,20 +56,11 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMElement.h"
+#include "nsEmbedString.h"
 
 #ifdef ALLOW_PRIVATE_API
-#include "nsPIDOMWindow.h"
 #include "nsIMarkupDocumentViewer.h"
-#include "nsIChromeEventHandler.h"
 #include "nsIDOMWindowInternal.h"
-#endif
-
-#ifdef ALLOW_PRIVATE_STRINGS
-#include "nsReadableUtils.h"
-#include "nsIDocument.h"
-#include "nsIDeviceContext.h"
-#include "nsIPresContext.h"
-#include "nsIAtom.h"
 #endif
 
 EphyEventListener::EphyEventListener(void)
@@ -101,18 +92,21 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 	linkElement = do_QueryInterface (node);
 	if (!linkElement) return NS_ERROR_FAILURE;
 
-	NS_NAMED_LITERAL_STRING(attr_rel, "rel");
-	nsAutoString value;
-	result = linkElement->GetAttribute (attr_rel, value);
+	PRUnichar relAttr[] = { 'r', 'e', 'l', '\0' };
+	nsEmbedString value;
+	result = linkElement->GetAttribute (nsEmbedString(relAtttr), value);
 	if (NS_FAILED (result)) return NS_ERROR_FAILURE;
 
-	if (value.EqualsIgnoreCase("SHORTCUT ICON") ||
-	    value.EqualsIgnoreCase("ICON"))
+	if (strcasecmp (value.get(), "SHORTCUT ICON") == 0 ||
+	    strcasecmp (value.get(), "ICON") == 0)
 	{
-		NS_NAMED_LITERAL_STRING(attr_href, "href");
-		nsAutoString value;
-		result = linkElement->GetAttribute (attr_href, value);
+		PRUnichar hrefAttr[] = { 'h', 'r', 'e', 'f', '\0' };
+		nsEmbedString value;
+		result = linkElement->GetAttribute (nsEmbedString (hrefAttr), value);
 		if (NS_FAILED (result) || value.IsEmpty()) return NS_ERROR_FAILURE;
+
+		nsEmbedCString link;
+		NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, link);
 
 		nsCOMPtr<nsIDOMDocument> domDoc;
 		node->GetOwnerDocument(getter_AddRefs(domDoc));
@@ -125,8 +119,7 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 		uri = doc->GetDocumentURI ();
 		if (!uri) return NS_ERROR_FAILURE;
 
-		const nsACString &link = NS_ConvertUTF16toUTF8(value);
-		nsCAutoString favicon_url;
+		nsEmbedCString favicon_url;
 		result = uri->Resolve (link, favicon_url);
 		if (NS_FAILED (result)) return NS_ERROR_FAILURE;
 		
