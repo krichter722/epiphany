@@ -7,6 +7,15 @@
 
 2004-05-31  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/ContentHandler.cpp:
+	* embed/mozilla/ContentHandler.h:
+	* embed/mozilla/EphyContentPolicy.cpp:
+	* embed/mozilla/GtkNSSKeyPairDialogs.cpp:
+
+	Some mozilla 1.7 fixes
+
+2004-05-31  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/mozilla/EphyUtils.cpp:
 	* embed/mozilla/EphyUtils.h:
 
