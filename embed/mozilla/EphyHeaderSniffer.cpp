@@ -188,14 +188,12 @@ nsresult EphyHeaderSniffer::InitiateDownload(nsISupports* inSourceData, nsILocal
   nsAutoString fileDisplayName;
   inDestFile->GetLeafName(fileDisplayName);
   
-  nsCOMPtr<nsIDownload> downloader = do_CreateInstance(NS_DOWNLOAD_CONTRACTID);
+  EphyDownload *downloader = new EphyDownload ();
   // dlListener attaches to its progress dialog here, which gains ownership
   rv = downloader->Init(inOriginalURI, inDestFile, fileDisplayName.get(), nsnull, timeNow, webPersist);
-
-  EphyDownload *ephyDownload = dynamic_cast<EphyDownload*>(downloader.get());
-  ephyDownload->SetEmbedPersist (mEmbedPersist);
   if (NS_FAILED(rv)) return rv;
-    
+  downloader->SetEmbedPersist (mEmbedPersist);
+
   PRInt32 flags = nsIWebBrowserPersist::PERSIST_FLAGS_NO_CONVERSION | 
                   nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES;
   if (mBypassCache)

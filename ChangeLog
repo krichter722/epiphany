@@ -1,5 +1,11 @@
 2003-10-07  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/EphyHeaderSniffer.cpp:
+
+	Fix crash when download start
+
+2003-10-07  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/ephy-embed-persist.h:
 	* embed/ephy-embed-popup-control.c: (save_property_url),
 	(embed_popup_download_link_cmd), (embed_popup_save_image_as_cmd),
