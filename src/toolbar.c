@@ -37,24 +37,25 @@
 #include "ephy-stock-icons.h"
 #include "window-commands.h"
 #include "eel-gconf-extensions.h"
+#include "ephy-dnd.h"
 #include "ephy-debug.h"
 
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gtk/gtkuimanager.h>
 
-static void toolbar_class_init (ToolbarClass *klass);
-static void toolbar_init (Toolbar *t);
-static void toolbar_finalize (GObject *object);
-static void toolbar_set_window (Toolbar *t, EphyWindow *window);
+static GtkTargetEntry drag_targets[] =
+{  
+	{ EGG_TOOLBAR_ITEM_TYPE,	GTK_TARGET_SAME_APP,	0 },
+	{ EPHY_DND_URL_TYPE,		0,			1 }
+};
+static int n_drag_targets = G_N_ELEMENTS (drag_targets);
 
 enum
 {
 	PROP_0,
 	PROP_WINDOW
 };
-
-static GObjectClass *parent_class = NULL;
 
 #define CONF_LOCKDOWN_DISABLE_ARBITRARY_URL  "/apps/epiphany/lockdown/disable_arbitrary_url"
 
@@ -68,6 +69,13 @@ struct ToolbarPrivate
 	GtkWidget *spinner;
 	guint disable_arbitrary_url_notifier_id;
 };
+
+static void toolbar_class_init (ToolbarClass *klass);
+static void toolbar_init (Toolbar *t);
+static void toolbar_finalize (GObject *object);
+static void toolbar_set_window (Toolbar *t, EphyWindow *window);
+
+static GObjectClass *parent_class = NULL;
 
 GType
 toolbar_get_type (void)
@@ -90,7 +98,7 @@ toolbar_get_type (void)
                 };
 
                 toolbar_type = g_type_register_static (EGG_TYPE_EDITABLE_TOOLBAR,
-						       "Toolbar",
+						       "EphyToolbar",
 						       &our_info, 0);
         }
 
@@ -149,6 +157,67 @@ zoom_to_level_cb (GtkAction *action, float zoom, EphyWindow *window)
 }
 
 static void
+toolbar_added_cb (EggToolbarsModel *model,
+		  int position,
+		  EggEditableToolbar *toolbar)
+{
+	const char *t_name;
+
+	t_name = egg_toolbars_model_toolbar_nth (model, position);
+	g_return_if_fail (t_name != NULL);
+
+	egg_editable_toolbar_set_drag_dest
+		(toolbar, drag_targets, n_drag_targets, t_name);
+}
+
+static void
+ephy_toolbar_realize (GtkWidget *widget)
+{
+	EggEditableToolbar *eggtoolbar = EGG_EDITABLE_TOOLBAR (widget);
+	Toolbar *toolbar = EPHY_TOOLBAR (widget);
+	EggToolbarsModel *model;
+	int i, n_toolbars;
+
+	GTK_WIDGET_CLASS (parent_class)->realize (widget);
+
+	g_object_get (widget, "ToolbarsModel", &model, NULL);
+
+	g_signal_connect (model, "toolbar_added",
+			  G_CALLBACK (toolbar_added_cb), toolbar);
+
+	/* now that the toolbar has been constructed, set drag dests */
+	n_toolbars = egg_toolbars_model_n_toolbars (model);
+	for (i = 0; i < n_toolbars; i++)
+	{
+		const char *t_name;
+
+		t_name = egg_toolbars_model_toolbar_nth (model, i);
+		g_return_if_fail (t_name != NULL);
+
+		egg_editable_toolbar_set_drag_dest
+			(eggtoolbar, drag_targets, n_drag_targets, t_name);
+	}
+
+	g_object_unref (model);
+}
+
+static void
+ephy_toolbar_unrealize (GtkWidget *widget)
+{
+	Toolbar *toolbar = EPHY_TOOLBAR (widget);
+	EggToolbarsModel *model;
+
+	g_object_get (widget, "ToolbarsModel", &model, NULL);
+
+	g_signal_handlers_disconnect_by_func
+		(model, G_CALLBACK (toolbar_added_cb), toolbar);
+
+	g_object_unref (model);
+
+	GTK_WIDGET_CLASS (parent_class)->unrealize (widget);
+}
+
+static void
 toolbar_set_property (GObject *object,
                       guint prop_id,
                       const GValue *value,
@@ -178,12 +247,16 @@ static void
 toolbar_class_init (ToolbarClass *klass)
 {
         GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
         parent_class = g_type_class_peek_parent (klass);
 
         object_class->finalize = toolbar_finalize;
 	object_class->set_property = toolbar_set_property;
 	object_class->get_property = toolbar_get_property;
+
+	widget_class->realize = ephy_toolbar_realize;
+	widget_class->unrealize = ephy_toolbar_unrealize;
 
 	g_object_class_install_property (object_class,
                                          PROP_WINDOW,

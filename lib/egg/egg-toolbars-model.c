@@ -46,7 +46,7 @@ typedef struct
 
 typedef struct
 {
-  char *name;
+  char *id;
   char *type;
   gboolean separator;
 } EggToolbarsItem;
@@ -123,9 +123,13 @@ egg_toolbars_model_to_xml (EggToolbarsModel *t)
 	    }
 	  else
 	    {
+	      char *name;
+
 	      node = xmlNewChild (tnode, NULL, "toolitem", NULL);
+	      name = egg_toolbars_model_get_item_name (t, item->type, item->id);
 	      xmlSetProp (node, "type", item->type);
-	      xmlSetProp (node, "name", item->name);
+	      xmlSetProp (node, "name", name);
+	      g_free (name);
 	    }
 	}
     }
@@ -219,17 +223,17 @@ toolbars_toolbar_new (const char *name)
 }
 
 static EggToolbarsItem *
-toolbars_item_new (const char *name,
+toolbars_item_new (const char *id,
 		   const char *type,
 		   gboolean    separator)
 {
   EggToolbarsItem *item;
 
-  g_return_val_if_fail (name != NULL, NULL);
+  g_return_val_if_fail (id != NULL, NULL);
   g_return_val_if_fail (type != NULL, NULL);
 
   item = g_new0 (EggToolbarsItem, 1);
-  item->name = g_strdup (name);
+  item->id = g_strdup (id);
   item->type = g_strdup (type);
   item->separator = separator;
 
@@ -250,7 +254,7 @@ free_item_node (EggToolbarsItem *item)
 {
   g_return_if_fail (item != NULL);
 
-  g_free (item->name);
+  g_free (item->id);
   g_free (item->type);
   g_free (item);
 }
@@ -302,7 +306,7 @@ egg_toolbars_model_add_separator (EggToolbarsModel *t,
   g_return_if_fail (EGG_IS_TOOLBARS_MODEL (t));
 
   parent_node = g_node_nth_child (t->priv->toolbars, toolbar_position);
-  item = toolbars_item_new ("separator", EGG_TOOLBAR_ITEM_TYPE, TRUE);
+  item = toolbars_item_new ("separator", "separator", TRUE);
   node = g_node_new (item);
   g_node_insert (parent_node, position, node);
 
@@ -316,7 +320,7 @@ static gboolean
 impl_add_item (EggToolbarsModel    *t,
 	       int		    toolbar_position,
 	       int		    position,
-	       const char          *name,
+	       const char          *id,
 	       const char          *type)
 {
   GNode *parent_node;
@@ -325,11 +329,11 @@ impl_add_item (EggToolbarsModel    *t,
   int real_position;
 
   g_return_val_if_fail (EGG_IS_TOOLBARS_MODEL (t), FALSE);
-  g_return_val_if_fail (name != NULL, FALSE);
+  g_return_val_if_fail (id != NULL, FALSE);
   g_return_val_if_fail (type != NULL, FALSE);
 
   parent_node = g_node_nth_child (t->priv->toolbars, toolbar_position);
-  item = toolbars_item_new (name, type, FALSE);
+  item = toolbars_item_new (id, type, FALSE);
   node = g_node_new (item);
   g_node_insert (parent_node, position, node);
 
@@ -351,6 +355,7 @@ parse_item_list (EggToolbarsModel *t,
       if (xmlStrEqual (child->name, "toolitem"))
 	{
 	  xmlChar *name, *type;
+	  char *id;
 
 	  name = xmlGetProp (child, "name");
 	  type = xmlGetProp (child, "type");
@@ -358,12 +363,15 @@ parse_item_list (EggToolbarsModel *t,
             {
               type = g_strdup (EGG_TOOLBAR_ITEM_TYPE);
             }
-	  if (name != NULL)
+
+          id = egg_toolbars_model_get_item_id (t, type, name);
+	  if (id != NULL)
 	    {
-	      egg_toolbars_model_add_item (t, position, -1, name, type);
+	      egg_toolbars_model_add_item (t, position, -1, id, type);
             }
 	  xmlFree (name);
           g_free (type);
+          g_free (id);
 	}
       else if (xmlStrEqual (child->name, "separator"))
 	{
@@ -434,8 +442,6 @@ egg_toolbars_model_load (EggToolbarsModel *t,
 
   g_return_val_if_fail (EGG_IS_TOOLBARS_MODEL (t), FALSE);
 
-  if (!xml_file || !g_file_test (xml_file, G_FILE_TEST_EXISTS)) return FALSE;
-
   doc = xmlParseFile (xml_file);
   if (doc == NULL)
   {
@@ -444,6 +450,7 @@ egg_toolbars_model_load (EggToolbarsModel *t,
   }
   root = xmlDocGetRootElement (doc);
 
+  t->priv->toolbars = g_node_new (NULL);
   parse_toolbars (t, root->children);
 
   xmlFreeDoc (doc);
@@ -459,6 +466,19 @@ impl_get_item_id (EggToolbarsModel *t,
   if (strcmp (type, EGG_TOOLBAR_ITEM_TYPE) == 0)
     {
       return g_strdup (name);
+    }
+
+  return NULL;
+}
+
+static char *
+impl_get_item_name (EggToolbarsModel *t,
+		    const char       *type,
+		    const char       *id)
+{
+  if (strcmp (type, EGG_TOOLBAR_ITEM_TYPE) == 0)
+    {
+      return g_strdup (id);
     }
 
   return NULL;
@@ -487,6 +507,7 @@ egg_toolbars_model_class_init (EggToolbarsModelClass *klass)
 
   klass->add_item = impl_add_item;
   klass->get_item_id = impl_get_item_id;
+  klass->get_item_name = impl_get_item_name;
   klass->get_item_type = impl_get_item_type;
 
   egg_toolbars_model_signals[ITEM_ADDED] =
@@ -533,7 +554,7 @@ egg_toolbars_model_init (EggToolbarsModel *t)
 {
   t->priv =EGG_TOOLBARS_MODEL_GET_PRIVATE (t);
 
-  t->priv->toolbars = g_node_new (NULL);
+  t->priv->toolbars = NULL;
 }
 
 static void
@@ -616,8 +637,8 @@ egg_toolbars_model_item_nth (EggToolbarsModel *t,
 			     int	       toolbar_position,
 			     int               position,
 			     gboolean         *is_separator,
-			     const char       **type,
-			     const char       **name)
+			     const char      **id,
+			     const char      **type)
 {
   GNode *toolbar;
   GNode *item;
@@ -633,9 +654,9 @@ egg_toolbars_model_item_nth (EggToolbarsModel *t,
 
   *is_separator = idata->separator;
 
-  if (name)
+  if (id)
     {
-      *name = idata->name;
+      *id = idata->id;
     }
 
   if (type)
@@ -683,6 +704,15 @@ egg_toolbars_model_get_item_id (EggToolbarsModel *t,
 {
   EggToolbarsModelClass *klass = EGG_TOOLBARS_MODEL_GET_CLASS (t);
   return klass->get_item_id (t, type, name);
+}
+
+char *
+egg_toolbars_model_get_item_name (EggToolbarsModel *t,
+				  const char       *type,
+			          const char       *id)
+{
+  EggToolbarsModelClass *klass = EGG_TOOLBARS_MODEL_GET_CLASS (t);
+  return klass->get_item_name (t, type, id);
 }
 
 char *

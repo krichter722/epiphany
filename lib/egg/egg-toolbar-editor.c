@@ -645,16 +645,13 @@ model_has_action (EggToolbarsModel *model, GtkAction *action)
       n_items = egg_toolbars_model_n_items (model, i);
       for (l = 0; l < n_items; l++)
         {
-          const char *name, *type, *action_name2;
-	  char *action_name1;
+          const char *name;
+	  const char *action_name;
           gboolean sep;
 
-          egg_toolbars_model_item_nth (model, i, l, &sep, &type, &name);
-          action_name1 = egg_toolbars_model_get_item_id (model, type, name);
-          action_name2 = gtk_action_get_name (action);
-          if (!sep && strcmp (action_name1, action_name2) == 0)
-	    return TRUE;
-	  g_free (action_name1);
+          egg_toolbars_model_item_nth (model, i, l, &sep, &name, NULL);
+          action_name = gtk_action_get_name (action);
+          if (!sep && strcmp (name, action_name) == 0) return TRUE;
         }
     }
 
