@@ -40,6 +40,7 @@
 #include "ephy-embed-prefs.h"
 #include "MozRegisterComponents.h"
 #include "EphySingle.h"
+#include "EphyUtils.h"
 
 #include <glib/gi18n.h>
 #include <libgnomevfs/gnome-vfs-utils.h>
@@ -71,12 +72,12 @@
 #include <nsIHttpAuthManager.h>
 #include <nsICacheService.h>
 #include <nsIFontEnumerator.h>
+#include <nsNetCID.h>
 #endif
 
 #ifdef ALLOW_PRIVATE_STRINGS
 #include <nsString.h>
 #include <nsReadableUtils.h>
-#include <nsNetUtil.h>
 #endif
 
 #define MOZILLA_PROFILE_DIR  "/mozilla"
@@ -726,7 +727,7 @@ impl_permission_manager_add (EphyPermissionManager *manager,
 	if (!pm) return;
 
 	nsCOMPtr<nsIURI> uri;
-        NS_NewURI(getter_AddRefs(uri), host);
+        EphyUtils::NewURI(getter_AddRefs(uri), nsCAutoString(host));
 	if (!uri) return;
 
 	gboolean allow = (permission == EPHY_PERMISSION_ALLOWED);
@@ -769,7 +770,7 @@ impl_permission_manager_test (EphyPermissionManager *manager,
 	if (!pm) return EPHY_PERMISSION_DEFAULT;
 
 	nsCOMPtr<nsIURI> uri;
-        NS_NewURI(getter_AddRefs(uri), host);
+        EphyUtils::NewURI(getter_AddRefs(uri), nsCAutoString (host));
         if (!uri) return EPHY_PERMISSION_DEFAULT;
 
 	nsresult rv;
