@@ -1,5 +1,22 @@
 2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/downloader-view.c: (format_interval),
+	(download_changed_cb), (downloader_view_build_ui):
+	* embed/ephy-download.c: (ephy_download_get_remaining_time),
+	(ephy_download_get_current_progress),
+	(ephy_download_get_total_progress), (ephy_download_get_percent),
+	(ephy_download_get_elapsed_time):
+	* embed/ephy-download.h:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+	* embed/mozilla/mozilla-download.cpp:
+	* lib/widgets/Makefile.am:
+
+	Get back the treeview info to work. Use
+	procman progress renderer for percent.
+
+2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/downloader-view.c: (download_changed_cb),
 	(downloader_view_add_download):
 
