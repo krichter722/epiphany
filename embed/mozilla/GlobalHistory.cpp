@@ -28,10 +28,7 @@
 #include "GlobalHistory.h"
 
 #include <nsIURI.h>
-
-#ifdef ALLOW_PRIVATE_STRINGS
-#include <nsString.h>
-#endif
+#include <nsEmbedString.h>
 
 NS_IMPL_ISUPPORTS2(MozGlobalHistory, nsIGlobalHistory2, nsIBrowserHistory)
 
@@ -47,7 +44,7 @@ MozGlobalHistory::~MozGlobalHistory ()
 /* void addURI (in nsIURI aURI, in boolean aRedirect, in boolean aToplevel); */
 NS_IMETHODIMP MozGlobalHistory::AddURI(nsIURI *aURI, PRBool aRedirect, PRBool aToplevel)
 {
-	nsCAutoString spec;
+	nsEmbedCString spec;
 	aURI->GetSpec(spec);
 
 	ephy_history_add_page (mGlobalHistory, spec.get());
@@ -58,7 +55,7 @@ NS_IMETHODIMP MozGlobalHistory::AddURI(nsIURI *aURI, PRBool aRedirect, PRBool aT
 /* boolean isVisited (in nsIURI aURI); */
 NS_IMETHODIMP MozGlobalHistory::IsVisited(nsIURI *aURI, PRBool *_retval)
 {
-	nsCAutoString spec;
+	nsEmbedCString spec;
 	aURI->GetSpec(spec);
 
 	*_retval = ephy_history_is_page_visited (mGlobalHistory, spec.get());
@@ -69,13 +66,14 @@ NS_IMETHODIMP MozGlobalHistory::IsVisited(nsIURI *aURI, PRBool *_retval)
 /* void setPageTitle (in nsIURI aURI, in AString aTitle); */
 NS_IMETHODIMP MozGlobalHistory::SetPageTitle(nsIURI *aURI, const nsAString & aTitle)
 {
-	const nsACString &title = NS_ConvertUTF16toUTF8(aTitle);
+	nsEmbedCString title;
+	NS_UTF16ToCString (nsEmbedString (aTitle),
+			   NS_CSTRING_ENCODING_UTF8, title);
 
-	nsCAutoString spec;
+	nsEmbedCString spec;
 	aURI->GetSpec(spec);
 	
-	ephy_history_set_page_title (mGlobalHistory, spec.get(),
-				     PromiseFlatCString(title).get());
+	ephy_history_set_page_title (mGlobalHistory, spec.get(), title.get());
 	
 	return NS_OK;
 }
