@@ -292,6 +292,7 @@ ephy_navigation_action_get_property (GObject *object,
 			break;
 	}
 }
+
 static void
 ephy_navigation_action_class_init (EphyNavigationActionClass *class)
 {

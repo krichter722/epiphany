@@ -161,3 +161,21 @@ static void
 ephy_location_action_init (EphyLocationAction *action)
 {
 }
+
+GtkWidget *
+ephy_location_action_get_widget (EphyLocationAction *action)
+{
+	GSList *slist;
+
+	slist = EGG_ACTION (action)->proxies;
+
+	if (slist)
+	{
+		return GTK_BIN (slist->data)->child;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+

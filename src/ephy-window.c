@@ -211,6 +211,7 @@ struct EphyWindowPrivate
 	GtkWidget *menubar;
 	Toolbar *toolbar;
 	GtkWidget *statusbar;
+	EggActionGroup *action_group;
 	EphyFavoritesMenu *fav_menu;
 	PPViewToolbar *ppview_toolbar;
 	GtkNotebook *notebook;
@@ -397,6 +398,7 @@ setup_window (EphyWindow *window)
 	egg_action_group_add_actions (action_group, ephy_menu_entries,
 				      ephy_menu_n_entries);
 	egg_menu_merge_insert_action_group (merge, action_group, 0);
+	window->priv->action_group = action_group;
 
 	window->ui_merge = G_OBJECT (merge);
 	g_signal_connect (merge, "add_widget", G_CALLBACK (add_widget), window);
@@ -988,6 +990,8 @@ update_nav_control (EphyWindow *window)
 	gresult back, forward, up, stop;
 	EphyEmbed *embed;
 	EphyTab *tab;
+	EggActionGroup *action_group;
+	EggAction *action;
 
 	g_return_if_fail (window != NULL);
 
@@ -1002,13 +1006,16 @@ update_nav_control (EphyWindow *window)
 	up = ephy_embed_can_go_up (embed);
 	stop = ephy_tab_get_load_status (tab) & TAB_LOAD_STARTED;
 
-	/*
-	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
-			          GO_BACK_CMD_PATH, !back);
-	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
-			          GO_FORWARD_CMD_PATH, !forward);
-	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
-			          GO_UP_CMD_PATH, !up);*/
+	action_group = window->priv->action_group;
+	action = egg_action_group_get_action (action_group, "GoBack");
+	g_object_set (action, "sensitive", !back, NULL);
+	action = egg_action_group_get_action (action_group, "GoForward");
+	g_object_set (action, "sensitive", !forward, NULL);
+	action = egg_action_group_get_action (action_group, "GoUp");
+	g_object_set (action, "sensitive", !up, NULL);
+
+	toolbar_update_navigation_actions (window->priv->toolbar,
+					   back, forward, up);
 }
 
 static void

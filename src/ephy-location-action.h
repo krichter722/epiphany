@@ -44,6 +44,8 @@ struct _EphyLocationActionClass
 	void (*go_location) (EphyLocationAction *action, char *location);
 };
 
-GType    ephy_location_action_get_type   (void);
+GType      ephy_location_action_get_type   (void);
+
+GtkWidget *ephy_location_action_get_widget (EphyLocationAction *action);
 
 #endif

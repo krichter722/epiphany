@@ -1,3 +1,32 @@
+2003-01-19  Marco Pesenti Gritti  <marco@it.gnome.org>
+
+	* lib/widgets/ephy-spinner.c: (ephy_spinner_expose):
+	* src/ephy-favicon-action.c: (create_tool_item),
+	(each_url_get_data_binder), (favicon_drag_data_get_cb),
+	(ephy_favicon_action_sync_icon), (connect_proxy),
+	(ephy_favicon_action_set_property),
+	(ephy_favicon_action_get_property),
+	(ephy_favicon_action_class_init), (ephy_favicon_action_init):
+	* src/ephy-favicon-action.h:
+	* src/ephy-location-action.c: (ephy_location_action_get_widget):
+	* src/ephy-location-action.h:
+	* src/ephy-navigation-action.c:
+	* src/ephy-spinner-action.c: (ephy_spinner_action_sync_throbbing),
+	(create_tool_item), (connect_proxy),
+	(ephy_spinner_action_set_property),
+	(ephy_spinner_action_get_property),
+	(ephy_spinner_action_class_init), (ephy_spinner_action_init):
+	* src/ephy-spinner-action.h:
+	* src/ephy-window.c: (setup_window), (update_nav_control):
+	* src/toolbar.c: (toolbar_setup_actions),
+	(toolbar_activate_location), (toolbar_spinner_start),
+	(toolbar_spinner_stop), (toolbar_set_location),
+	(toolbar_update_favicon), (toolbar_get_location),
+	(toolbar_update_navigation_actions):
+	* src/toolbar.h:
+
+	Complete toolbar implementation.
+
 2003-01-18  Marco Pesenti Gritti  <marco@it.gnome.org>
 
 	* lib/ephy-gui.c: (ephy_gui_menu_position_under_widget):

@@ -35,13 +35,6 @@ typedef struct ToolbarClass ToolbarClass;
 
 typedef struct ToolbarPrivate ToolbarPrivate;
 
-typedef enum
-{
-	TOOLBAR_BACK_BUTTON,
-	TOOLBAR_FORWARD_BUTTON,
-	TOOLBAR_UP_BUTTON
-} ToolbarButtonID;
-
 struct Toolbar
 {
         GObject parent_object;
@@ -60,10 +53,6 @@ Toolbar      *toolbar_new			(EphyWindow *window);
 void          toolbar_set_visibility		(Toolbar *t,
 						 gboolean visibility);
 
-void	      toolbar_button_set_sensitive	(Toolbar *t,
-						 ToolbarButtonID id,
-						 gboolean sensitivity);
-
 void          toolbar_spinner_start		(Toolbar *t);
 
 void          toolbar_spinner_stop		(Toolbar *t);
@@ -76,6 +65,11 @@ void          toolbar_set_location              (Toolbar *t,
 void	      toolbar_activate_location		(Toolbar *t);
 
 void          toolbar_update_favicon            (Toolbar *t);
+
+void	      toolbar_update_navigation_actions (Toolbar *t,
+						 gboolean back,
+						 gboolean forward,
+						 gboolean up);
 
 G_END_DECLS
 

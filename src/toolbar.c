@@ -230,6 +230,7 @@ toolbar_setup_actions (Toolbar *t)
 
 	action = g_object_new (EPHY_TYPE_FAVICON_ACTION,
 			       "name", "Favicon",
+			       "window", t->priv->window,
 			       NULL);
 	egg_action_group_add_action (t->priv->action_group, action);
 	g_object_unref (action);
@@ -304,101 +305,101 @@ toolbar_set_visibility (Toolbar *t, gboolean visibility)
 void
 toolbar_activate_location (Toolbar *t)
 {
-	if (t->priv->location_entry)
-	{
-		ephy_location_entry_activate
-			(EPHY_LOCATION_ENTRY(t->priv->location_entry));
-	}
+	EggAction *action;
+	GtkWidget *location;
+
+	action = egg_action_group_get_action
+		(t->priv->action_group, "Location");
+	location = ephy_location_action_get_widget
+		(EPHY_LOCATION_ACTION (action));
+	g_return_if_fail (location != NULL);
+
+	ephy_location_entry_activate
+		(EPHY_LOCATION_ENTRY(location));
 }
 
 void
 toolbar_spinner_start (Toolbar *t)
 {
-	if (t->priv->spinner)
-	{
-		ephy_spinner_start (EPHY_SPINNER(t->priv->spinner));
-	}
+	EggActionGroup *action_group;
+	EggAction *action;
+
+	action_group = t->priv->action_group;
+	action = egg_action_group_get_action (action_group, "Spinner");
+	g_object_set (action, "throbbing", TRUE, NULL);
 }
 
 void
 toolbar_spinner_stop (Toolbar *t)
 {
-	if (t->priv->spinner)
-	{
-		ephy_spinner_stop (EPHY_SPINNER(t->priv->spinner));
-	}
-}
+	EggActionGroup *action_group;
+	EggAction *action;
 
-void
-toolbar_button_set_sensitive (Toolbar *t,
-			      ToolbarButtonID id,
-			      gboolean sensitivity)
-{
-	switch (id)
-	{
-	case TOOLBAR_BACK_BUTTON:
-		break;
-	case TOOLBAR_FORWARD_BUTTON:
-		break;
-	case TOOLBAR_UP_BUTTON:
-		break;
-	}
+	action_group = t->priv->action_group;
+	action = egg_action_group_get_action (action_group, "Spinner");
+	g_object_set (action, "throbbing", FALSE, NULL);
 }
 
 void
 toolbar_set_location (Toolbar *t,
-		      const char *location)
+		      const char *alocation)
 {
+	EggAction *action;
+	GtkWidget *location;
+
+	action = egg_action_group_get_action
+		(t->priv->action_group, "Location");
+	location = ephy_location_action_get_widget
+		(EPHY_LOCATION_ACTION (action));
 	g_return_if_fail (location != NULL);
 
-	if (t->priv->location_entry)
-	{
-		ephy_location_entry_set_location
-			(EPHY_LOCATION_ENTRY (t->priv->location_entry), location);
-	}
+	ephy_location_entry_set_location
+		(EPHY_LOCATION_ENTRY (location), alocation);
 }
 
 void
 toolbar_update_favicon (Toolbar *t)
 {
-	GdkPixbuf *pixbuf = NULL;
-	EphyFaviconCache *cache;
 	EphyTab *tab;
 	const char *url;
+	EggActionGroup *action_group;
+	EggAction *action;
 
-	cache = ephy_embed_shell_get_favicon_cache (EPHY_EMBED_SHELL (ephy_shell));
 	tab = ephy_window_get_active_tab (t->priv->window);
 	url = ephy_tab_get_favicon_url (tab);
-
-	if (url)
-	{
-		pixbuf = ephy_favicon_cache_get (cache, url);
-	}
-
-	if (pixbuf)
-	{
-		gtk_image_set_from_pixbuf (GTK_IMAGE (t->priv->favicon), pixbuf);
-	}
-	else
-	{
-		gtk_image_set_from_stock (GTK_IMAGE (t->priv->favicon),
-					  GTK_STOCK_JUMP_TO,
-					  GTK_ICON_SIZE_MENU);
-	}
+	action_group = t->priv->action_group;
+	action = egg_action_group_get_action (action_group, "Favicon");
+	g_object_set (action, "icon", url, NULL);
 }
 
 char *
 toolbar_get_location (Toolbar *t)
 {
-	gchar *location;
-	if (t->priv->location_entry)
-	{
-		location = ephy_location_entry_get_location
-			(EPHY_LOCATION_ENTRY (t->priv->location_entry));
-	}
-	else
-	{
-		location = g_strdup ("");
-	}
-	return location;
+	EggAction *action;
+	GtkWidget *location;
+
+	action = egg_action_group_get_action
+		(t->priv->action_group, "Location");
+	location = ephy_location_action_get_widget
+		(EPHY_LOCATION_ACTION (action));
+	g_return_val_if_fail (location != NULL, NULL);
+
+	return ephy_location_entry_get_location
+		(EPHY_LOCATION_ENTRY (location));
 }
+
+void
+toolbar_update_navigation_actions (Toolbar *t, gboolean back, gboolean forward, gboolean up)
+{
+	EggActionGroup *action_group;
+	EggAction *action;
+
+	action_group = t->priv->action_group;
+	action = egg_action_group_get_action (action_group, "NavigationBack");
+	g_object_set (action, "sensitive", !back, NULL);
+	action = egg_action_group_get_action (action_group, "NavigationForward");
+	g_object_set (action, "sensitive", !forward, NULL);
+	action = egg_action_group_get_action (action_group, "NavigationUp");
+	g_object_set (action, "sensitive", !up, NULL);
+}
+
