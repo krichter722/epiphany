@@ -1,5 +1,12 @@
 2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* lib/widgets/ephy-location-entry.c: (entry_button_press_cb),
+	(ephy_location_entry_construct_contents):
+
+	Put back double click -> select all
+
+2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/widgets/ephy-location-entry.c: (location_focus_out_cb),
 	(ephy_location_entry_construct_contents),
 	(ephy_location_entry_init), (ephy_location_entry_finalize),

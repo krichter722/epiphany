@@ -170,6 +170,18 @@ editable_changed_cb (GtkEditable *editable, EphyLocationEntry *e)
 	}
 }
 
+static gboolean
+entry_button_press_cb (GtkWidget *entry, GdkEventButton *event, EphyLocationEntry *le)
+{
+	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
+	{
+		ephy_location_entry_activate (le);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 static void
 entry_activate_cb (GtkEntry *entry, EphyLocationEntry *e)
 {
@@ -194,6 +206,8 @@ ephy_location_entry_construct_contents (EphyLocationEntry *le)
 	gtk_widget_show (p->combo);
 	p->entry = GTK_BIN (p->combo)->child;
 
+	g_signal_connect (p->entry, "button_press_event",
+			  G_CALLBACK (entry_button_press_cb), le);
 	g_signal_connect (p->entry, "changed",
 			  G_CALLBACK (editable_changed_cb), le);
 	g_signal_connect (p->entry, "activate",
