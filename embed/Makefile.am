@@ -1,14 +1,20 @@
 SUBDIRS = mozilla 
 
 INCLUDES = \
-	-I$(top_srcdir)/embed/mozilla     	\
-	-I$(top_srcdir)/embed/webcore     	\
 	-I$(top_srcdir)/lib       		\
 	-I$(top_srcdir)/lib/egg       		\
 	-I$(top_srcdir)/lib/widgets      	\
 	-I$(MOZILLA_INCLUDE_ROOT)/gtkembedmoz 	\
 	$(EPIPHANY_DEPENDENCY_CFLAGS) 		\
 	-DSHARE_DIR=\"$(pkgdatadir)\"
+
+if ENABLE_MOZILLA_EMBED
+INCLUDES += -I$(top_srcdir)/embed/mozilla
+endif
+
+if ENABLE_WEBCORE_EMBED
+INCLUDES += -I$(top_srcdir)/embed/webcore
+endif
 
 if MAINTAINER_MODE
 INCLUDES += -DGTK_DISABLE_DEPRECATED -DGDK_DISABLE_DEPRECATED -DGDK_PIXBUF_DISABLE_DEPRECATED \

@@ -53,15 +53,27 @@ ephy_embed_factory_new_object (GType type)
 
 	if (type == EPHY_TYPE_EMBED)
 	{
+#ifdef ENABLE_MOZILLA_EMBED
 		object = g_object_new (MOZILLA_TYPE_EMBED, NULL);
+#elif ENABLE_WEBCORE_EMBED
+		object = g_object_new (WEBCORE_TYPE_EMBED, NULL);
+#endif
 	}
 	else if (type == EPHY_TYPE_EMBED_PERSIST)
 	{
+#ifdef ENABLE_MOZILLA_EMBED
 		object = g_object_new (MOZILLA_TYPE_EMBED_PERSIST, NULL);
+#elif ENABLE_WEBCORE_EMBED
+		object = g_object_new (WEBCORE_TYPE_EMBED_PERSIST, NULL);
+#endif
 	}
 	else if (type == EPHY_TYPE_EMBED_SINGLE)
 	{
+#ifdef ENABLE_MOZILLA_EMBED
 		object = g_object_new (MOZILLA_TYPE_EMBED_SINGLE, NULL);
+#elif ENABLE_WEBCORE_EMBED
+		object = g_object_new (WEBCORE_TYPE_EMBED_SINGLE, NULL);
+#endif
 	}
 	else
 	{
