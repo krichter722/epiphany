@@ -23,6 +23,7 @@
 #endif
 
 #include "EphyBrowser.h"
+#include "EphyUtils.h"
 #include "ephy-embed.h"
 #include "ephy-string.h"
 #include "ephy-debug.h"
@@ -52,16 +53,22 @@
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLTextAreaElement.h"
 #include "nsIDOMDocument.h"
+#include "nsIDOM3Document.h"
 #include "nsIDOMEvent.h"
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMElement.h"
+#include "nsIBaseWindow.h"
+#include "nsIDeviceContext.h"
 #include "nsEmbedString.h"
 
 #ifdef ALLOW_PRIVATE_API
 #include "nsIMarkupDocumentViewer.h"
 #include "nsIDOMWindowInternal.h"
 #endif
+
+static PRUnichar DOMLinkAdded[] = { 'D', 'O', 'M', 'L', 'i', 'n', 'k',
+				    'A', 'd', 'd', 'e', 'd' };
 
 EphyEventListener::EphyEventListener(void)
 : mOwner(nsnull)
@@ -97,13 +104,16 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 	result = linkElement->GetAttribute (nsEmbedString(relAttr), value);
 	if (NS_FAILED (result)) return NS_ERROR_FAILURE;
 
-	if (strcasecmp (value.get(), "SHORTCUT ICON") == 0 ||
-	    strcasecmp (value.get(), "ICON") == 0)
+	nsEmbedCString rel;
+	NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, rel);	
+
+	if (strcasecmp (rel.get(), "SHORTCUT ICON") == 0 ||
+	    strcasecmp (rel.get(), "ICON") == 0)
 	{
 		PRUnichar hrefAttr[] = { 'h', 'r', 'e', 'f', '\0' };
 		nsEmbedString value;
 		result = linkElement->GetAttribute (nsEmbedString (hrefAttr), value);
-		if (NS_FAILED (result) || value.IsEmpty()) return NS_ERROR_FAILURE;
+		if (NS_FAILED (result) || !value.Length()) return NS_ERROR_FAILURE;
 
 		nsEmbedCString link;
 		NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, link);
@@ -112,12 +122,16 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 		node->GetOwnerDocument(getter_AddRefs(domDoc));
 		NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
 
-		nsCOMPtr<nsIDocument> doc = do_QueryInterface (domDoc);
+		nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface (domDoc);
 		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-		nsIURI *uri;
-		uri = doc->GetDocumentURI ();
-		if (!uri) return NS_ERROR_FAILURE;
+		nsEmbedString spec;
+		result = doc->GetDocumentURI (spec);
+		NS_ENSURE_SUCCESS (result, result);
+
+		nsCOMPtr<nsIURI> uri;
+		result = EphyUtils::NewURI (getter_AddRefs(uri), spec);
+		NS_ENSURE_SUCCESS (result, result);
 
 		nsEmbedCString favicon_url;
 		result = uri->Resolve (link, favicon_url);
@@ -194,23 +208,15 @@ EphyBrowser::GetListener (void)
   	if (mEventReceiver) return NS_ERROR_FAILURE;
 
   	nsCOMPtr<nsIDOMWindow> domWindowExternal;
-  	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindowExternal));
+  	mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWindowExternal));
   
-  	nsCOMPtr<nsIDOMWindowInternal> domWindow;
-        domWindow = do_QueryInterface(domWindowExternal);
+  	nsCOMPtr<nsIDOMWindow2> domWindow;
+        domWindow = do_QueryInterface (domWindowExternal);
 	
-	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWindow));
-	NS_ENSURE_TRUE (piWin, NS_ERROR_FAILURE);
+  	nsCOMPtr<nsIDOMEventTarget> rootWindow;
+  	domWindow->GetWindowRoot (getter_AddRefs(rootWindow));
 
-#if MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1)
-  	nsIChromeEventHandler* chromeHandler;
-  	chromeHandler = piWin->GetChromeEventHandler();
-#else
-  	nsCOMPtr<nsIChromeEventHandler> chromeHandler;
-  	piWin->GetChromeEventHandler(getter_AddRefs(chromeHandler));
-#endif
-
-  	mEventReceiver = do_QueryInterface(chromeHandler);
+  	mEventReceiver = do_QueryInterface (rootWindow);
 	NS_ENSURE_TRUE (mEventReceiver, NS_ERROR_FAILURE);
 
 	return NS_OK;
@@ -226,7 +232,7 @@ EphyBrowser::AttachListeners(void)
 	nsCOMPtr<nsIDOMEventTarget> target;
 	target = do_QueryInterface (mEventReceiver);
 
-	rv = target->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+	rv = target->AddEventListener(nsEmbedString(DOMLinkAdded),
 				      mFaviconEventListener, PR_FALSE);
 	NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
 
@@ -244,7 +250,7 @@ EphyBrowser::DetachListeners(void)
 	target = do_QueryInterface (mEventReceiver);
 	NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
 
-	rv = target->RemoveEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+	rv = target->RemoveEventListener(nsEmbedString(DOMLinkAdded),
 					 mFaviconEventListener, PR_FALSE);
 	NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
 
@@ -412,15 +418,21 @@ nsresult EphyBrowser::SetZoom (float aZoom, PRBool reflow)
 
 nsresult EphyBrowser::SetZoomOnDocshell (float aZoom, nsIDocShell *DocShell)
 {
-	nsCOMPtr<nsIPresContext> PresContext;
-	DocShell->GetPresContext (getter_AddRefs(PresContext));
-	NS_ENSURE_TRUE (PresContext, NS_ERROR_FAILURE);
+	nsresult rv;
 
-	nsIDeviceContext *DeviceContext;
-	DeviceContext = PresContext->DeviceContext();
-	NS_ENSURE_TRUE (DeviceContext, NS_ERROR_FAILURE);
+	nsCOMPtr<nsIBaseWindow> baseWindow;
+	baseWindow = do_QueryInterface (mWebBrowser);
+	NS_ENSURE_TRUE (baseWindow, NS_ERROR_FAILURE);
 
-	return DeviceContext->SetTextZoom (aZoom);
+	nsIWidget *widget;
+	rv = baseWindow->GetParentWidget (&widget);
+	NS_ENSURE_SUCCESS (rv, rv);
+
+	nsIDeviceContext *deviceContext;
+	deviceContext = widget->GetDeviceContext ();
+	NS_ENSURE_TRUE (deviceContext, NS_ERROR_FAILURE);
+
+	return deviceContext->SetTextZoom (aZoom);
 }
 
 nsresult EphyBrowser::GetContentViewer (nsIContentViewer **aViewer)
@@ -537,7 +549,7 @@ nsresult EphyBrowser::GetSHUrlAtIndex (PRInt32 index, nsACString &url)
 
 	nsresult result;
 	result = uri->GetSpec(url);
-	NS_ENSURE_TRUE (NS_SUCCEEDED (result) && !url.IsEmpty(), NS_ERROR_FAILURE);
+	NS_ENSURE_TRUE (NS_SUCCEEDED (result) && url.Length(), NS_ERROR_FAILURE);
 
 	return NS_OK;
 }
@@ -588,38 +600,46 @@ nsresult EphyBrowser::GetPageDescriptor(nsISupports **aPageDescriptor)
 
 nsresult EphyBrowser::GetDocumentUrl (nsACString &url)
 {
+	nsresult rv;
+
 	NS_ENSURE_TRUE (mDOMWindow, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIDOMDocument> DOMDocument;
 	mDOMWindow->GetDocument (getter_AddRefs(DOMDocument));
 	NS_ENSURE_TRUE (DOMDocument, NS_ERROR_FAILURE);
 
-	nsCOMPtr<nsIDocument> doc = do_QueryInterface(DOMDocument);
+	nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface(DOMDocument);
 	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-	nsIURI *uri;
-	uri = doc->GetDocumentURI ();
-	NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
+	nsEmbedString docURI;
+	rv = doc->GetDocumentURI (docURI);
+	NS_ENSURE_SUCCESS (rv, rv);
 
-	return uri->GetSpec (url);
+	NS_UTF16ToCString (docURI, NS_CSTRING_ENCODING_UTF8, url);
+
+	return NS_OK;
 }
 
 nsresult EphyBrowser::GetTargetDocumentUrl (nsACString &url)
 {
+	nsresult rv;
+
 	NS_ENSURE_TRUE (mWebBrowser, NS_ERROR_FAILURE);
 
         nsCOMPtr<nsIDOMDocument> DOMDocument;
 	GetTargetDocument (getter_AddRefs(DOMDocument));
 	NS_ENSURE_TRUE (DOMDocument, NS_ERROR_FAILURE);
 
-        nsCOMPtr<nsIDocument> doc = do_QueryInterface(DOMDocument);
+	nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface(DOMDocument);
 	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-	nsIURI *uri;
-	uri = doc->GetDocumentURI ();
-	NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
+	nsEmbedString docURI;
+	rv = doc->GetDocumentURI (docURI);
+	NS_ENSURE_SUCCESS (rv, rv);
 
-	return uri->GetSpec (url);
+	NS_UTF16ToCString (docURI, NS_CSTRING_ENCODING_UTF8, url);
+
+	return NS_OK;
 }
 
 nsresult EphyBrowser::ForceEncoding (const char *encoding) 
@@ -633,7 +653,7 @@ nsresult EphyBrowser::ForceEncoding (const char *encoding)
 	nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer);
 	NS_ENSURE_TRUE (mdv, NS_ERROR_FAILURE);
 
-	return mdv->SetForceCharacterSet (nsDependentCString(encoding));
+	return mdv->SetForceCharacterSet (nsEmbedCString(encoding));
 }
 
 nsresult EphyBrowser::GetEncoding (nsACString &encoding)
@@ -648,7 +668,7 @@ nsresult EphyBrowser::GetEncoding (nsACString &encoding)
 	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
 	encoding = doc->GetDocumentCharacterSet ();
-	NS_ENSURE_TRUE (!encoding.IsEmpty(), NS_ERROR_FAILURE);
+	NS_ENSURE_TRUE (encoding.Length(), NS_ERROR_FAILURE);
 
 	return NS_OK;
 }
