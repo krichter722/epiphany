@@ -4,6 +4,8 @@ SUBDIRS = ui art glade
 @INTLTOOL_DESKTOP_RULE@
 @INTLTOOL_SCHEMAS_RULE@
 
+if ENABLE_MOZILLA_EMBED
+
 default_prefs_in_FILES = \
 	default-prefs-common.js		\
 	default-prefs-mozilla.js	\
@@ -14,6 +16,8 @@ default-prefs.js: $(default_prefs_in_FILES)
 
 default_prefsdir = $(pkgdatadir)
 default_prefs_DATA = default-prefs.js
+
+endif
 
 server_in_files = GNOME_Epiphany_Automation.server.in
 server_DATA = GNOME_Epiphany_Automation.server

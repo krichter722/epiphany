@@ -1,5 +1,11 @@
 2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
 
+	* data/Makefile.am:
+
+	Only build default-prefs.js when using mozilla engine.
+
+2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
+
 	* configure.ac:
 	* embed/Makefile.am:
 
