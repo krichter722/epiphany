@@ -1,3 +1,16 @@
+2003-01-17  Marco Pesenti Gritti  <marco@it.gnome.org>
+
+	* data/ui/Makefile.am:
+	* data/ui/epiphany-ui.xml.in:
+	* src/Makefile.am:
+	* src/ephy-window.c: (add_widget), (setup_window),
+	(ephy_window_init), (ephy_window_set_chrome):
+	* src/toolbar.c: (toolbar_setup_widgets), (add_widget),
+	(toolbar_set_window), (toolbar_setup_actions), (toolbar_init),
+	(toolbar_finalize), (toolbar_set_visibility):
+
+	Make some toolbar widgets work again
+
 2003-01-16  Marco Pesenti Gritti  <marco@it.gnome.org>
 
 	* configure.in:

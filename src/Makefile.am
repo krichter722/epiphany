@@ -46,13 +46,19 @@ epiphany_SOURCES = 				    	\
 	appearance-prefs.h				\
 	ephy-automation.c				\
 	ephy-automation.h				\
+	ephy-favicon-action.c				\
+	ephy-favicon-action.h				\
 	ephy-favorites-menu.c				\
 	ephy-favorites-menu.h				\
 	ephy-history-model.c				\
 	ephy-history-model.h				\
+	ephy-location-action.c				\
+	ephy-location-action.h				\
 	ephy-main.c					\
 	ephy-shell.c					\
 	ephy-shell.h					\
+	ephy-spinner-action.c				\
+	ephy-spinner-action.h				\
 	ephy-tab.c					\
 	ephy-tab.h					\
 	ephy-window.c					\

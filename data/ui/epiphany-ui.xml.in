@@ -75,9 +75,5 @@
         <menuitem name="HelpAboutMenu" verb="HelpAbout"/>
 </submenu>
 </menu>
-<dockitem name="toolbar1">
-	<toolitem name="ViewReloadTItem" verb="ViewReload"/>
-	<toolitem name="ViewStopTItem" verb="ViewStop"/>
-</dockitem>
 </Root>
 

@@ -209,7 +209,6 @@ struct EphyWindowPrivate
 {
 	GtkWidget *main_vbox;
 	GtkWidget *menubar;
-	GtkWidget *toolbar_widget;
 	Toolbar *toolbar;
 	GtkWidget *statusbar;
 	EphyFavoritesMenu *fav_menu;
@@ -369,10 +368,6 @@ add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 	{
 		window->priv->menubar = widget;
 	}
-	else
-	{
-		window->priv->toolbar_widget = widget;
-	}
 
 	gtk_box_pack_start (GTK_BOX (window->priv->main_vbox),
 			    widget, FALSE, FALSE, 0);
@@ -396,17 +391,19 @@ setup_window (EphyWindow *window)
 		ephy_menu_entries[i].user_data = window;
 	}
 
+	merge = egg_menu_merge_new ();
+
 	action_group = egg_action_group_new ("WindowActions");
 	egg_action_group_add_actions (action_group, ephy_menu_entries,
 				      ephy_menu_n_entries);
-
-	merge = egg_menu_merge_new ();
 	egg_menu_merge_insert_action_group (merge, action_group, 0);
+
+	window->ui_merge = G_OBJECT (merge);
 	g_signal_connect (merge, "add_widget", G_CALLBACK (add_widget), window);
 	egg_menu_merge_add_ui_from_file (merge, ephy_file ("epiphany-ui.xml"), NULL);
 	gtk_window_add_accel_group (GTK_WINDOW (window), merge->accel_group);
-	egg_menu_merge_ensure_update (merge);
-	window->ui_merge = G_OBJECT (merge);
+
+	window->priv->toolbar = toolbar_new (window);
 
 	g_signal_connect(window,
 			 "key-press-event",
@@ -485,8 +482,6 @@ ephy_window_init (EphyWindow *window)
 				 G_CALLBACK (favicon_cache_changed_cb),
 				 window,
 				 0);
-
-	window->priv->toolbar = toolbar_new (window);
 
 	/* Setup the window and connect verbs */
 	setup_window (window);
@@ -719,14 +714,8 @@ ephy_window_set_chrome (EphyWindow *window,
 		gtk_widget_hide (window->priv->menubar);
 	}
 
-	if (flags & EMBED_CHROME_TOOLBARON)
-	{
-		gtk_widget_show (window->priv->toolbar_widget);
-	}
-	else
-	{
-		gtk_widget_hide (window->priv->toolbar_widget);
-	}
+	toolbar_set_visibility (window->priv->toolbar,
+				flags & EMBED_CHROME_TOOLBARON);
 
 	if (flags & EMBED_CHROME_STATUSBARON)
 	{

@@ -19,10 +19,14 @@
 
 #include "toolbar.h"
 #include "egg-menu-merge.h"
+#include "ephy-file-helpers.h"
 #include "ephy-shell.h"
 #include "ephy-location-entry.h"
 #include "ephy-dnd.h"
 #include "ephy-spinner.h"
+#include "ephy-spinner-action.h"
+#include "ephy-location-action.h"
+#include "ephy-favicon-action.h"
 
 static void toolbar_class_init (ToolbarClass *klass);
 static void toolbar_init (Toolbar *t);
@@ -52,6 +56,7 @@ struct ToolbarPrivate
 {
 	EphyWindow *window;
 	EggMenuMerge *ui_merge;
+	EggActionGroup *action_group;
 	gboolean visibility;
 	GtkWidget *location_entry;
 	GtkWidget *spinner;
@@ -141,87 +146,26 @@ toolbar_get_property (GObject *object,
 }
 
 static void
-toolbar_location_url_activate_cb (EphyLocationEntry *entry,
-				  const char *content,
-				  const char *target,
-				  EphyWindow *window)
+toolbar_setup_widgets (Toolbar *t)
 {
-	EphyBookmarks *bookmarks;
+	GtkWidget *titem;
 
-	bookmarks = ephy_shell_get_bookmarks (ephy_shell);
+	egg_menu_merge_add_ui_from_file (t->priv->ui_merge,
+					 ephy_file ("epiphany-toolbar.xml"), NULL);
+	egg_menu_merge_ensure_update (t->priv->ui_merge);
 
-	if (!content)
-	{
-		ephy_window_load_url (window, target);
-	}
-	else
-	{
-		char *url;
+	titem = egg_menu_merge_get_widget
+		(t->priv->ui_merge, "/toolbar1/FaviconTItem");
+	t->priv->favicon = GTK_BIN (GTK_BIN(titem)->child)->child;
 
-		url = ephy_bookmarks_solve_smart_url
-			(bookmarks, target, content);
-		g_return_if_fail (url != NULL);
-		ephy_window_load_url (window, url);
-		g_free (url);
-	}
+	titem = egg_menu_merge_get_widget
+		(t->priv->ui_merge, "/toolbar1/LocationTItem");
+	t->priv->location_entry = GTK_BIN (titem)->child;
 }
 
 static void
-each_url_get_data_binder (EphyDragEachSelectedItemDataGet iteratee,
-			  gpointer iterator_context, gpointer data)
+add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 {
-	const char *location;
-	EphyTab *tab;
-	EphyWindow *window = EPHY_WINDOW(iterator_context);
-
-	tab = ephy_window_get_active_tab (window);
-	location = ephy_tab_get_location (tab);
-
-	iteratee (location, -1, -1, -1, -1, data);
-}
-
-static void
-favicon_drag_data_get_cb (GtkWidget *widget,
-                          GdkDragContext *context,
-                          GtkSelectionData *selection_data,
-                          guint info,
-                          guint32 time,
-                          EphyWindow *window)
-{
-        g_assert (widget != NULL);
-        g_return_if_fail (context != NULL);
-
-        ephy_dnd_drag_data_get (widget, context, selection_data,
-                info, time, window, each_url_get_data_binder);
-}
-
-static void
-toolbar_setup_favicon (Toolbar *t)
-{
-	g_return_if_fail (t->priv->favicon != NULL);
-
-	ephy_dnd_url_drag_source_set (t->priv->favicon);
-
-	g_signal_connect (G_OBJECT (t->priv->favicon),
-			  "drag_data_get",
-			  G_CALLBACK (favicon_drag_data_get_cb),
-			  t->priv->window);
-}
-
-static void
-toolbar_setup_location_entry (Toolbar *t)
-{
-	EphyAutocompletion *ac = ephy_shell_get_autocompletion (ephy_shell);
-	EphyLocationEntry *e;
-
-	g_return_if_fail (t->priv->location_entry != NULL);
-
-	e = EPHY_LOCATION_ENTRY (t->priv->location_entry);
-	ephy_location_entry_set_autocompletion (e, ac);
-
-	g_signal_connect (e, "activated",
-			  GTK_SIGNAL_FUNC(toolbar_location_url_activate_cb),
-			  t->priv->window);
 }
 
 static void
@@ -231,9 +175,38 @@ toolbar_set_window (Toolbar *t, EphyWindow *window)
 
 	t->priv->window = window;
 	t->priv->ui_merge = EGG_MENU_MERGE (window->ui_merge);
+	g_signal_connect (t->priv->ui_merge, "add_widget",
+			  G_CALLBACK (add_widget), t);
 
-	toolbar_setup_favicon (t);
-	toolbar_setup_location_entry (t);
+	egg_menu_merge_insert_action_group (t->priv->ui_merge,
+					    t->priv->action_group, 1);
+	toolbar_setup_widgets (t);
+}
+
+static void
+toolbar_setup_actions (Toolbar *t)
+{
+	EggAction *action;
+
+	t->priv->action_group = egg_action_group_new ("SpecialToolbarActions");
+
+	action = g_object_new (EPHY_TYPE_SPINNER_ACTION,
+			       "name", "Spinner",
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
+
+	action = g_object_new (EPHY_TYPE_LOCATION_ACTION,
+			       "name", "Location",
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
+
+	action = g_object_new (EPHY_TYPE_FAVICON_ACTION,
+			       "name", "Favicon",
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
 }
 
 static void
@@ -244,6 +217,8 @@ toolbar_init (Toolbar *t)
 	t->priv->window = NULL;
 	t->priv->ui_merge = NULL;
 	t->priv->visibility = TRUE;
+
+	toolbar_setup_actions (t);
 }
 
 static void
@@ -259,6 +234,8 @@ toolbar_finalize (GObject *object)
 	p = t->priv;
 
         g_return_if_fail (p != NULL);
+
+	g_object_unref (t->priv->action_group);
 
         g_free (t->priv);
 
@@ -282,9 +259,6 @@ toolbar_new (EphyWindow *window)
 void
 toolbar_set_visibility (Toolbar *t, gboolean visibility)
 {
-	if (visibility == t->priv->visibility) return;
-
-	t->priv->visibility = visibility;
 }
 
 void
