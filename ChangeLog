@@ -1,5 +1,18 @@
 2003-10-06  Xan Lopez  <xan@masilla.org>
 
+	* embed/mozilla/EphyDownload.cpp:
+	* embed/mozilla/EphyDownload.h:
+	* embed/mozilla/EphyHeaderSniffer.cpp:
+	* embed/mozilla/EphyHeaderSniffer.h:
+	* embed/mozilla/MozRegisterComponents.cpp:
+	* embed/mozilla/ProgressListener.cpp:
+	* embed/mozilla/ProgressListener.h:
+	* embed/mozilla/mozilla-embed-persist.cpp:
+
+	Cleanups.
+
+2003-10-06  Xan Lopez  <xan@masilla.org>
+
 	* embed/mozilla/Makefile.am:
 	* embed/mozilla/MozRegisterComponents.cpp:
 	* embed/mozilla/mozilla-embed-persist.cpp:

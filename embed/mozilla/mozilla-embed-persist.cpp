@@ -18,7 +18,6 @@
  *  $Id$
  */
 
-//#include "ProgressListener.h"
 #include "EphyDownload.h"
 #include "EphyWrapper.h"
 #include "mozilla-embed.h"

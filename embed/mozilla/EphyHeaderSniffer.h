@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
- #pragma once
-
 #include "nsString.h"
 #include "nsIWebProgressListener.h"
 #include "nsIWebBrowserPersist.h"

@@ -37,10 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "EphyHeaderSniffer.h"
-//#include "UMacUnicode.h"
-
-//#include "UCustomNavServicesDialogs.h"
-
 #include "netCore.h"
 
 #include "nsIChannel.h"
@@ -52,7 +48,6 @@
 #include "nsIMIMEInfo.h"
 #include "nsIDOMHTMLDocument.h"
 #include "nsIDownload.h"
-//#include "nsILocalFileMac.h"
 
 const char* const persistContractID = "@mozilla.org/embedding/browser/nsWebBrowserPersist;1";
 

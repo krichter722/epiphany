@@ -39,25 +39,15 @@
 #include "EphyDownload.h"
 
 #include "nsIExternalHelperAppService.h"
-//#include "nsILocalFIleMac.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsIRequest.h"
 #include "netCore.h"
 #include "nsIObserver.h"
 
-//#include "UDownloadDisplay.h"
-//#include "UMacUnicode.h"
-
-//#include "UNavServicesDialogs.h"
-
-
 //*****************************************************************************
 // EphyDownload
 //*****************************************************************************
-#pragma mark [EphyDownload]
-
-//ADownloadProgressView *EphyDownload::sProgressView;
 
 EphyDownload::EphyDownload() :
     mGotFirstStateChange(false), mIsNetworkTransfer(false),
@@ -71,9 +61,6 @@ EphyDownload::~EphyDownload()
 }
 
 NS_IMPL_ISUPPORTS2(EphyDownload, nsIDownload, nsIWebProgressListener)
-
-#pragma mark -
-#pragma mark [EphyDownload::nsIDownload]
 
 /* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
 NS_IMETHODIMP
@@ -98,12 +85,10 @@ EphyDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDis
             // until nsIWebBrowserPersist supports weak refs - bug #163889.
             aPersist->SetProgressListener(this);
         }
-	// UI Rumba
+	// FIXME, get source, dest and filename
 	mDownloaderView = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
 			(embed_shell));
 	downloader_view_add_download (mDownloaderView, "A", "B", "C", (gpointer)this);
-  //      EnsureProgressView();
-  //      sProgressView->AddDownloadItem(this);
     }
     catch (...) {
         return NS_ERROR_FAILURE;
@@ -206,9 +191,6 @@ EphyDownload::SetObserver(nsIObserver * aObserver)
     return NS_OK;
 }
 
-#pragma mark -
-#pragma mark [EphyDownload::nsIWebProgressListener]
-
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
 NS_IMETHODIMP 
 EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
@@ -219,7 +201,6 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
     if (!mGotFirstStateChange) {
         mIsNetworkTransfer = ((aStateFlags & STATE_IS_NETWORK) != 0);
         mGotFirstStateChange = PR_TRUE;
-        //BroadcastMessage(msg_OnDLStart, this);
     }
 
     if (NS_FAILED(aStatus) && NS_SUCCEEDED(mStatus))
@@ -232,7 +213,6 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
             mWebPersist = nsnull;
         }
         mHelperAppLauncher = nsnull;
-        //BroadcastMessage(msg_OnDLComplete, this);
     }
         
     return NS_OK; 
@@ -256,7 +236,6 @@ EphyDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aReques
     else
         mPercentComplete = (PRInt32)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0 + 0.5);
     
-    //MsgOnDLProgressChangeInfo info(this, aCurTotalProgress, aMaxTotalProgress);
     // From ProgressListener
     PRInt64 now = PR_Now();
     mElapsed = now - mStartTime;
@@ -320,8 +299,6 @@ EphyDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aReques
 				 /currentRate + 0.5);
 	}
 
-    //BroadcastMessage(msg_OnDLProgressChange, &info);
-    // UI Rumba
     downloader_view_set_download_progress (mDownloaderView,
 		    			   mElapsed / 1000000,
 					   remaining,
@@ -356,9 +333,6 @@ EphyDownload::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aReques
     return NS_OK;
 }
 
-#pragma mark -
-#pragma mark [EphyDownload Internal Methods]
-
 void
 EphyDownload::Cancel()
 {
@@ -378,93 +352,3 @@ void
 EphyDownload::Resume()
 {
 }
-
-/*void
-EphyDownload::CreateProgressView()
-{
-    sProgressView = new CMultiDownloadProgress;
-    ThrowIfNil_(sProgressView);
-}*/
-
-
-//*****************************************************************************
-// CHelperAppLauncherDialog
-//*****************************************************************************   
-/*#pragma mark -
-#pragma mark [CHelperAppLauncherDialog]
-
-CHelperAppLauncherDialog::CHelperAppLauncherDialog()
-{
-}
-
-CHelperAppLauncherDialog::~CHelperAppLauncherDialog()
-{
-}
-
-NS_IMPL_ISUPPORTS1(CHelperAppLauncherDialog, nsIHelperAppLauncherDialog)*/
-
-/* void show (in nsIHelperAppLauncher aLauncher, in nsISupports aContext, in boolean aForced); */
-/*NS_IMETHODIMP CHelperAppLauncherDialog::Show(nsIHelperAppLauncher *aLauncher, nsISupports *aContext, PRBool aForced)
-{
-    return aLauncher->SaveToDisk(nsnull, PR_FALSE);
-}*/
-
-/* nsILocalFile promptForSaveToFile (in nsIHelperAppLauncher aLauncher, in nsISupports aWindowContext, in wstring aDefaultFile, in wstring aSuggestedFileExtension); */
-/*NS_IMETHODIMP CHelperAppLauncherDialog::PromptForSaveToFile(nsIHelperAppLauncher* aLauncher, 
-                                                            nsISupports *aWindowContext, 
-                                                            const PRUnichar *aDefaultFile, 
-                                                            const PRUnichar *aSuggestedFileExtension, 
-                                                            nsILocalFile **_retval)
-{
-    NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = nsnull;
- 
-    static bool sFirstTime = true;   
-	UNavServicesDialogs::LFileDesignator	designator;
-
-    if (sFirstTime) {
-        // Get the default download folder and point Nav Sevices to it.
-        nsCOMPtr<nsIFile> defaultDownloadDir;
-        NS_GetSpecialDirectory(NS_MAC_DEFAULT_DOWNLOAD_DIR, getter_AddRefs(defaultDownloadDir));
-        if (defaultDownloadDir) {
-            nsCOMPtr<nsILocalFileMac> macDir(do_QueryInterface(defaultDownloadDir));
-            FSSpec defaultDownloadSpec;
-            if (NS_SUCCEEDED(macDir->GetFSSpec(&defaultDownloadSpec)))
-                designator.SetDefaultLocation(defaultDownloadSpec, true);
-        }
-        sFirstTime = false;
-    }
-	
-	Str255  defaultName;
-	CPlatformUCSConversion::GetInstance()->UCSToPlatform(nsDependentString(aDefaultFile), defaultName);
-    bool result = designator.AskDesignateFile(defaultName);
-    
-    // After the dialog is dismissed, process all activation an update events right away.
-    // The save dialog code calls UDesktop::Activate after dismissing the dialog. All that
-    // does is activate the now frontmost LWindow which was behind the dialog. It does not
-    // remove the activate event from the queue. If that event is not processed and removed
-    // before we show the progress window, bad things happen. Specifically, the progress
-    // dialog will show in front and then, shortly thereafter, the window which was behind this save
-    // dialog will be moved to the front.
-    
-    if (LEventDispatcher::GetCurrentEventDispatcher()) { // Can this ever be NULL?
-        EventRecord theEvent;
-        while (::WaitNextEvent(updateMask | activMask, &theEvent, 0, nil))
-            LEventDispatcher::GetCurrentEventDispatcher()->DispatchEvent(theEvent);
-    }
-        
-    if (result) {
-        FSSpec destSpec;
-        designator.GetFileSpec(destSpec);
-        nsCOMPtr<nsILocalFileMac> destFile;
-        NS_NewLocalFileWithFSSpec(&destSpec, PR_TRUE, getter_AddRefs(destFile));
-        if (!destFile)
-            return NS_ERROR_FAILURE;
-        *_retval = destFile;
-        NS_ADDREF(*_retval);
-        return NS_OK;
-    }
-    else
-        return NS_ERROR_ABORT;
-}*/
-

@@ -38,7 +38,6 @@
 
 #ifndef EphyDownload_h__
 #define EphyDownload_h__
-//#pragma once
 
 #include "nsIDownload.h"
 #include "nsIWebProgressListener.h"
@@ -51,8 +50,6 @@
 
 #include "downloader-view.h"
 #include "ephy-embed-shell.h"
-
-//class ADownloadProgressView;
 
 //*****************************************************************************
 // EphyDownload
@@ -76,7 +73,6 @@
 }
 
 #define EPHY_DOWNLOAD_CLASSNAME "Ephy's Download Progress Dialog"
-//#define EPHY_DOWNLOAD_CONTRACTID "@mozilla.org/progressdialog;1"
 
 class EphyDownload : public nsIDownload,
                      public nsIWebProgressListener
@@ -91,16 +87,6 @@ public:
         msg_OnDLProgressChange              // param is MsgOnDLProgressChangeInfo*
     };
        
-/*    struct MsgOnDLProgressChangeInfo
-    {
-        MsgOnDLProgressChangeInfo(EphyDownload* broadcaster, PRInt32 curProgress, PRInt32 maxProgress) :
-            mBroadcaster(broadcaster), mCurProgress(curProgress), mMaxProgress(maxProgress)
-            { }
-        
-        EphyDownload *mBroadcaster;      
-        PRInt32 mCurProgress, mMaxProgress;
-    };*/
-
                             EphyDownload();
     virtual                 ~EphyDownload();
     
@@ -114,15 +100,6 @@ public:
     virtual void            GetStatus(nsresult& aStatus)
                             { aStatus = mStatus; }
 
-//protected:
- //   void                    EnsureProgressView()
- //                           {
- //                               if (!sProgressView)
- //                                   CreateProgressView();
- //                           }
- //   virtual void            CreateProgressView();
-    // sProgressView is a singleton. This will only be called once.
-    
 protected:
     nsCOMPtr<nsIURI>        mSource;
     nsCOMPtr<nsILocalFile>  mDestination;
@@ -145,52 +122,6 @@ protected:
     PRInt64 mLastUpdate;
     PRInt32 mInterval;
     DownloaderView *mDownloaderView;
-   // static ADownloadProgressView *sProgressView;
 };
-
-//*****************************************************************************
-// CHelperAppLauncherDialog
-//
-// The implementation of nsIExternalHelperAppService in Gecko creates one of
-// these at the beginning of the download and calls its Show() method. Typically,
-// this will create a non-modal dialog in which the user can decide whether to
-// save the file to disk or open it with an application. This implementation
-// just saves the file to disk unconditionally. The user can decide what they
-// wish to do with the download from the progress dialog.
-//*****************************************************************************   
-
-/*class CHelperAppLauncherDialog : public nsIHelperAppLauncherDialog
-{
-public:
-                            CHelperAppLauncherDialog();
-    virtual                 ~CHelperAppLauncherDialog();
-    
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIHELPERAPPLAUNCHERDIALOG
-
-protected:
-
-};*/
-
-
-//*****************************************************************************
-// ADownloadProgressView
-//
-// An abstract class which handles the display and interaction with a download.
-// Typically, it presents a progress dialog.
-//*****************************************************************************
-
-/*class ADownloadProgressView
-{
-    friend class EphyDownload;
-    
-    virtual void AddDownloadItem(EphyDownload *aDownloadItem) = 0;
-    // A download is beginning. Initialize the UI for this download.
-    // Throughout the download process, the EphyDownload will broadcast
-    // status messages. The UI needs to call LBroadcaster::AddListener()
-    // on the EphyDownload at this point in order to get the messages.
-    
-};*/
-
 
 #endif // EphyDownload_h__
