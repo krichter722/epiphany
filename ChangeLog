@@ -1,3 +1,13 @@
+2003-10-13  Xan Lopez  <xan@masilla.org>
+
+	* embed/downloader-view.c: (downloader_view_class_init),
+	(download_dialog_pause_cb), (download_dialog_abort_cb),
+	(delete_pending_foreach), (downloader_cancel_download),
+	(downloader_pause_download), (downloader_resume_download):
+	* embed/downloader-view.h:
+
+	More work.
+
 2003-10-07  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* embed/mozilla/EphyHeaderSniffer.cpp:

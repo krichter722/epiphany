@@ -42,13 +42,13 @@
 
 #define CONF_DOWNLOADING_SHOW_DETAILS "/apps/epiphany/dialogs/downloader_show_details"
 
-enum
+/*enum
 {
 	DOWNLOAD_REMOVE,
 	DOWNLOAD_PAUSE,
 	DOWNLOAD_RESUME,
         LAST_SIGNAL
-};
+};*/
 
 enum
 {
@@ -171,7 +171,7 @@ download_dialog_open_cb (GtkWidget *button,
 			 DownloaderView *dv);
 
 static GObjectClass *parent_class = NULL;
-static guint downloader_view_signals[LAST_SIGNAL] = { 0 };
+//static guint downloader_view_signals[LAST_SIGNAL] = { 0 };
 
 GType
 downloader_view_get_type (void)
@@ -234,7 +234,7 @@ downloader_view_class_init (DownloaderViewClass *klass)
         object_class->finalize = downloader_view_finalize;
 
         /* init signals */
-        downloader_view_signals[DOWNLOAD_REMOVE] =
+/*        downloader_view_signals[DOWNLOAD_REMOVE] =
                 g_signal_new ("download_remove",
                               G_OBJECT_CLASS_TYPE (object_class),
                               G_SIGNAL_RUN_LAST,
@@ -260,7 +260,7 @@ downloader_view_class_init (DownloaderViewClass *klass)
                               NULL, NULL,
                               g_cclosure_marshal_VOID__POINTER,
                               G_TYPE_NONE, 1,
-			      G_TYPE_POINTER);
+			      G_TYPE_POINTER);*/
 
 	g_type_class_add_private (object_class, sizeof(DownloaderViewPrivate));
 }
@@ -856,12 +856,14 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 	else if (details->status == DOWNLOAD_STATUS_DOWNLOADING ||
 		 details->status == DOWNLOAD_STATUS_RESUMING)
 	{
-		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_PAUSE], 0, persist_object);
+		downloader_pause_download (dv, persist_object);
+//		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_PAUSE], 0, persist_object);
 		downloader_view_set_download_status (dv, DOWNLOAD_STATUS_PAUSED, persist_object);
 	}
 	else if (details->status == DOWNLOAD_STATUS_PAUSED)
 	{
-		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_RESUME], 0, persist_object);
+		downloader_resume_download (dv, persist_object);
+//		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_RESUME], 0, persist_object);
 		downloader_view_set_download_status (dv, DOWNLOAD_STATUS_RESUMING, persist_object);
 	}
 }
@@ -903,7 +905,8 @@ download_dialog_abort_cb (GtkButton *button, DownloaderView *dv)
 					       persist_object);
 		g_return_if_fail (details);
 
-		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_REMOVE], 0, persist_object);
+		downloader_cancel_download (dv, persist_object);
+//		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_REMOVE], 0, persist_object);
 
 		downloader_view_remove_download (dv, persist_object);
 
@@ -983,8 +986,9 @@ delete_pending_foreach  (gpointer persist_object,
 {
 	if (details->status != DOWNLOAD_STATUS_COMPLETED)
         {
-		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_REMOVE],
-			       0, persist_object);
+		downloader_cancel_download (dv, persist_object);
+//		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_REMOVE],
+//			       0, persist_object);
 	}
 
 	return TRUE;
@@ -1102,3 +1106,25 @@ download_dialog_open_cb (GtkWidget *button,
 		 (GtkTreeSelectionForeachFunc)open_selection_foreach,
 		 (gpointer)dv);
 }
+
+void
+downloader_cancel_download (DownloaderView *dv, gpointer persist_object)
+{
+	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
+	klass->cancel_download(dv, persist_object);
+}
+
+void
+downloader_pause_download (DownloaderView *dv, gpointer persist_object)
+{
+	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
+	klass->pause_download(dv, persist_object);
+}
+
+void
+downloader_resume_download (DownloaderView *dv, gpointer persist_object)
+{
+	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
+	klass->resume_download(dv, persist_object);
+}
+
