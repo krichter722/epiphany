@@ -51,20 +51,29 @@ struct EphyDownloadClass
 {
         GObjectClass parent_class;
 
-	void (* cancel)             (EphyDownload *download);
-	void (* pause)              (EphyDownload *download);
-	void (* resume)             (EphyDownload *download);
+	char * (* get_source)  (EphyDownload *download);
+	char * (* get_target)  (EphyDownload *download);
+	int    (* get_percent) (EphyDownload *download);
+	void   (* cancel)      (EphyDownload *download);
+	void   (* pause)       (EphyDownload *download);
+	void   (* resume)      (EphyDownload *download);
 };
 
 GType           ephy_download_get_type          (void);
 
 EphyDownload   *ephy_download_new               (void);
 
-void		ephy_download_cancel	      	(EphyDownload *dv);
+char	       *ephy_download_get_source	(EphyDownload *download);
 
-void		ephy_download_pause		(EphyDownload *dv);
+char           *ephy_download_get_target        (EphyDownload *download);
 
-void		ephy_download_resume		(EphyDownload *dv);
+int             ephy_download_get_percent       (EphyDownload *download);
+
+void		ephy_download_cancel	      	(EphyDownload *download);
+
+void		ephy_download_pause		(EphyDownload *download);
+
+void		ephy_download_resume		(EphyDownload *download);
 
 G_END_DECLS
 

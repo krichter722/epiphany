@@ -1,5 +1,14 @@
 2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/ephy-download.c: (ephy_download_get_source),
+	(ephy_download_get_target), (ephy_download_get_percent):
+	* embed/ephy-download.h:
+	* embed/mozilla/mozilla-download.cpp:
+
+	Implement basic download info getters.
+
+2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/Makefile.am:
 	* embed/downloader-view.c: (destroy_details_cb),
 	(downloader_view_update_controls),

@@ -76,6 +76,27 @@ ephy_download_new (void)
 	return EPHY_DOWNLOAD (g_object_new (EPHY_TYPE_DOWNLOAD, NULL));
 }
 
+char *
+ephy_download_get_source (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_source (download);
+}
+
+char *
+ephy_download_get_target (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_target (download);
+}
+
+int
+ephy_download_get_percent (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_percent (download);
+}
+
 void
 ephy_download_cancel (EphyDownload *download)
 {

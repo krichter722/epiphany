@@ -20,6 +20,8 @@
 
 #include "mozilla-download.h"
 
+#include "nsString.h"
+
 static void
 mozilla_download_class_init (MozillaDownloadClass *klass);
 static void
@@ -58,6 +60,50 @@ mozilla_download_get_type (void)
         return mozilla_download_type;
 }
 
+static char *
+impl_get_source (EphyDownload *download)
+{
+	nsCOMPtr<nsILocalFile> targetFile;
+	MozDownload *mozDownload;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetTarget (getter_AddRefs (targetFile));
+
+	nsCAutoString tempPathStr;
+	targetFile->GetNativePath (tempPathStr);
+
+	return g_strdup (tempPathStr.get ());
+}
+
+static char *
+impl_get_target (EphyDownload *download)
+{
+	nsCOMPtr<nsIURI> uri;
+	MozDownload *mozDownload;
+	nsCString spec;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetSource (getter_AddRefs (uri));
+	uri->GetSpec (spec);
+
+	return g_strdup (spec.get());
+}
+
+static int
+impl_get_percent (EphyDownload *download)
+{
+	MozDownload *mozDownload;
+	PRInt32 percent;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetPercentComplete (&percent);
+
+	return percent;
+}
+
 static void 
 impl_cancel (EphyDownload *download)
 {
@@ -67,6 +113,7 @@ impl_cancel (EphyDownload *download)
 static void
 impl_pause (EphyDownload *download)
 {
+
 }
 
 static void
@@ -80,7 +127,10 @@ mozilla_download_class_init (MozillaDownloadClass *klass)
 	EphyDownloadClass *download_class = EPHY_DOWNLOAD_CLASS (klass);
 	
         parent_class = (GObjectClass *) g_type_class_peek_parent (klass);
-	
+
+	download_class->get_percent = impl_get_percent;
+	download_class->get_target = impl_get_target;
+	download_class->get_source = impl_get_source;
 	download_class->cancel = impl_cancel;
 	download_class->pause = impl_pause;
 	download_class->resume = impl_resume;
