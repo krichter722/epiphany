@@ -3,11 +3,11 @@
 
 Downloader:
 
+- Fix feedback of complete status (perc 100, remaining 0)
 - Fixup column sizing. Ideally filename should get all available space, the
 others column can get the minimum (for progress we can just fixup requisition
 in the renderer to something sane)
 - Fix hash table destruction. Free row refs and unref download objects.
-- Fix crash on download finish, both on context menu and click downloads
 - Cleanup downloader-view, there is prolly still crap here and there
 - Add LOGs on all objects involved in download. Init/Finalize and in c++
 constructor/destructor. Verify that references are correct == objects
