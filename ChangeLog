@@ -1,3 +1,17 @@
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-cell-renderer-progress.c:
+	(ephy_cell_renderer_progress_init),
+	(ephy_cell_renderer_progress_set_value),
+	(ephy_cell_renderer_progress_set_property), (compute_dimensions),
+	(ephy_cell_renderer_progress_get_size),
+	(ephy_cell_renderer_progress_render),
+	(ephy_cell_renderer_progress_finalize),
+	(ephy_cell_renderer_progress_class_init):
+	* lib/widgets/ephy-cell-renderer-progress.h:
+
+	fix for unknown/failed states
+
 2003-10-16  Xan Lopez  <xan@masilla.org>
 
 	* embed/mozilla/MozDownload.cpp:

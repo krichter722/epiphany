@@ -32,6 +32,12 @@ typedef struct _EphyCellRendererProgress         EphyCellRendererProgress;
 typedef struct _EphyCellRendererProgressClass    EphyCellRendererProgressClass;
 typedef struct _EphyCellRendererProgressPrivate  EphyCellRendererProgressPrivate;
 
+enum
+{
+	EPHY_PROGRESS_CELL_UNKNOWN = -1,
+	EPHY_PROGRESS_CELL_FAILED = -2
+};
+
 struct _EphyCellRendererProgress
 {
 	GtkCellRenderer parent_instance;
