@@ -123,9 +123,25 @@ dnl ******************
 
 AC_CHECK_FUNCS([mkdtemp])
 
+dnl ####################
+dnl Render engine check
+dnl ####################
+AC_MSG_CHECKING(for which rendering engine to use)
+
+ENGINE=mozilla
+AC_ARG_WITH(rendering-engine,
+  AC_HELP_STRING([--with-rendering-engine@<:@=mozilla|gtkhtml|webcore@:>@],
+                 [Which rendering engine to build against @<:@mozilla@:>@]),
+                 [ENGINE="$withval"])
+
+AC_MSG_RESULT($ENGINE)
+
 dnl ******************
 dnl Mozilla name check
 dnl ******************
+
+AM_CONDITIONAL(ENABLE_MOZILLA_EMBED, test "$ENGINE" = "mozilla" )
+if test "$ENGINE" = "mozilla" ; then
 
 AC_MSG_CHECKING([which mozilla to use])
 
@@ -370,6 +386,21 @@ AC_CHECK_FILE([$MOZILLA_INCLUDE_ROOT/nsIPassword.h],
 MOZILLA_WARN_CXXFLAGS="-Wall -Wconversion -Wpointer-arith -Wcast-align -Woverloaded-virtual -Wsynth -Wno-ctor-dtor-privacy -Wno-non-virtual-dtor"
 AC_SUBST([MOZILLA_WARN_CXXFLAGS])
 
+fi # $ENGINE = mozilla
+
+dnl *******************************
+dnl webkit renderer
+dnl *******************************
+
+AM_CONDITIONAL(ENABLE_WEBCORE_EMBED, test "$ENGINE" = "webcore" )
+if test "$ENGINE" = "webcore" ; then
+   AC_DEFINE(ENABLE_WEBCORE_EMBED, 1, [Define to 1 if you wish to enable webcore renderer.])
+   PKG_CHECK_MODULES(WEBCORE, osb-jscore osb-nrcore osb-nrcit)
+   AC_SUBST(WEBCORE_CFLAGS)
+   AC_SUBST(WEBCORE_LIBS)
+fi
+
+
 dnl *******************************
 dnl Internationalization
 dnl ******************************* 
@@ -401,6 +432,7 @@ lib/egg/Makefile
 lib/widgets/Makefile
 embed/Makefile
 embed/mozilla/Makefile
+embed/webcore/Makefile
 src/Makefile
 src/bookmarks/Makefile
 help/Makefile

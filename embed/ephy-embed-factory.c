@@ -23,9 +23,17 @@
 #endif
 
 #include "ephy-embed-factory.h"
+
+#ifdef ENABLE_MOZILLA_EMBED
 #include "mozilla-embed.h"
 #include "mozilla-embed-persist.h"
 #include "mozilla-embed-single.h"
+#elif ENABLE_WEBCORE_EMBED
+#include "webcore-embed.h"
+#include "webcore-embed-persist.h"
+#include "webcore-embed-single.h"
+#endif
+
 #include "ephy-embed.h"
 #include "ephy-embed-persist.h"
 #include "ephy-embed-single.h"
