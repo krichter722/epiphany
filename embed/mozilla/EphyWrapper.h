@@ -20,7 +20,7 @@
 #define EPHY_WRAPPER_H
 
 #include "nsIDocShell.h"
-#include "ProgressListener.h"
+//#include "ProgressListener.h"
 #include "nsIWebNavigation.h"
 #include "nsIWebPageDescriptor.h"
 #include "nsISHistory.h"

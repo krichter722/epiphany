@@ -46,7 +46,7 @@ impl_cancel (EphyEmbedPersist *persist);
 struct MozillaEmbedPersistPrivate
 {
 	nsCOMPtr<nsIWebBrowserPersist> mPersist;
-	GProgressListener *mProgress;
+//	GProgressListener *mProgress;
 };
 
 static GObjectClass *parent_class = NULL;

@@ -1,5 +1,19 @@
 2003-10-06  Xan Lopez  <xan@masilla.org>
 
+	* embed/mozilla/ContentHandler.cpp:
+	* embed/mozilla/EphyWrapper.cpp:
+	* embed/mozilla/EphyWrapper.h:
+	* embed/mozilla/EventContext.cpp:
+	* embed/mozilla/GlobalHistory.h:
+	* embed/mozilla/ProgressListener.cpp:
+	* embed/mozilla/ProgressListener.h:
+	* embed/mozilla/mozilla-embed-persist.cpp:
+
+	Remove ProgressListener again, hopefully everything
+	compiles without it now.
+
+2003-10-06  Xan Lopez  <xan@masilla.org>
+
 	* embed/mozilla/EphyDownload.cpp:
 	* embed/mozilla/EphyDownload.h:
 	* embed/mozilla/EphyHeaderSniffer.cpp:

@@ -159,7 +159,6 @@ extern "C" {
 #include "ephy-gui.h"
 #include "ephy-embed-utils.h"
 #include "ephy-file-helpers.h"
-#include "ProgressListener.h"
 #include "ContentHandler.h"
 
 #include <gtk/gtkentry.h>
@@ -189,9 +188,10 @@ extern "C" {
 #include "nsIPrefService.h"
 #include "nsIDOMWindow.h"
 #include "nsIDOMWindowInternal.h"
+#include "nsIMIMEInfo.h"
 
 class GContentHandler;
-class GDownloadProgressListener;
+//class GDownloadProgressListener;
 struct MimeAskActionDialog;
 struct HelperAppChooserDialog;
 
