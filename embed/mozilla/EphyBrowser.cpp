@@ -23,8 +23,6 @@
 #endif
 
 #include "EphyBrowser.h"
-#include "GlobalHistory.h"
-#include "ContentHandler.h"
 #include "ephy-embed.h"
 #include "ephy-string.h"
 #include "ephy-debug.h"
@@ -37,7 +35,6 @@
 #include "nsISimpleEnumerator.h"
 
 #include "nsIContentViewer.h"
-#include "nsIGlobalHistory.h"
 #include "nsIWebBrowserFind.h"
 #include "nsIWebBrowserFocus.h"
 #include "nsICommandManager.h"
@@ -45,7 +42,6 @@
 #include "nsIDocShellTreeItem.h"
 #include "nsIDocShellTreeNode.h"
 #include "nsIDocShellTreeOwner.h"
-#include "nsIDocumentCharsetInfo.h"
 #include "nsIWebPageDescriptor.h"
 #include "nsISHEntry.h"
 #include "nsIHistoryEntry.h"
@@ -125,13 +121,8 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 		nsCOMPtr<nsIDocument> doc = do_QueryInterface (domDoc);
 		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-#if MOZILLA_SNAPSHOT > 13
 		nsIURI *uri;
 		uri = doc->GetDocumentURI ();
-#elif MOZILLA_SNAPSHOT > 11
-		nsIURI *uri;
-		uri = doc->GetDocumentURL ();
-#endif
 		if (!uri) return NS_ERROR_FAILURE;
 
 		const nsACString &link = NS_ConvertUTF16toUTF8(value);
@@ -432,15 +423,9 @@ nsresult EphyBrowser::SetZoomOnDocshell (float aZoom, nsIDocShell *DocShell)
 	DocShell->GetPresContext (getter_AddRefs(PresContext));
 	NS_ENSURE_TRUE (PresContext, NS_ERROR_FAILURE);
 
-#if MOZILLA_SNAPSHOT > 13
 	nsIDeviceContext *DeviceContext;
 	DeviceContext = PresContext->DeviceContext();
 	NS_ENSURE_TRUE (DeviceContext, NS_ERROR_FAILURE);
-#else				
-	nsCOMPtr<nsIDeviceContext> DeviceContext;
-	PresContext->GetDeviceContext (getter_AddRefs(DeviceContext));
-	NS_ENSURE_TRUE (DeviceContext, NS_ERROR_FAILURE);
-#endif
 
 	return DeviceContext->SetTextZoom (aZoom);
 }
@@ -619,13 +604,8 @@ nsresult EphyBrowser::GetDocumentUrl (nsCString &url)
 	nsCOMPtr<nsIDocument> doc = do_QueryInterface(DOMDocument);
 	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-#if MOZILLA_SNAPSHOT > 13
 	nsIURI *uri;
 	uri = doc->GetDocumentURI ();
-#elif MOZILLA_SNAPSHOT > 11
-	nsIURI *uri;
-	uri = doc->GetDocumentURL ();
-#endif
 	NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
 	return uri->GetSpec (url);
@@ -642,13 +622,8 @@ nsresult EphyBrowser::GetTargetDocumentUrl (nsCString &url)
         nsCOMPtr<nsIDocument> doc = do_QueryInterface(DOMDocument);
 	NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
-#if MOZILLA_SNAPSHOT > 13
 	nsIURI *uri;
 	uri = doc->GetDocumentURI ();
-#elif MOZILLA_SNAPSHOT > 11
-	nsIURI *uri;
-	uri = doc->GetDocumentURL ();
-#endif
 	NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
 	return uri->GetSpec (url);

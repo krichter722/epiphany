@@ -153,30 +153,18 @@ nsresult EventContext::GatherTextUnder (nsIDOMNode* aNode, nsString& aResult)
 
 nsresult EventContext::ResolveBaseURL (nsIDocument *doc, const nsAString &relurl, nsACString &url)
 {
-#if MOZILLA_SNAPSHOT > 13
 	nsIURI *base;
 	base = doc->GetBaseURI ();
 	if (!base) return NS_ERROR_FAILURE;
-#elif MOZILLA_SNAPSHOT > 11
-	nsIURI *base;
-	base = doc->GetBaseURL ();
-	if (!base) return NS_ERROR_FAILURE;
-#endif
 
 	return base->Resolve (NS_ConvertUTF16toUTF8(relurl), url);
 }
 
 nsresult EventContext::ResolveDocumentURL (nsIDocument *doc, const nsAString &relurl, nsACString &url)
 {
-#if MOZILLA_SNAPSHOT > 13
 	nsIURI *uri;
 	uri = doc->GetDocumentURI ();
 	if (!uri) return NS_ERROR_FAILURE;
-#elif MOZILLA_SNAPSHOT > 11
-	nsIURI *uri;
-	uri = doc->GetDocumentURL ();
-	if (!uri) return NS_ERROR_FAILURE;
-#endif
 
 	return uri->Resolve (NS_ConvertUTF16toUTF8(relurl), url);
 }

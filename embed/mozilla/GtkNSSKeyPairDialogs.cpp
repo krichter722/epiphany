@@ -91,6 +91,7 @@ public:
 	NS_DECL_ISUPPORTS
 	NS_DECL_NSIDOMWINDOWINTERNAL
 	NS_DECL_NSIDOMWINDOW
+	NS_DECL_NSIDOMWINDOW2
 
 	KeyPairHelperWindow();
 	virtual ~KeyPairHelperWindow();
@@ -701,6 +702,11 @@ NS_IMETHODIMP KeyPairHelperWindow::ScrollByPages(PRInt32 numPages)
 
 /* void sizeToContent (); */
 NS_IMETHODIMP KeyPairHelperWindow::SizeToContent()
+{
+    MOZ_NOT_IMPLEMENTED
+}
+
+NS_IMETHODIMP KeyPairHelperWindow::GetWindowRoot(nsIDOMEventTarget * *aWindowRoot)
 {
     MOZ_NOT_IMPLEMENTED
 }

@@ -79,18 +79,10 @@ MozDownload::~MozDownload()
 	NS_ASSERTION (!mEphyDownload, "MozillaDownload still alive!");
 }
 
-#if MOZILLA_SNAPSHOT < 16
-NS_IMPL_ISUPPORTS2(MozDownload, nsIDownload, nsIWebProgressListener)
-#else
 NS_IMPL_ISUPPORTS3(MozDownload, nsIDownload, nsITransfer, nsIWebProgressListener)
-#endif
 
 NS_IMETHODIMP
-#if MOZILLA_SNAPSHOT < 16
-MozDownload::InitForEmbed (nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
-#else
 MozDownload::InitForEmbed (nsIURI *aSource, nsIURI *aTarget, const PRUnichar *aDisplayName,
-#endif
 		           nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist,
 		           MozillaEmbedPersist *aEmbedPersist, PRInt32 aMaxSize)
 {
@@ -100,15 +92,9 @@ MozDownload::InitForEmbed (nsIURI *aSource, nsIURI *aTarget, const PRUnichar *aD
 }
 
 /* void init (in nsIURI aSource, in nsIURI aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
-#if MOZILLA_SNAPSHOT < 16
-NS_IMETHODIMP
-MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
-		  nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
-#else
 NS_IMETHODIMP
 MozDownload::Init(nsIURI *aSource, nsIURI *aTarget, const PRUnichar *aDisplayName,
 		  nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
-#endif
 {
 	PRBool addToView = PR_TRUE;
 
@@ -165,13 +151,8 @@ MozDownload::GetSource(nsIURI **aSource)
 	return NS_OK;
 }
 
-#if MOZILLA_SNAPSHOT < 16
-NS_IMETHODIMP
-MozDownload::GetTarget(nsILocalFile **aTarget)
-#else
 NS_IMETHODIMP
 MozDownload::GetTarget(nsIURI **aTarget)
-#endif
 {
 	NS_ENSURE_ARG_POINTER(aTarget);
 	NS_IF_ADDREF(*aTarget = mDestination);
@@ -179,7 +160,6 @@ MozDownload::GetTarget(nsIURI **aTarget)
 	return NS_OK;
 }
 
-#if MOZILLA_SNAPSHOT > 15
 NS_IMETHODIMP
 MozDownload::GetTargetFile (nsILocalFile** aTargetFile)
 {
@@ -194,7 +174,6 @@ MozDownload::GetTargetFile (nsILocalFile** aTargetFile)
 		rv = CallQueryInterface(file, aTargetFile);
 	return rv;
 }
-#endif
 
 NS_IMETHODIMP
 MozDownload::GetPersist(nsIWebBrowserPersist **aPersist)
@@ -381,11 +360,8 @@ MozDownload::OnStateChange (nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 				char *param;
 				nsCAutoString aDest;
 
-#if MOZILLA_SNAPSHOT < 16
-				mDestination->GetNativePath (aDest);
-#else
 				mDestination->GetSpec (aDest);
-#endif
+
 				param = gnome_vfs_make_uri_canonical (aDest.get ());
 				params = g_list_append (params, param);
 				gnome_vfs_mime_application_launch (helperApp, params);
@@ -393,10 +369,7 @@ MozDownload::OnStateChange (nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 
 				g_list_free (params);
 			}
-#if MOZILLA_SNAPSHOT < 16
-			nsMemory::Free (mimeType);
-			nsMemory::Free (description);
-#endif
+
 			gnome_vfs_mime_application_free (helperApp);
 		}
 	}
@@ -531,18 +504,12 @@ nsresult InitiateMozillaDownload (nsIDOMDocument *domDocument, nsIURI *sourceURI
 	nsAutoString fileDisplayName;
 	inDestFile->GetLeafName(fileDisplayName);
 
-	#if MOZILLA_SNAPSHOT >= 16
 	nsCOMPtr<nsIURI> destURI;
 	NS_NewFileURI (getter_AddRefs(destURI), inDestFile);
-	#endif
 
 	MozDownload *downloader = new MozDownload ();
 	/* dlListener attaches to its progress dialog here, which gains ownership */
-	#if MOZILLA_SNAPSHOT < 16
-	rv = downloader->InitForEmbed (inOriginalURI, inDestFile, fileDisplayName.get(),
-	#else
 	rv = downloader->InitForEmbed (inOriginalURI, destURI, fileDisplayName.get(),
-	#endif
 				       nsnull, timeNow, webPersist, embedPersist, aMaxSize);
 	NS_ENSURE_SUCCESS (rv, rv);
 

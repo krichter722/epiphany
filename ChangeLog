@@ -1,5 +1,35 @@
 2004-05-23  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/Makefile.am:
+	
+	Remove no more used inclusion directories.
+
+	* configure.in:
+
+	Drop mozilla < 1.7 support.
+
+	* embed/mozilla/ContentHandler.cpp:
+	* embed/mozilla/ContentHandler.h:
+
+	Port to embed strings.
+
+	* embed/mozilla/EphyBrowser.cpp:
+	* embed/mozilla/EventContext.cpp:
+	* embed/mozilla/GlobalHistory.cpp:
+	* embed/mozilla/GlobalHistory.h:
+	* embed/mozilla/GtkNSSClientAuthDialogs.cpp:
+	* embed/mozilla/GtkNSSDialogs.cpp:
+	* embed/mozilla/GtkNSSKeyPairDialogs.cpp:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+	* embed/mozilla/MozRegisterComponents.cpp:
+	* embed/mozilla/mozilla-download.cpp:
+	* embed/mozilla/mozilla-embed.cpp:
+
+	Drop mozilla < 1.7 support.
+
+2004-05-23  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/mozilla/EphyBrowser.cpp:
 	* embed/mozilla/EphyBrowser.h:
 	* embed/mozilla/MozillaPrivate.cpp:

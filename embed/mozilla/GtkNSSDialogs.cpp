@@ -48,6 +48,7 @@
 #include <nsIArray.h>
 
 #ifdef ALLOW_PRIVATE_STRINGS
+#include <nsString.h>
 #include <nsReadableUtils.h>
 #endif
 

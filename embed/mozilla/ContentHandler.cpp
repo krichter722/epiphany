@@ -128,11 +128,14 @@ NS_IMETHODIMP GContentHandler::PromptForSaveToFile(
 	EphyFileChooser *dialog;
 	gint response;
 	char *filename;
+	nsEmbedCString defaultFile;
+
+	NS_UTF16ToCString (nsEmbedString (aDefaultFile),
+			   NS_CSTRING_ENCODING_UTF8, defaultFile);
 
 	if (mAction != CONTENT_ACTION_SAVEAS)
 	{
-		return BuildDownloadPath (NS_ConvertUTF16toUTF8 (aDefaultFile).get(),
-					  _retval);
+		return BuildDownloadPath (defaultFile.get(), _retval);
 	}
 
 	nsCOMPtr<nsIDOMWindow> parentDOMWindow = do_GetInterface (aWindowContext);
@@ -142,8 +145,7 @@ NS_IMETHODIMP GContentHandler::PromptForSaveToFile(
 					GTK_FILE_CHOOSER_ACTION_SAVE,
 					CONF_STATE_SAVE_DIR,
 					EPHY_FILE_FILTER_ALL);
-	gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog),
-					   NS_ConvertUTF16toUTF8 (aDefaultFile).get());
+	gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), defaultFile.get());
 	response = gtk_dialog_run (GTK_DIALOG (dialog));
 
 	if (response == GTK_RESPONSE_ACCEPT)
@@ -151,7 +153,7 @@ NS_IMETHODIMP GContentHandler::PromptForSaveToFile(
 		filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
 		nsCOMPtr <nsILocalFile> destFile (do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-		destFile->InitWithNativePath (nsDependentCString (filename));
+		destFile->InitWithNativePath (nsEmbedCString (filename));
 		g_free (filename);
 
 		NS_IF_ADDREF (*_retval = destFile);
@@ -208,7 +210,7 @@ NS_METHOD GContentHandler::CheckAppSupportScheme (void)
 	{
 		char *uri_scheme = (char *)l->data;
 
-		if (mScheme.Equals (uri_scheme))
+		if (strcmp (mScheme.get(), uri_scheme) == 0)
 		{
 			mAppSupportScheme = PR_TRUE;
 		}
@@ -383,15 +385,18 @@ NS_METHOD GContentHandler::MIMEDoAction (void)
 
 	if (mAction == CONTENT_ACTION_OPEN)
 	{
+		nsEmbedString desc;
+
+		NS_CStringToUTF16 (nsEmbedCString ("gnome-default"),
+			           NS_CSTRING_ENCODING_UTF8, desc);
+
 		/* HACK we use the application description to ask
 		   MozDownload to open the file when download
 		   is finished */
 #if MOZILLA_SNAPSHOT < 18
-		mimeInfo->SetApplicationDescription
-			(NS_LITERAL_STRING ("gnome-default").get());
+		mimeInfo->SetApplicationDescription (desc.get());
 #else
-		mimeInfo->SetApplicationDescription
-			(NS_LITERAL_STRING ("gnome-default"));
+		mimeInfo->SetApplicationDescription (desc);
 #endif
 	}
 	else
@@ -399,7 +404,7 @@ NS_METHOD GContentHandler::MIMEDoAction (void)
 #if MOZILLA_SNAPSHOT < 18
 		mimeInfo->SetApplicationDescription (nsnull);
 #else
-		mimeInfo->SetApplicationDescription (NS_LITERAL_STRING (""));
+		mimeInfo->SetApplicationDescription (nsEmbedString ());
 #endif
 	}
 

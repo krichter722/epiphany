@@ -57,7 +57,6 @@ static void	mozilla_embed_destroy		(GtkObject *object);
 static void	mozilla_embed_finalize		(GObject *object);
 static void	ephy_embed_iface_init		(EphyEmbedIface *iface);
 
-static void mozilla_embed_connect_signals	(MozillaEmbed *membed);
 static void mozilla_embed_location_changed_cb	(GtkMozEmbed *embed,
 						 MozillaEmbed *membed);
 static void mozilla_embed_net_state_all_cb	(GtkMozEmbed *embed,
@@ -887,10 +886,8 @@ mozilla_embed_dom_key_down_cb (GtkMozEmbed *embed, gpointer dom_event,
 	if ((info->keycode == nsIDOMKeyEvent::DOM_VK_F10 &&
 	    (info->modifier == GDK_SHIFT_MASK ||
 	     info->modifier == GDK_CONTROL_MASK))
-#if MOZILLA_SNAPSHOT > 14
 	    || (info->keycode == nsIDOMKeyEvent::DOM_VK_CONTEXT_MENU &&
 		!info->modifier)
-#endif
 	   )
 	{
 		/* Translate relative coordinates to absolute values, and try

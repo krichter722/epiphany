@@ -29,12 +29,9 @@
 #include <nsISupports.h>
 #include <nsIURI.h>
 #include <nsIFile.h>
+#include <nsEmbedString.h>
 
 #include <nsIHelperAppLauncherDialog.h>
-
-#ifdef ALLOW_PRIVATE_STRINGS
-#include <nsString.h>
-#endif
 
 typedef enum
 {
@@ -52,8 +49,6 @@ typedef enum
     0x4996,                                          \
     {0x9b, 0xeb, 0x93, 0x35, 0xc0, 0x6b, 0xbe, 0xae} \
 }
-
-class nsIFactory;
 
 class GContentHandler : public nsIHelperAppLauncherDialog
 {
@@ -78,18 +73,14 @@ class GContentHandler : public nsIHelperAppLauncherDialog
 	nsCOMPtr<nsIFile> mTempFile;
 	nsCOMPtr<nsISupports> mContext;
 
-#if MOZILLA_SNAPSHOT < 16
-	char *mMimeType;
-#else
-	nsCString mMimeType;
-#endif	
 	PRBool mAppSupportScheme;
 	GnomeVFSMimeApplication *mHelperApp;
 	ContentAction mAction;
 	EphyMimePermission mPermission;
 
-	nsCString mUrl;
-	nsCString mScheme;
+	nsEmbedCString mUrl;
+	nsEmbedCString mScheme;
+	nsEmbedCString mMimeType;
 };
 
 #endif
