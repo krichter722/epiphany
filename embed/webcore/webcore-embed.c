@@ -234,25 +234,25 @@ webcore_embed_init (WebcoreEmbed *embed)
 	gtk_widget_show (khtml);
         gtk_container_add (GTK_CONTAINER (embed), khtml);
 
-	g_signal_connect_object (G_OBJECT (embed), "location",
+	g_signal_connect_object (G_OBJECT (khtml), "location",
 				 G_CALLBACK (webcore_embed_location_changed_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "net_state_all",
+	g_signal_connect_object (G_OBJECT (khtml), "net_state_all",
 				 G_CALLBACK (webcore_embed_net_state_all_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "dom_mouse_click",
+	g_signal_connect_object (G_OBJECT (khtml), "dom_mouse_click",
 				 G_CALLBACK (webcore_embed_dom_mouse_click_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "dom_mouse_down",
+	g_signal_connect_object (G_OBJECT (khtml), "dom_mouse_down",
 				 G_CALLBACK (webcore_embed_dom_mouse_down_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "new_window",
+	g_signal_connect_object (G_OBJECT (khtml), "new_window",
 				 G_CALLBACK (webcore_embed_new_window_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "security_change",
+	g_signal_connect_object (G_OBJECT (khtml), "security_change",
 				 G_CALLBACK (webcore_embed_security_change_cb),
 				 embed, (GConnectFlags) 0);
-	g_signal_connect_object (G_OBJECT (embed), "dom_key_down",
+	g_signal_connect_object (G_OBJECT (khtml), "dom_key_down",
 				 G_CALLBACK (webcore_embed_dom_key_down_cb),
 				 embed, (GConnectFlags) 0);
 }
