@@ -20,7 +20,6 @@
 #define EPHY_WINDOW_H
 
 #include "ephy-embed.h"
-#include "ephy-embed-popup-bw.h"
 #include "ephy-dialog.h"
 #include "ephy-notebook.h"
 #include <glib-object.h>
@@ -121,8 +120,6 @@ void		  ephy_window_update_all_controls (EphyWindow *window);
 EphyTab		 *ephy_window_get_active_tab	  (EphyWindow *window);
 
 EphyEmbed	 *ephy_window_get_active_embed	  (EphyWindow *window);
-
-EphyEmbedPopupBW *ephy_window_get_popup_factory   (EphyWindow *window);
 
 GList		 *ephy_window_get_tabs		  (EphyWindow *window);
 

@@ -75,5 +75,76 @@
         <menuitem name="HelpAboutMenu" verb="HelpAbout"/>
 </submenu>
 </menu>
+
+<popups>
+<popup name="EphyEmbedInputPopup" verb="FakeToplevel">
+	<menuitem name="EditCutIP" verb="EditCut"/> 
+	<menuitem name="EditCopyIP" verb="EditCopy"/>
+	<menuitem name="EditPasteIP" verb="EditPaste"/>
+</popup>
+
+<popup name="EphyDocumentPopup" verb="FakeToplevel">
+	<menuitem name="GoBackDP" verb="GoBack"/>
+	<menuitem name="GoForwardDP" verb="GoForward"/>
+	<menuitem name="GoReloadDP" verb="ViewReload"/>
+	<separator/>
+	<menuitem name="SavePageAsDP" verb="FileSaveAs"/>
+	<menuitem name="SaveBackgroundAsDP" verb="SaveBackgroundAs"/>
+	<menuitem name="AddPageBookmarkDP" verb="FileAddBookmark"/>
+	<menuitem name="CopyPageLocationDP" verb="CopyPageLocation"/>
+</popup>
+
+<popup name="EphyFramedDocumentPopup" verb="FakeToplevel">
+	<menuitem name="GoBackFDP" verb="GoBack"/>
+	<menuitem name="GoForwardFDP" verb="GoForward"/>
+	<menuitem name="GoReloadFDP" verb="ViewReload"/>
+	<separator/>
+	<menuitem name="SavePageAsFDP" verb="FileSaveAs"/>
+	<menuitem name="SaveBackgroundAsFDP" verb="SaveBackgroundAs"/>
+	<menuitem name="AddPageBookmarkFDP" verb="FileAddBookmark"/>
+	<menuitem name="CopyPageLocationFDP" verb="CopyPageLocation"/>
+	<separator/>
+	<menuitem name="OpenFrameFDP" verb="OpenFrame"/>
+	<menuitem name="OpenFrameInNewWindowFDP" verb="OpenFrameInNewWindow"/>
+	<menuitem name="OpenFrameInNewTabFDP" verb="OpenFrameInNewTab"/>
+</popup>
+
+<popup name="EphyLinkPopup" verb="FakeToplevel">
+	<menuitem name="OpenLinkLP" verb="OpenLink"/>
+        <menuitem name="OpenLinkInNewWindowLP" verb="OpenLinkInNewWindow"/>
+	<menuitem name="OpenLinkInNewTabLP" verb="OpenLinkInNewTab"/>
+	<menuitem name="DownloadLinkLP" verb="DownloadLink"/>
+	<menuitem name="AddLinkBookmarkLP" verb="AddLinkBookmark"/>
+	<menuitem name="CopyLinkLocationLP" verb="CopyLinkLocation"/>
+	<menuitem name="CopyEmailLinkLP" verb="CopyEmail"/>
+</popup>
+
+<popup name="EphyImagePopup" verb="FakeToplevel">
+	<menuitem name="OpenImageIP" verb="OpenImage"/>
+	<menuitem name="OpenImageInNewWindowIP" verb="OpenImageInNewWindow"/>
+	<menuitem name="OpenImageInNewTabIP" verb="OpenImageInNewTab"/>
+	<menuitem name="SaveImageAsIP" verb="SaveImageAs"/>
+	<menuitem name="SetImageAsBackgroundIP" verb="SetImageAsBackground"/>
+	<menuitem name="CopyImageLocationIP" verb="CopyImageLocation"/>
+</popup>
+
+<popup name="EphyImageLinkPopup" verb="FakeToplevel">
+	<menuitem name="OpenLinkILP" verb="OpenLink"/>
+        <menuitem name="OpenLinkInNewWindowILP" verb="OpenLinkInNewWindow"/>
+	<menuitem name="OpenLinkInNewTabILP" verb="OpenLinkInNewTab"/>
+	<menuitem name="DownloadLinkILP" verb="DownloadLink"/>
+	<menuitem name="AddLinkBookmarkILP" verb="AddLinkBookmark"/>
+	<menuitem name="CopyLinkLocationILP" verb="CopyLinkLocation"/>
+	<menuitem name="CopyEmailLinkILP" verb="CopyEmail"/>
+	<separator/>
+	<menuitem name="OpenImageILP" verb="OpenImage"/>
+	<menuitem name="OpenImageInNewWindowILP" verb="OpenImageInNewWindow"/>
+	<menuitem name="OpenImageInNewTabILP" verb="OpenImageInNewTab"/>
+	<menuitem name="SaveImageAsILP" verb="SaveImageAs"/>
+	<menuitem name="SetImageAsBackgroundILP" verb="SetImageAsBackground"/>
+	<menuitem name="CopyImageLocationILP" verb="CopyImageLocation"/>
+</popup>
+
+</popups>
 </Root>
 

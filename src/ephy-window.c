@@ -28,7 +28,6 @@
 #include "window-commands.h"
 #include "find-dialog.h"
 #include "history-dialog.h"
-#include "popup-commands.h"
 #include "ephy-shell.h"
 #include "eel-gconf-extensions.h"
 #include "ephy-prefs.h"
@@ -37,6 +36,7 @@
 #include "ephy-file-helpers.h"
 #include "statusbar.h"
 #include "toolbar.h"
+#include "popup-commands.h"
 
 #include <string.h>
 #include <libgnome/gnome-i18n.h>
@@ -135,10 +135,10 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 	/* View menu */
 	{ "ViewStop", N_("_Stop"), GTK_STOCK_STOP, "Escape",
 	  N_("Stop current data transfer"),
-	  G_CALLBACK (window_cmd_view_reload), NULL },
+	  G_CALLBACK (window_cmd_view_stop), NULL },
 	{ "ViewReload", N_("_Reload"), GTK_STOCK_REFRESH, "<control>R",
 	  N_("Display the latest content of the current page"),
-	  G_CALLBACK (window_cmd_view_stop), NULL },
+	  G_CALLBACK (window_cmd_view_reload), NULL },
 	{ "ViewStatusbar", N_("St_atusbar"), NULL, NULL,
 	  N_("Show or hide statusbar"),
 	  G_CALLBACK (window_cmd_view_statusbar), NULL, TOGGLE_ACTION },
@@ -205,6 +205,56 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 };
 static guint ephy_menu_n_entries = G_N_ELEMENTS (ephy_menu_entries);
 
+static EggActionGroupEntry ephy_popups_entries [] = {
+	/* Toplevel */
+	{ "FakeToplevel", (""), NULL, NULL, NULL, NULL, NULL },
+
+	/* Document */
+	{ "SaveBackgroundAs", N_("Save Background As..."), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_save_background_as), NULL },
+	{ "CopyPageLocation", N_("Copy Page Location"), GTK_STOCK_COPY, NULL,
+	  NULL, G_CALLBACK (popup_cmd_copy_page_location), NULL },
+
+	/* Framed document */
+	{ "OpenFrame", N_("Open Frame"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_open_frame), NULL },
+	{ "OpenFrameInNewWindow", N_("Open Frame in New Window"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_frame_in_new_window), NULL },
+	{ "OpenFrameInNewTab", N_("Open Frame in New Tab"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_frame_in_new_tab), NULL },
+
+	/* Links */
+	{ "OpenLink", N_("Open Link"), GTK_STOCK_OPEN, NULL,
+	  NULL, G_CALLBACK (popup_cmd_open_link), NULL },
+	{ "OpenLinkInNewWindow", N_("Open Link in New Window"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_link_in_new_window), NULL },
+	{ "OpenLinkInNewTab", N_("Open Link in New Tab"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_link_in_new_tab), NULL },
+	{ "DownloadLink", N_("Download Link"), GTK_STOCK_SAVE, NULL,
+	  NULL, G_CALLBACK (popup_cmd_download_link), NULL },
+	{ "AddLinkBookmark", N_("Add Bookmark"), GTK_STOCK_ADD, NULL,
+	  NULL, G_CALLBACK (popup_cmd_add_link_bookmark), NULL },
+	{ "CopyLinkLocation", N_("Copy Link Location"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_copy_link_location), NULL },
+	{ "CopyEmail", N_("Copy Email"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_copy_email), NULL },
+
+	/* Images */
+	{ "OpenImage", N_("Open Image"), GTK_STOCK_OPEN, NULL,
+	  NULL, G_CALLBACK (popup_cmd_open_image), NULL },
+	{ "OpenImageInNewWindow", N_("Open Image in New Window"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_image_in_new_window), NULL },
+	{ "OpenImageInNewTab", N_("Open Image in New Tab"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_image_in_new_tab), NULL },
+	{ "SaveImageAs", N_("Save Image As..."), GTK_STOCK_SAVE_AS, NULL,
+	  NULL, G_CALLBACK (popup_cmd_save_image_as), NULL },
+	{ "SetImageAsBackground", N_("Use Image as Background"), NULL, NULL,
+	  NULL, G_CALLBACK (popup_cmd_set_image_as_background), NULL },
+	{ "CopyImageLocation", N_("Copy Image Location"), GTK_STOCK_COPY, NULL,
+	  NULL, G_CALLBACK (popup_cmd_copy_image_location), NULL },
+};
+static guint ephy_popups_n_entries = G_N_ELEMENTS (ephy_popups_entries);
+
 struct EphyWindowPrivate
 {
 	GtkWidget *main_vbox;
@@ -212,12 +262,12 @@ struct EphyWindowPrivate
 	Toolbar *toolbar;
 	GtkWidget *statusbar;
 	EggActionGroup *action_group;
+	EggActionGroup *popups_action_group;
 	EphyFavoritesMenu *fav_menu;
 	PPViewToolbar *ppview_toolbar;
 	GtkNotebook *notebook;
 	EphyTab *active_tab;
 	GtkWidget *sidebar;
-	EphyEmbedPopupBW *embed_popup;
 	EphyDialog *find_dialog;
 	EphyDialog *history_dialog;
 	EphyDialog *history_sidebar;
@@ -392,6 +442,11 @@ setup_window (EphyWindow *window)
 		ephy_menu_entries[i].user_data = window;
 	}
 
+	for (i = 0; i < ephy_popups_n_entries; i++)
+	{
+		ephy_popups_entries[i].user_data = window;
+	}
+
 	merge = egg_menu_merge_new ();
 
 	action_group = egg_action_group_new ("WindowActions");
@@ -399,6 +454,12 @@ setup_window (EphyWindow *window)
 				      ephy_menu_n_entries);
 	egg_menu_merge_insert_action_group (merge, action_group, 0);
 	window->priv->action_group = action_group;
+
+	action_group = egg_action_group_new ("PopupsActions");
+	egg_action_group_add_actions (action_group, ephy_popups_entries,
+				      ephy_popups_n_entries);
+	egg_menu_merge_insert_action_group (merge, action_group, 0);
+	window->priv->popups_action_group = action_group;
 
 	window->ui_merge = G_OBJECT (merge);
 	g_signal_connect (merge, "add_widget", G_CALLBACK (add_widget), window);
@@ -419,17 +480,6 @@ setup_window (EphyWindow *window)
 			  "selection-received",
 			  G_CALLBACK (ephy_window_selection_received_cb),
 			  window);
-}
-
-static EphyEmbedPopupBW *
-setup_popup_factory (EphyWindow *window)
-{
-/*	EphyEmbedPopupBW *popup;
-
-	popup = ephy_window_get_popup_factory (window);
-	g_object_set_data (G_OBJECT(popup), "EphyWindow", window);
-
-	return popup;*/
 }
 
 static GtkNotebook *
@@ -471,7 +521,6 @@ ephy_window_init (EphyWindow *window)
 	session = ephy_shell_get_session (ephy_shell);
 
         window->priv = g_new0 (EphyWindowPrivate, 1);
-	window->priv->embed_popup = NULL;
 	window->priv->active_tab = NULL;
 	window->priv->chrome_mask = 0;
 	window->priv->ignore_layout_toggles = FALSE;
@@ -487,9 +536,6 @@ ephy_window_init (EphyWindow *window)
 
 	/* Setup the window and connect verbs */
 	setup_window (window);
-
-	/* Setup the embed popups factory */
-	window->priv->embed_popup = setup_popup_factory (window);
 
 	window->priv->fav_menu = ephy_favorites_menu_new (window);
 
@@ -561,11 +607,6 @@ ephy_window_finalize (GObject *object)
         g_return_if_fail (window->priv != NULL);
 
 	remove_from_session (window);
-
-	if (window->priv->embed_popup)
-	{
-		g_object_unref (G_OBJECT (window->priv->embed_popup));
-	}
 
 	if (window->priv->find_dialog)
 	{
@@ -1237,21 +1278,6 @@ ephy_window_get_active_embed (EphyWindow *window)
 		return ephy_tab_get_embed (tab);
 	}
 	else return NULL;
-}
-
-EphyEmbedPopupBW *
-ephy_window_get_popup_factory (EphyWindow *window)
-{
-/*	if (!window->priv->embed_popup)
-	{
-		window->priv->embed_popup = ephy_embed_popup_bw_new
-			(BONOBO_WINDOW(window));
-		ephy_embed_popup_connect_verbs
-			(EPHY_EMBED_POPUP (window->priv->embed_popup),
-			 BONOBO_UI_COMPONENT (window->ui_component));
-	}
-
-	return window->priv->embed_popup;*/
 }
 
 GList *
