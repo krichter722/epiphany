@@ -23,19 +23,9 @@
 #ifndef EPHY_LOCATION_ENTRY_H
 #define EPHY_LOCATION_ENTRY_H
 
+#include "ephy-node.h"
+
 #include <gtk/gtktoolitem.h>
-
-#include "ephy-autocompletion.h"
-
-/* object forward declarations */
-
-typedef struct _EphyLocationEntry EphyLocationEntry;
-typedef struct _EphyLocationEntryClass EphyLocationEntryClass;
-typedef struct _EphyLocationEntryPrivate EphyLocationEntryPrivate;
-
-/**
- * EphyLocationEntry object
- */
 
 #define EPHY_TYPE_LOCATION_ENTRY		(ephy_location_entry_get_type())
 #define EPHY_LOCATION_ENTRY(object)		(G_TYPE_CHECK_INSTANCE_CAST((object), EPHY_TYPE_LOCATION_ENTRY,\
@@ -47,11 +37,14 @@ typedef struct _EphyLocationEntryPrivate EphyLocationEntryPrivate;
 #define EPHY_LOCATION_ENTRY_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS((obj), EPHY_TYPE_LOCATION_ENTRY,\
 						 EphyLocationEntryClass))
 
+typedef struct _EphyLocationEntry EphyLocationEntry;
+typedef struct _EphyLocationEntryClass EphyLocationEntryClass;
+typedef struct _EphyLocationEntryPrivate EphyLocationEntryPrivate;
+
 struct _EphyLocationEntryClass
 {
 	GtkToolItemClass parent_class;
 
-	/* signals */
 	void		(*activated)	(EphyLocationEntry *w,
 					 const char *content,
 					 const char *target);
@@ -59,7 +52,6 @@ struct _EphyLocationEntryClass
 	void		(*user_changed)	(EphyLocationEntry *w);
 };
 
-/* Remember: fields are public read-only */
 struct _EphyLocationEntry
 {
 	GtkToolItem parent_object;
@@ -68,13 +60,21 @@ struct _EphyLocationEntry
 };
 
 GType			ephy_location_entry_get_type		(void);
+
 GtkWidget              *ephy_location_entry_new			(void);
+
+void			ephy_location_entry_add_completion	(EphyLocationEntry *w,
+								 EphyNode *root,
+								 guint text_property,
+								 guint action_property);
+
 void			ephy_location_entry_set_location	(EphyLocationEntry *w,
 								 const gchar *new_location);
+
 const char	       *ephy_location_entry_get_location	(EphyLocationEntry *w);
-void			ephy_location_entry_set_autocompletion  (EphyLocationEntry *w,
-								 EphyAutocompletion *ac);
+
 void			ephy_location_entry_activate		(EphyLocationEntry *w);
+
 void			ephy_location_entry_clear_history	(EphyLocationEntry *w);
 
 #endif

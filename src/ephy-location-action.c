@@ -148,11 +148,15 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 
 	if (EPHY_IS_LOCATION_ENTRY (proxy))
 	{
-		EphyAutocompletion *ac;
+		EphyHistory *history;
+		EphyNode *node;
 
-		ac = EPHY_AUTOCOMPLETION (ephy_shell_get_autocompletion (ephy_shell));
-
-		ephy_location_entry_set_autocompletion (EPHY_LOCATION_ENTRY (proxy), ac);
+		history = ephy_embed_shell_get_global_history
+			(EPHY_EMBED_SHELL (ephy_shell));
+		node = ephy_history_get_pages (history);
+		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
+						    EPHY_NODE_PAGE_PROP_LOCATION,
+						    EPHY_NODE_PAGE_PROP_LOCATION);
 
 		sync_address (action, NULL, proxy);
 		g_signal_connect_object (action, "notify::address",

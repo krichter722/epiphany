@@ -1,3 +1,23 @@
+2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c:
+	(ephy_location_entry_class_init), (editable_changed_cb),
+	(entry_activate_cb), (ephy_location_entry_construct_contents),
+	(ephy_location_entry_init), (ephy_location_entry_finalize),
+	(ephy_location_entry_new), (ephy_location_entry_add_completion),
+	(ephy_location_entry_set_location),
+	(ephy_location_entry_clear_history):
+	* lib/widgets/ephy-location-entry.h:
+	* lib/widgets/ephy-tree-model-node.c:
+	(ephy_tree_model_node_add_prop_column),
+	(ephy_tree_model_node_add_func_column):
+	* src/ephy-location-action.c: (connect_proxy):
+	* src/ephy-shell.c: (ephy_shell_finalize),
+	(ephy_shell_get_session):
+	* src/ephy-shell.h:
+
+	Beginning of new location entry implementation
+
 2003-09-30  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* data/epiphany.schemas.in:

@@ -322,6 +322,7 @@ ephy_tree_model_node_add_prop_column (EphyTreeModelNode *model,
 				      int prop_id)
 {
 	EphyTreeModelNodeColData *col;
+	int col_id;
 
 	col = g_new0 (EphyTreeModelNodeColData, 1);
 	col->prop_id = prop_id;
@@ -330,9 +331,10 @@ ephy_tree_model_node_add_prop_column (EphyTreeModelNode *model,
 	col->user_data = NULL;
 
 	g_ptr_array_add (model->priv->columns, col);
+	col_id = model->priv->columns_num;
 	model->priv->columns_num++;
 
-	return model->priv->columns_num;
+	return col_id;
 }
 
 int
@@ -342,6 +344,7 @@ ephy_tree_model_node_add_func_column (EphyTreeModelNode *model,
 				      gpointer user_data)
 {
 	EphyTreeModelNodeColData *col;
+	int col_id;
 
 	col = g_new0 (EphyTreeModelNodeColData, 1);
 	col->prop_id = -1;
@@ -350,9 +353,10 @@ ephy_tree_model_node_add_func_column (EphyTreeModelNode *model,
 	col->user_data = user_data;
 
 	g_ptr_array_add (model->priv->columns, col);
+	col_id = model->priv->columns_num;
 	model->priv->columns_num++;
 
-	return model->priv->columns_num;
+	return col_id;
 }
 
 static int

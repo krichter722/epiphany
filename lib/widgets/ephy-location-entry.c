@@ -20,106 +20,43 @@
  *  $Id$
  */
 
+#include "ephy-tree-model-node.h"
 #include "ephy-location-entry.h"
-#include "ephy-autocompletion-window.h"
 #include "ephy-marshal.h"
-#include "eel-gconf-extensions.h"
-#include "ephy-prefs.h"
 #include "ephy-debug.h"
 
-#include <glib-object.h>
-#include <gtk/gtkhbox.h>
+#include <gtk/gtktoolbar.h>
+#include <gtk/gtkliststore.h>
+#include <gtk/gtkcomboboxentry.h>
 #include <gtk/gtkentry.h>
 #include <gtk/gtkwindow.h>
-#include <gdk/gdkkeysyms.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtktoolbar.h>
-#include <gtk/gtktooltips.h>
-#include <libgnomeui/gnome-entry.h>
 #include <string.h>
 
-/**
- * Private data
- */
- 
 #define EPHY_LOCATION_ENTRY_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_LOCATION_ENTRY, EphyLocationEntryPrivate))
 
-struct _EphyLocationEntryPrivate {
+struct _EphyLocationEntryPrivate
+{
+	GtkListStore *combo_model;
 	GtkWidget *combo;
 	GtkWidget *entry;
 	char *before_completion;
-	EphyAutocompletion *autocompletion;
-	EphyAutocompletionWindow *autocompletion_window;
-	gboolean autocompletion_window_visible;
-	gint show_alternatives_timeout;
-	gboolean block_set_autocompletion_key;
-	gboolean going_to_site;
 	gboolean user_changed;
 	gboolean activation_mode;
-
-	char *autocompletion_key;
-	char *last_action_target;
 };
 
-#define AUTOCOMPLETION_DELAY 10
-#define SHOW_ALTERNATIVES_DELAY 100
-
-/**
- * Private functions, only availble from this file
- */
-static void	ephy_location_entry_class_init		(EphyLocationEntryClass *klass);
-static void	ephy_location_entry_init		(EphyLocationEntry *w);
-static void	ephy_location_entry_finalize_impl	(GObject *o);
-static void	ephy_location_entry_construct_contents	(EphyLocationEntry *w);
-static gboolean	ephy_location_entry_key_press_event_cb  (GtkWidget *entry, GdkEventKey *event,
-							 EphyLocationEntry *w);
-static void	ephy_location_entry_activate_cb		(GtkEntry *entry,
-							 EphyLocationEntry *w);
-static void	ephy_location_entry_autocompletion_sources_changed_cb
-							(EphyAutocompletion *aw,
-							 EphyLocationEntry *w);
-static gint	ephy_location_entry_autocompletion_show_alternatives_to (EphyLocationEntry *w);
-static void	ephy_location_entry_autocompletion_window_url_activated_cb
-							(EphyAutocompletionWindow *aw,
-							 const gchar *target,
-							 int action,
-							 EphyLocationEntry *w);
-static void	ephy_location_entry_list_event_after_cb (GtkWidget *list,
-							 GdkEvent *event,
-							 EphyLocationEntry *e);
-static void	ephy_location_entry_editable_changed_cb (GtkEditable *editable,
-							 EphyLocationEntry *e);
-static void	ephy_location_entry_set_autocompletion_key (EphyLocationEntry *e);
-static void	ephy_location_entry_autocompletion_show_alternatives (EphyLocationEntry *w);
-static void	ephy_location_entry_autocompletion_hide_alternatives (EphyLocationEntry *w);
-static void	ephy_location_entry_autocompletion_window_hidden_cb
-							(EphyAutocompletionWindow *aw,
-							 EphyLocationEntry *w);
-static void
-insert_text_cb (GtkWidget *editable,
-		char *new_text,
-                int new_text_length,
-                int *position,
-		EphyLocationEntry *w);
-static void
-delete_text_cb (GtkWidget *editable,
-                int start_pos,
-                int end_pos,
-		EphyLocationEntry *w);
+static void ephy_location_entry_class_init (EphyLocationEntryClass *klass);
+static void ephy_location_entry_init (EphyLocationEntry *w);
+static void ephy_location_entry_finalize (GObject *o);
 
 static GObjectClass *parent_class = NULL;
 
-/**
- * Signals enums and ids
- */
-enum EphyLocationEntrySignalsEnum {
+enum EphyLocationEntrySignalsEnum
+{
 	ACTIVATED,
 	USER_CHANGED,
 	LAST_SIGNAL
 };
 static gint EphyLocationEntrySignals[LAST_SIGNAL];
-
-#define MENU_ID "ephy-location-entry-menu-id"
 
 GType
 ephy_location_entry_get_type (void)
@@ -172,7 +109,7 @@ ephy_location_entry_class_init (EphyLocationEntryClass *klass)
 
 	parent_class = g_type_class_peek_parent (klass);
 
-	object_class->finalize = ephy_location_entry_finalize_impl;
+	object_class->finalize = ephy_location_entry_finalize;
 
 	tool_item_class->set_tooltip = ephy_location_entry_set_tooltip;
 
@@ -223,6 +160,47 @@ location_focus_out_cb (GtkWidget *widget, GdkEventFocus *event, EphyLocationEntr
 }
 
 static void
+editable_changed_cb (GtkEditable *editable, EphyLocationEntry *e)
+{
+	EphyLocationEntryPrivate *p = e->priv;
+
+	if (p->user_changed)
+	{
+		g_signal_emit (e, EphyLocationEntrySignals[USER_CHANGED], 0);
+	}
+}
+
+static void
+entry_activate_cb (GtkEntry *entry, EphyLocationEntry *e)
+{
+	char *content;
+
+	content = gtk_editable_get_chars (GTK_EDITABLE(entry), 0, -1);
+	g_signal_emit (e, EphyLocationEntrySignals[ACTIVATED], 0,
+		       NULL, content);
+	g_free (content);
+}
+
+static void
+ephy_location_entry_construct_contents (EphyLocationEntry *w)
+{
+	EphyLocationEntryPrivate *p = w->priv;
+
+	LOG ("EphyLocationEntry constructing contents %p", w)
+
+	p->combo_model = gtk_list_store_new (1, G_TYPE_STRING);
+	p->combo = gtk_combo_box_entry_new (GTK_TREE_MODEL (p->combo_model), 0);
+	gtk_container_add (GTK_CONTAINER (w), p->combo);
+	gtk_widget_show (p->combo);
+	p->entry = GTK_BIN (p->combo)->child;
+
+	g_signal_connect (p->entry, "changed",
+			  G_CALLBACK (editable_changed_cb), w);
+	g_signal_connect (p->entry, "activate",
+			  G_CALLBACK (entry_activate_cb), w);
+}
+
+static void
 ephy_location_entry_init (EphyLocationEntry *w)
 {
 	EphyLocationEntryPrivate *p;
@@ -232,45 +210,24 @@ ephy_location_entry_init (EphyLocationEntry *w)
 	p = EPHY_LOCATION_ENTRY_GET_PRIVATE (w);
 	w->priv = p;
 
-	p->last_action_target = NULL;
-	p->before_completion = NULL;
 	p->user_changed = TRUE;
 	p->activation_mode = FALSE;
-	p->autocompletion_key = NULL;
-	p->autocompletion_window_visible = FALSE;
 
 	ephy_location_entry_construct_contents (w);
 
 	gtk_tool_item_set_expand (GTK_TOOL_ITEM (w), TRUE);
 
 	g_signal_connect (w->priv->entry,
-			  "focus_out_event",
-			  G_CALLBACK (location_focus_out_cb),
-			  w);
+	       		  "focus_out_event",
+                          G_CALLBACK (location_focus_out_cb), w);
 }
 
 static void
-ephy_location_entry_finalize_impl (GObject *o)
+ephy_location_entry_finalize (GObject *o)
 {
-	EphyLocationEntry *w = EPHY_LOCATION_ENTRY (o);
-	EphyLocationEntryPrivate *p = w->priv;
-
-	if (p->autocompletion)
-	{
-		g_signal_handlers_disconnect_matched (p->autocompletion, G_SIGNAL_MATCH_DATA, 0, 0,
-						      NULL, NULL, w);
-
-		g_signal_handlers_disconnect_matched (p->autocompletion_window, G_SIGNAL_MATCH_DATA, 0, 0,
-						      NULL, NULL, w);
-
-		g_object_unref (G_OBJECT (p->autocompletion));
-		g_object_unref (G_OBJECT (p->autocompletion_window));
-	}
+//	EphyLocationEntry *w = EPHY_LOCATION_ENTRY (o);
 
 	LOG ("EphyLocationEntry finalized")
-
-	g_free (p->before_completion);
-	g_free (p->autocompletion_key);
 
 	G_OBJECT_CLASS (parent_class)->finalize (o);
 }
@@ -281,306 +238,27 @@ ephy_location_entry_new (void)
 	return GTK_WIDGET (g_object_new (EPHY_TYPE_LOCATION_ENTRY, NULL));
 }
 
-static gboolean
-ephy_location_entry_button_press_event_cb (GtkWidget *entry, GdkEventButton *event, EphyLocationEntry *w)
+void
+ephy_location_entry_add_completion (EphyLocationEntry *w,
+				    EphyNode *root,
+				    guint text_property,
+				    guint action_property)
 {
-	if (event->button == 1 && event->type == GDK_2BUTTON_PRESS)
-	{
-		ephy_location_entry_activate (w);
-		return TRUE;
-	}
+	EphyTreeModelNode *node_model;
+	GtkEntryCompletion *completion;
+	int action_col;
 
-	return FALSE;
-}
+	node_model = ephy_tree_model_node_new (root, NULL);
+	ephy_tree_model_node_add_prop_column
+		(node_model, G_TYPE_STRING, text_property);
+	action_col = ephy_tree_model_node_add_prop_column
+		(node_model, G_TYPE_STRING, action_property);
 
-static void
-ephy_location_entry_construct_contents (EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	GtkWidget *hbox, *list;
+	completion = gtk_entry_completion_new ();
+	gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (node_model));
+	gtk_entry_completion_set_text_column (completion, action_col);
 
-	LOG ("EphyLocationEntry constructing contents %p", w)
-
-	hbox = gtk_hbox_new (FALSE, 0);
-	gtk_container_add (GTK_CONTAINER (w), hbox);
-	gtk_widget_show (hbox);
-
-	p->combo = gnome_entry_new ("ephy-url-history");
-	p->entry = GTK_COMBO (p->combo)->entry;
-	gtk_widget_show (p->combo);
-	gtk_box_pack_start (GTK_BOX (hbox), p->combo, TRUE, TRUE, 0);
-
-	g_signal_connect (p->entry, "key-press-event",
-			  G_CALLBACK (ephy_location_entry_key_press_event_cb), w);
-	g_signal_connect (p->entry, "insert-text",
-			  G_CALLBACK (insert_text_cb), w);
-	g_signal_connect (p->entry, "delete-text",
-			  G_CALLBACK (delete_text_cb), w);
-	g_signal_connect (p->entry, "button-press-event",
-			  G_CALLBACK (ephy_location_entry_button_press_event_cb), w);
-
-	g_signal_connect (p->entry, "activate",
-			  G_CALLBACK (ephy_location_entry_activate_cb), w);
-
-	g_signal_connect (p->entry, "changed",
-			  G_CALLBACK (ephy_location_entry_editable_changed_cb), w);
-
-	list = GTK_COMBO (p->combo)->list;
-
-	g_signal_connect_after (list, "event-after",
-				G_CALLBACK (ephy_location_entry_list_event_after_cb), w);
-
-}
-
-static gboolean
-ephy_location_ignore_prefix (EphyLocationEntry *w)
-{
-	const char *text;
-	int text_len;
-	int i, k;
-	gboolean result = FALSE;
-	static const gchar *prefixes[] = {
-		EPHY_AUTOCOMPLETION_USUAL_WEB_PREFIXES,
-		NULL
-	};
-
-	text = ephy_location_entry_get_location (w);
-	g_return_val_if_fail (text != NULL, FALSE);
-
-	text_len = g_utf8_strlen (text, -1);
-
-	for (i = 0; prefixes[i] != NULL; i++)
-	{
-		const char *prefix = prefixes[i];
-
-		for (k = 0; k < g_utf8_strlen (prefix, -1); k++)
-		{
-			if (text_len == (k + 1) &&
-			    (strncmp (text, prefix, k + 1) == 0))
-			{
-				result = TRUE;
-			}
-		}
-	}
-
-	return result;
-}
-
-static gint
-ephy_location_entry_autocompletion_show_alternatives_to (EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-
-	g_free (p->before_completion);
-	p->before_completion = gtk_editable_get_chars (GTK_EDITABLE (p->entry), 0, -1);
-
-	if (ephy_location_ignore_prefix (w)) return FALSE;
-
-	if (p->autocompletion)
-	{
-		LOG ("Show alternatives")
-		ephy_location_entry_set_autocompletion_key (w);
-		ephy_location_entry_autocompletion_show_alternatives (w);
-	}
-	p->show_alternatives_timeout = 0;
-	return FALSE;
-}
-
-static void
-ephy_location_entry_autocompletion_hide_alternatives (EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	if (p->autocompletion_window)
-	{
-		ephy_autocompletion_window_hide (p->autocompletion_window);
-		p->autocompletion_window_visible = FALSE;
-	}
-
-	p->autocompletion_window_visible = FALSE;
-
-	if (p->show_alternatives_timeout)
-	{
-		g_source_remove (p->show_alternatives_timeout);
-		p->show_alternatives_timeout = 0;
-	}
-}
-
-static void
-ephy_location_entry_autocompletion_show_alternatives (EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-
-	/* Reset it because if we do a grab on click (like when pasting
-	   text in the location entry, the entry will lose the release
-	   event and will not reset it. It's what gtk does for the entry
-	   popup */
-	GTK_ENTRY (p->entry)->button = 0;
-
-	if (p->autocompletion_window)
-	{
-		ephy_autocompletion_window_show (p->autocompletion_window);
-		p->autocompletion_window_visible = TRUE;
-	}
-}
-
-static void
-ephy_location_entry_autocompletion_unselect_alternatives (EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	if (p->autocompletion_window)
-	{
-		ephy_autocompletion_window_unselect (p->autocompletion_window);
-	}
-}
-
-static int
-get_editable_number_of_chars (GtkEditable *editable)
-{
-	char *text;
-	int length;
-
-	text = gtk_editable_get_chars (editable, 0, -1);
-	length = g_utf8_strlen (text, -1);
-	g_free (text);
-	return length;
-}
-
-static gboolean
-position_is_at_end (GtkEditable *editable)
-{
-	int end;
-
-	end = get_editable_number_of_chars (editable);
-	return gtk_editable_get_position (editable) == end;
-}
-
-static void
-delete_text_cb (GtkWidget *editable,
-                int start_pos,
-                int end_pos,
-		EphyLocationEntry *w)
-{
-	ephy_location_entry_autocompletion_hide_alternatives (w);
-}
-
-static void
-insert_text_cb (GtkWidget *editable,
-		char *new_text,
-                int new_text_length,
-                int *position,
-		EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	GtkWidget *window;
-
-	window = gtk_widget_get_toplevel (editable);
-	g_return_if_fail (window != NULL);
-	if (!GTK_WINDOW (window)->has_focus) return;
-
-	if (p->going_to_site) return;
-
-        if (p->show_alternatives_timeout != 0)
-	{
-                g_source_remove (p->show_alternatives_timeout);
-		p->show_alternatives_timeout = 0;
-	}
-
-	ephy_location_entry_autocompletion_unselect_alternatives (w);
-	if (position_is_at_end (GTK_EDITABLE (editable)))
-	{
-		p->show_alternatives_timeout = g_timeout_add
-			(SHOW_ALTERNATIVES_DELAY,
-			 (GSourceFunc) ephy_location_entry_autocompletion_show_alternatives_to, w);
-	}
-}
-
-static gboolean
-ephy_location_entry_key_press_event_cb (GtkWidget *entry, GdkEventKey *event, EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	GtkWidget *window;
-
-	switch (event->keyval)
-        {
-        case GDK_Left:
-        case GDK_Right:
-		ephy_location_entry_autocompletion_hide_alternatives (w);
-                break;
-	case GDK_Escape:
-		ephy_location_entry_set_location (w, p->before_completion);
-		gtk_editable_set_position (GTK_EDITABLE (p->entry), -1);
-		ephy_location_entry_autocompletion_hide_alternatives (w);
-                break;
-	case GDK_Tab:
-	case GDK_KP_Tab:
-		if (p->autocompletion_window_visible)
-		{
-			ephy_location_entry_autocompletion_hide_alternatives (w);
-			window = gtk_widget_get_toplevel (entry);
-			g_signal_emit_by_name (window, "move_focus", 1);
-		}
-		break;
-        default:
-                break;
-        }
-
-        return FALSE;
-}
-
-static gboolean
-ephy_location_entry_content_is_text (const char *content)
-{
-	return ((g_strrstr (content, ".") == NULL) &&
-		(g_strrstr (content, "/") == NULL) &&
-		(g_strrstr (content, ":") == NULL));
-}
-
-static void
-ephy_location_entry_activate_cb (GtkEntry *entry, EphyLocationEntry *w)
-{
-	char *content;
-	char *target = NULL;
-
-	content = gtk_editable_get_chars (GTK_EDITABLE(entry), 0, -1);
-	if (w->priv->last_action_target &&
-	    ephy_location_entry_content_is_text (content))
-	{
-		target = g_strdup (w->priv->last_action_target);
-	}
-	else
-	{
-		target = content;
-		content = NULL;
-		g_free ( w->priv->last_action_target);
-		w->priv->last_action_target = NULL;
-	}
-
-	ephy_location_entry_autocompletion_hide_alternatives (w);
-
-	LOG ("In ephy_location_entry_activate_cb, activating %s", content)
-
-	g_signal_emit (w, EphyLocationEntrySignals[ACTIVATED], 0, content, target);
-	ephy_location_entry_activation_finished (w);
-
-	g_free (content);
-	g_free (target);
-}
-
-static void
-ephy_location_entry_autocompletion_sources_changed_cb (EphyAutocompletion *aw,
-						       EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-
-	LOG ("in ephy_location_entry_autocompletion_sources_changed_cb")
-
-        if (p->show_alternatives_timeout == 0
-	    && p->autocompletion_window_visible)
-	{
-		p->show_alternatives_timeout = g_timeout_add
-			(SHOW_ALTERNATIVES_DELAY,
-			 (GSourceFunc) ephy_location_entry_autocompletion_show_alternatives_to, w);
-	}
+	gtk_entry_set_completion (GTK_ENTRY (w->priv->entry), completion);
 }
 
 void
@@ -594,18 +272,9 @@ ephy_location_entry_set_location (EphyLocationEntry *w,
 
 	p->user_changed = FALSE;
 
-	g_signal_handlers_block_by_func (G_OBJECT (p->entry),
-				         delete_text_cb, w);
 	gtk_editable_delete_text (GTK_EDITABLE (p->entry), 0, -1);
-	g_signal_handlers_unblock_by_func (G_OBJECT (p->entry),
-				           delete_text_cb, w);
-
-	g_signal_handlers_block_by_func (G_OBJECT (p->entry),
-				         insert_text_cb, w);
 	gtk_editable_insert_text (GTK_EDITABLE (p->entry), new_location, strlen(new_location),
 				  &pos);
-	g_signal_handlers_unblock_by_func (G_OBJECT (p->entry),
-				           insert_text_cb, w);
 
 	p->user_changed = TRUE;
 }
@@ -614,115 +283,6 @@ const char *
 ephy_location_entry_get_location (EphyLocationEntry *w)
 {
 	return gtk_entry_get_text (GTK_ENTRY (w->priv->entry));
-}
-
-static void
-ephy_location_entry_autocompletion_window_url_selected_cb (EphyAutocompletionWindow *aw,
-						           const char *target,
-						           int action,
-						           EphyLocationEntry *w)
-{
-	if (target)
-	{
-		ephy_location_entry_set_location (w, action ? w->priv->before_completion : target);
-	}
-	else
-	{
-		ephy_location_entry_set_location (w, w->priv->before_completion);
-	}
-
-	gtk_editable_set_position (GTK_EDITABLE (w->priv->entry), -1);
-}
-
-void
-ephy_location_entry_set_autocompletion (EphyLocationEntry *w,
-					EphyAutocompletion *ac)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-	if (p->autocompletion)
-	{
-		g_signal_handlers_disconnect_matched (p->autocompletion, G_SIGNAL_MATCH_DATA, 0, 0,
-						      NULL, NULL, w);
-
-		g_signal_handlers_disconnect_matched (p->autocompletion_window, G_SIGNAL_MATCH_DATA, 0, 0,
-						      NULL, NULL, w);
-
-		g_object_unref (G_OBJECT (p->autocompletion));
-		g_object_unref (p->autocompletion_window);
-	}
-	p->autocompletion = ac;
-	if (p->autocompletion)
-	{
-		g_object_ref (G_OBJECT (p->autocompletion));
-		p->autocompletion_window = ephy_autocompletion_window_new (p->autocompletion,
-									     p->entry);
-		g_signal_connect (p->autocompletion_window, "activated",
-				  G_CALLBACK (ephy_location_entry_autocompletion_window_url_activated_cb),
-				  w);
-
-		g_signal_connect (p->autocompletion_window, "selected",
-				  G_CALLBACK (ephy_location_entry_autocompletion_window_url_selected_cb),
-				  w);
-
-		g_signal_connect (p->autocompletion_window, "hidden",
-				  G_CALLBACK (ephy_location_entry_autocompletion_window_hidden_cb),
-				  w);
-
-		g_signal_connect (p->autocompletion, "sources-changed",
-				  G_CALLBACK (ephy_location_entry_autocompletion_sources_changed_cb),
-				  w);
-
-		ephy_location_entry_set_autocompletion_key (w);
-	}
-
-}
-
-static void
-ephy_location_entry_autocompletion_window_url_activated_cb (EphyAutocompletionWindow *aw,
-							    const char *target,
-							    int action,
-							    EphyLocationEntry *w)
-{
-	char *content;
-
-	if (action)
-	{
-		if (w->priv->last_action_target)
-			g_free (w->priv->last_action_target);
-		w->priv->last_action_target = g_strdup (target);
-	}
-	else
-	{
-		ephy_location_entry_set_location (w, target);
-	}
-
-	content = gtk_editable_get_chars (GTK_EDITABLE(w->priv->entry), 0, -1);
-
-	LOG ("In location_entry_autocompletion_window_url_activated_cb, going to %s", content);
-
-	ephy_location_entry_autocompletion_hide_alternatives (w);
-
-	g_signal_emit (w, EphyLocationEntrySignals[ACTIVATED], 0,
-		       action ? content : NULL, target);
-
-	g_free (content);
-}
-
-static void
-ephy_location_entry_autocompletion_window_hidden_cb (EphyAutocompletionWindow *aw,
-						     EphyLocationEntry *w)
-{
-	EphyLocationEntryPrivate *p = w->priv;
-
-	LOG ("In location_entry_autocompletion_window_hidden_cb");
-
-	p->autocompletion_window_visible = FALSE;
-
-	if (p->show_alternatives_timeout)
-	{
-		g_source_remove (p->show_alternatives_timeout);
-		p->show_alternatives_timeout = 0;
-	}
 }
 
 void
@@ -747,60 +307,7 @@ ephy_location_entry_activate (EphyLocationEntry *w)
                               w->priv->entry);
 }
 
-static void
-ephy_location_entry_list_event_after_cb (GtkWidget *list,
-					 GdkEvent *event,
-					 EphyLocationEntry *e)
-{
-	if (event->type == GDK_BUTTON_PRESS
-	    && ((GdkEventButton *) event)->button == 1)
-	{
-		e->priv->going_to_site = TRUE;
-	}
-}
-
-static void
-ephy_location_entry_editable_changed_cb (GtkEditable *editable, EphyLocationEntry *e)
-{
-	EphyLocationEntryPrivate *p = e->priv;
-
-	ephy_location_entry_set_autocompletion_key (e);
-
-	if (p->going_to_site)
-	{
-		const char *url = ephy_location_entry_get_location (e);
-		if (url && url[0] != '\0')
-		{
-			p->going_to_site = FALSE;
-			g_signal_emit (e, EphyLocationEntrySignals[ACTIVATED], 0, NULL, url);
-		}
-	}
-
-	if (p->user_changed)
-	{
-		g_signal_emit (e, EphyLocationEntrySignals[USER_CHANGED], 0);
-	}
-}
-
-static void
-ephy_location_entry_set_autocompletion_key (EphyLocationEntry *e)
-{
-	EphyLocationEntryPrivate *p = e->priv;
-	if (p->autocompletion && !p->block_set_autocompletion_key)
-	{
-		GtkEditable *editable = GTK_EDITABLE (p->entry);
-		gint sstart, send;
-		gchar *text;
-		gtk_editable_get_selection_bounds (editable, &sstart, &send);
-		text = gtk_editable_get_chars (editable, 0, sstart);
-		ephy_autocompletion_set_key (p->autocompletion, text);
-		g_free (p->autocompletion_key);
-		p->autocompletion_key = text;
-	}
-}
-
 void
 ephy_location_entry_clear_history (EphyLocationEntry *w)
 {
-	gnome_entry_clear_history (GNOME_ENTRY (w->priv->combo));
 }
