@@ -1,3 +1,17 @@
+2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c: (add_to_history),
+	(entry_activate_cb), (ephy_location_entry_construct_contents),
+	(ephy_location_entry_init), (save_location_history),
+	(ephy_location_entry_finalize),
+	(ephy_location_entry_clear_history):
+	
+	Implement location history.
+
+	* lib/widgets/ephy-tree-model-node.c: (root_children_reordered_cb):
+
+	Fixup reorder notification.
+
 2003-10-03  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* lib/widgets/ephy-location-entry.c: (match_selected_cb),

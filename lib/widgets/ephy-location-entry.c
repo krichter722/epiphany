@@ -24,6 +24,7 @@
 #include "ephy-location-entry.h"
 #include "ephy-marshal.h"
 #include "ephy-debug.h"
+#include "ephy-file-helpers.h"
 #include "eggtreemodelunion.h"
 
 #include <gtk/gtktoolbar.h>
@@ -40,12 +41,15 @@
 struct _EphyLocationEntryPrivate
 {
 	GtkTreeModel *completion_model;
-	GtkListStore *combo_model;
+	EphyTreeModelNode *combo_model;
 	GtkWidget *combo;
 	GtkWidget *entry;
 	char *before_completion;
 	gboolean user_changed;
 	gboolean activation_mode;
+	EphyNodeDb *combo_db;
+	EphyNode *combo_root;
+	char *xml_file;
 };
 
 enum
@@ -78,6 +82,20 @@ enum EphyLocationEntrySignalsEnum
 	LAST_SIGNAL
 };
 static gint EphyLocationEntrySignals[LAST_SIGNAL];
+
+enum
+{
+	LOCATION_HISTORY_NODE_ID = 1
+};
+
+enum
+{
+	EPHY_NODE_LOC_HISTORY_PROP_TEXT = 1
+};
+
+#define MAX_LOC_HISTORY_ITEMS 10
+#define EPHY_LOC_HISTORY_XML_ROOT "ephy_location_history"
+#define EPHY_LOC_HISTORY_XML_VERSION "0.1"
 
 GType
 ephy_location_entry_get_type (void)
@@ -204,14 +222,90 @@ entry_button_press_cb (GtkWidget *entry, GdkEventButton *event, EphyLocationEntr
 }
 
 static void
-entry_activate_cb (GtkEntry *entry, EphyLocationEntry *e)
+add_to_history (EphyLocationEntry *le, const char *text)
+{
+	GPtrArray *children;
+	int i, l, n_items, index = -1;
+	int *order;
+
+	/* check if it already exists */
+	children = ephy_node_get_children (le->priv->combo_root);
+	n_items = children->len;
+        for (i = 0; i < n_items; i++)
+        {
+                 EphyNode *kid;
+                 const char *node_text;
+                                                                                                                             
+                 kid = g_ptr_array_index (children, i);
+                 node_text = ephy_node_get_property_string
+			(kid, EPHY_NODE_LOC_HISTORY_PROP_TEXT);
+ 
+                 if (strcmp (text, node_text) == 0)
+                 {
+			index = i;
+			break;
+                 }
+        }
+        ephy_node_thaw (le->priv->combo_root);
+
+	/* it doesnt exist, add it */
+	if (index < 0)
+	{
+		GValue value = { 0, };
+		EphyNode *node;
+
+		node = ephy_node_new (le->priv->combo_db);
+		g_value_init (&value, G_TYPE_STRING);
+		g_value_set_string (&value, text);
+	        ephy_node_set_property (node, EPHY_NODE_LOC_HISTORY_PROP_TEXT,
+	                                &value);
+
+		if (n_items >= MAX_LOC_HISTORY_ITEMS)
+		{
+			EphyNode *last;
+
+			last = ephy_node_get_nth_child
+				(le->priv->combo_root, n_items - 1);
+			ephy_node_remove_child (le->priv->combo_root, last);
+		}
+
+		ephy_node_add_child (le->priv->combo_root, node);
+	}
+
+	/* move it at the top */
+	n_items = ephy_node_get_n_children (le->priv->combo_root);
+	order = g_new0 (int, n_items);
+	l = 1;
+	if (index == -1) index = n_items -1;
+	for (i = 0; i < n_items; i++)
+	{
+		if (index != i)
+		{
+			order[i] = l;
+			l++;
+		}
+		else
+		{
+			order[i] = 0;
+		}
+	}
+	ephy_node_reorder_children (le->priv->combo_root, order);
+	g_free (order);
+}
+
+static void
+entry_activate_cb (GtkEntry *entry, EphyLocationEntry *le)
 {
 	char *content;
 
 	content = gtk_editable_get_chars (GTK_EDITABLE(entry), 0, -1);
-	g_signal_emit (e, EphyLocationEntrySignals[ACTIVATED], 0,
+	g_signal_emit (le, EphyLocationEntrySignals[ACTIVATED], 0,
 		       NULL, content);
-	g_free (content);
+	if (content)
+	{
+		add_to_history (le, content);
+		g_free (content);
+	}
 }
 
 static gboolean
@@ -297,11 +391,16 @@ ephy_location_entry_construct_contents (EphyLocationEntry *le)
 	EphyLocationEntryPrivate *p = le->priv;
 	GtkEntryCompletion *completion;
 	GtkCellRenderer *cell;
+	int combo_text_col;
 
 	LOG ("EphyLocationEntry constructing contents %p", le)
 
-	p->combo_model = gtk_list_store_new (1, G_TYPE_STRING);
-	p->combo = gtk_combo_box_entry_new (GTK_TREE_MODEL (p->combo_model), 0);
+	p->combo_model = ephy_tree_model_node_new (p->combo_root, NULL);
+	combo_text_col = ephy_tree_model_node_add_prop_column
+		(p->combo_model, G_TYPE_STRING, EPHY_NODE_LOC_HISTORY_PROP_TEXT);
+
+	p->combo = gtk_combo_box_entry_new (GTK_TREE_MODEL (p->combo_model),
+					    combo_text_col);
 	gtk_container_add (GTK_CONTAINER (le), p->combo);
 	gtk_widget_show (p->combo);
 	p->entry = GTK_BIN (p->combo)->child;
@@ -344,6 +443,15 @@ ephy_location_entry_init (EphyLocationEntry *le)
 	p->user_changed = TRUE;
 	p->activation_mode = FALSE;
 	p->completion_model = NULL;
+	p->combo_db = ephy_node_db_new ("NodeDB");
+	p->combo_root = ephy_node_new_with_id
+		(p->combo_db, LOCATION_HISTORY_NODE_ID);
+	p->xml_file = g_build_filename (ephy_dot_dir (),
+                                        "ephy-location-history.xml",
+                                        NULL);
+	ephy_node_db_load_from_file (p->combo_db, p->xml_file,
+                                     EPHY_LOC_HISTORY_XML_ROOT,
+                                     EPHY_LOC_HISTORY_XML_VERSION);
 
 	ephy_location_entry_construct_contents (le);
 
@@ -355,11 +463,44 @@ ephy_location_entry_init (EphyLocationEntry *le)
 }
 
 static void
+save_location_history (EphyLocationEntry *le)
+{
+	xmlDocPtr doc;
+	xmlNodePtr root;
+	GPtrArray *children;
+	int i;
+
+	xmlIndentTreeOutput = TRUE;
+
+	doc = xmlNewDoc ("1.0");
+	root = xmlNewDocNode (doc, NULL, EPHY_LOC_HISTORY_XML_ROOT, NULL);
+	xmlSetProp (root, "version", EPHY_LOC_HISTORY_XML_VERSION);
+	xmlDocSetRootElement (doc, root);
+        
+	children = ephy_node_get_children (le->priv->combo_root);
+	for (i = 0; i < children->len; i++)
+        {
+                EphyNode *kid;
+                                                                                                                             
+                kid = g_ptr_array_index (children, i);
+                                                                                                                             
+		ephy_node_save_to_xml (kid, root);
+        }
+        ephy_node_thaw (le->priv->combo_root);
+
+	ephy_file_save_xml (le->priv->xml_file, doc);
+	xmlFreeDoc(doc);
+}
+
+static void
 ephy_location_entry_finalize (GObject *o)
 {
 	EphyLocationEntry *le;
 	
 	le = EPHY_LOCATION_ENTRY (o);
+
+	save_location_history (le);
+	g_free (le->priv->xml_file);
 
 	LOG ("EphyLocationEntry finalized")
 
@@ -444,4 +585,12 @@ ephy_location_entry_activate (EphyLocationEntry *le)
 void
 ephy_location_entry_clear_history (EphyLocationEntry *le)
 {
+	EphyNode *node;
+                                                                                                                             
+	while ((node = ephy_node_get_nth_child (le->priv->combo_root, 0)) != NULL)
+	{
+		ephy_node_unref (node);
+	}
+
+	save_location_history (le);
 }

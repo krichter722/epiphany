@@ -720,7 +720,11 @@ root_children_reordered_cb (EphyNode *node,
 			    int *new_order,
 			    EphyTreeModelNode *model)
 {
-	gtk_tree_model_rows_reordered (GTK_TREE_MODEL (model), NULL, NULL, new_order);
+	GtkTreePath *path;
+
+	path = gtk_tree_path_new ();
+	gtk_tree_model_rows_reordered (GTK_TREE_MODEL (model), path, NULL, new_order);
+	gtk_tree_path_free (path);
 }
 
 static void
