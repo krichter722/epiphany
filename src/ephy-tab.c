@@ -681,8 +681,6 @@ ephy_tab_address_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
 static void
 ephy_tab_content_change_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
 {
-	g_print ("ephy_tab_content_change_cb %s\n", address);
-
 	/* restore zoom level */
 	if (address_has_web_scheme (address))
 	{
@@ -705,8 +703,6 @@ ephy_tab_content_change_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
 		current_zoom = ephy_embed_get_zoom (embed);
 		if (zoom != current_zoom)
 		{
-			g_print ("Restore zoom to %d\n", (int)(zoom * 100));
-
 			tab->priv->setting_zoom = TRUE;
 			ephy_embed_set_zoom (embed, zoom);
 			tab->priv->setting_zoom = FALSE;

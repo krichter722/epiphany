@@ -378,8 +378,6 @@ nsresult EphyBrowser::SetZoom (float aZoom)
 	GetContentViewer (getter_AddRefs(contentViewer));
 	NS_ENSURE_TRUE (contentViewer, NS_ERROR_FAILURE);
 
-	g_print ("Set zoom on %p\n", contentViewer.get());
-
 	nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer);
 	NS_ENSURE_TRUE (mdv, NS_ERROR_FAILURE);
 
