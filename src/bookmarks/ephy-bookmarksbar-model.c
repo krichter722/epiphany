@@ -500,6 +500,9 @@ ephy_bookmarksbar_model_finalize (GObject *object)
 		model->priv->timeout = 0;
 	}
 
+	/* FIXME: instead of saving on exit, we should detect when items data changes */
+	save_changes_idle (model);
+
 	g_free (model->priv->xml_file);
 
 	G_OBJECT_CLASS (parent_class)->finalize (object);

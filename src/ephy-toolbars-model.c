@@ -230,6 +230,9 @@ ephy_toolbars_model_finalize (GObject *object)
 		model->priv->timeout = 0;
 	}
 
+	/* FIXME: we should detect when item data changes, and save then instead */
+	save_changes_idle (model);
+
 	g_free (model->priv->xml_file);
 
 	G_OBJECT_CLASS (parent_class)->finalize (object);
