@@ -1,3 +1,24 @@
+2003-10-07  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/ephy-embed-persist.h:
+	* embed/ephy-embed-popup-control.c: (save_property_url),
+	(embed_popup_download_link_cmd), (embed_popup_save_image_as_cmd),
+	(save_url), (embed_popup_save_page_as_cmd),
+	(embed_popup_save_background_as_cmd):
+	* embed/ephy-embed-utils.c: (ephy_embed_utils_save):
+	* embed/ephy-embed-utils.h:
+	* embed/mozilla/EphyDownload.cpp:
+	* embed/mozilla/EphyDownload.h:
+	* embed/mozilla/EphyHeaderSniffer.cpp:
+	* embed/mozilla/EphyHeaderSniffer.h:
+	* embed/mozilla/mozilla-embed-persist.cpp:
+	* src/popup-commands.c: (save_property_url),
+	(popup_cmd_download_link), (popup_cmd_save_image_as),
+	(popup_cmd_save_background_as):
+	* src/window-commands.c: (window_cmd_file_save_as):
+
+	Make embed-persist use nsIDownload and cleanup api a bit.
+
 2003-10-06  Xan Lopez  <xan@masilla.org>
 
 	* embed/mozilla/ContentHandler.cpp:

@@ -54,7 +54,6 @@ ephy_embed_utils_save (GtkWidget *window,
 		       const char *title,
 		       const char *default_dir_pref,
 		       gboolean ask_dest,
-		       gboolean with_content,
 		       EphyEmbedPersist *persist)
 {
 	GnomeVFSURI *uri;
@@ -159,8 +158,6 @@ ephy_embed_utils_save (GtkWidget *window,
 
         if (ret == G_OK)
         {
-		if (with_content) flags |= EMBED_PERSIST_SAVE_CONTENT;
-
 		ephy_embed_persist_set_flags (persist, flags);
 
 		ephy_embed_persist_set_dest (persist, retPath);

@@ -39,6 +39,7 @@
 #ifndef EphyDownload_h__
 #define EphyDownload_h__
 
+#include "mozilla-embed-persist.h"
 #include "nsIDownload.h"
 #include "nsIWebProgressListener.h"
 #include "nsIHelperAppLauncherDialog.h"
@@ -93,7 +94,8 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIDOWNLOAD
     NS_DECL_NSIWEBPROGRESSLISTENER
-    
+
+    virtual void	    SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist);
     virtual void            Cancel();
     virtual void	    Pause();
     virtual void	    Resume();
@@ -122,6 +124,7 @@ protected:
     PRInt64 mLastUpdate;
     PRInt32 mInterval;
     DownloaderView *mDownloaderView;
+    MozillaEmbedPersist *mEmbedPersist;
 };
 
 #endif // EphyDownload_h__

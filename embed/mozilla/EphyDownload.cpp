@@ -191,6 +191,12 @@ EphyDownload::SetObserver(nsIObserver * aObserver)
     return NS_OK;
 }
 
+void
+EphyDownload::SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist)
+{
+	mEmbedPersist = aEmbedPersist;
+}
+
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
 NS_IMETHODIMP 
 EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
@@ -213,6 +219,18 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
             mWebPersist = nsnull;
         }
         mHelperAppLauncher = nsnull;
+
+	if (mEmbedPersist)
+	{
+		if (NS_SUCCEEDED (aStatus))
+		{
+			mozilla_embed_persist_completed (mEmbedPersist);
+		}
+		else
+		{
+			mozilla_embed_persist_cancelled (mEmbedPersist);
+		}
+	}
     }
         
     return NS_OK; 
@@ -323,7 +341,7 @@ NS_IMETHODIMP
 EphyDownload::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			     nsresult aStatus, const PRUnichar *aMessage)
 {
-    return NS_OK;
+	return NS_OK;
 }
 
 /* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long state); */
