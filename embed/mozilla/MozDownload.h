@@ -36,8 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef EphyDownload_h__
-#define EphyDownload_h__
+#ifndef MozDownload_h__
+#define MozDownload_h__
 
 #include "mozilla-embed-persist.h"
 #include "nsIDownload.h"
@@ -53,7 +53,7 @@
 #include "ephy-embed-shell.h"
 
 //*****************************************************************************
-// EphyDownload
+// MozDownload
 //
 // Holds information used to display a single download in the UI. This object is
 // created in one of two ways:
@@ -65,7 +65,7 @@
 //     nsIDownload are controlled by the implementation of nsIWebBrowserPersist.
 //*****************************************************************************   
 
-#define EPHY_DOWNLOAD_CID                \
+#define MOZ_DOWNLOAD_CID                \
 { /* d2a2f743-f126-4f1f-1234-d4e50490f112 */         \
     0xd2a2f743,                                      \
     0xf126,                                          \
@@ -73,14 +73,14 @@
     {0x12, 0x34, 0xd4, 0xe5, 0x04, 0x90, 0xf1, 0x12} \
 }
 
-#define EPHY_DOWNLOAD_CLASSNAME "Ephy's Download Progress Dialog"
+#define MOZ_DOWNLOAD_CLASSNAME "Ephy's Download Progress Dialog"
 
-class EphyDownload : public nsIDownload,
+class MozDownload : public nsIDownload,
                      public nsIWebProgressListener
 {
 public:
-                            EphyDownload();
-    virtual                 ~EphyDownload();
+                            MozDownload();
+    virtual                 ~MozDownload();
     
     NS_DECL_ISUPPORTS
     NS_DECL_NSIDOWNLOAD
@@ -118,4 +118,4 @@ protected:
     MozillaEmbedPersist *mEmbedPersist;
 };
 
-#endif // EphyDownload_h__
+#endif // MozDownload_h__

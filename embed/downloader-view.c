@@ -76,18 +76,6 @@ struct DownloaderViewPrivate
 
 typedef struct
 {
-	glong elapsed;
-	glong remaining;
-	gfloat speed;
-	gint size_total;
-	gint size_done;
-	gfloat progress;
-	gchar *filename;
-	gchar *source;
-	gchar *dest;
-	DownloadStatus status;
-	gboolean download_started;
-
 	GtkTreeRowReference *ref;
 } DownloadDetails;
 
@@ -193,29 +181,6 @@ downloader_view_get_type (void)
 }
 
 static void
-format_time (gchar *buffer, glong time)
-{
-	gint secs, hours, mins;
-
-	secs = (gint)(time + .5);
-	hours = secs / 3600;
-	secs -= hours * 3600;
-	mins = secs / 60;
-	secs -= mins * 60;
-
-	if (hours)
-	{
-		/* Hours, Minutes, Seconds */
-		sprintf (buffer, _("%u:%02u.%02u"), hours, mins, secs);
-	}
-	else
-	{
-		/* Minutes, Seconds */
-		sprintf (buffer, _("%02u.%02u"), mins, secs);
-	}
-}
-
-static void
 downloader_view_class_init (DownloaderViewClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -230,10 +195,7 @@ downloader_view_class_init (DownloaderViewClass *klass)
 static void
 destroy_details_cb (DownloadDetails *details)
 {
-	g_free (details->filename);
-	g_free (details->source);
-	g_free (details->dest);
-	g_free (details);
+	/* FIXME Free row ref */
 }
 
 static void
@@ -270,144 +232,14 @@ downloader_view_new (void)
 }
 
 static void
-controls_info_foreach (GtkTreeModel *model,
-		       GtkTreePath  *path,
-		       GtkTreeIter  *iter,
-		       ControlsInfo *info)
-{
-	DownloadDetails *details;
-	GValue val = {0, };
-	gpointer persist_object;
-
-	gtk_tree_model_get_value (model, iter, COL_PERSIST_OBJECT, &val);
-	persist_object = g_value_get_pointer (&val);
-	g_value_unset (&val);
-
-	details = g_hash_table_lookup (info->priv->details_hash,
-				       persist_object);
-
-	info->is_paused |= (details->status == DOWNLOAD_STATUS_PAUSED);
-	info->can_abort |= (details->status != DOWNLOAD_STATUS_COMPLETED);
-	info->can_open |= (details->status == DOWNLOAD_STATUS_COMPLETED);
-	info->can_pause |= ((details->status != DOWNLOAD_STATUS_COMPLETED) &&
-			   (details->download_started == TRUE));
-}
-
-static void
 downloader_view_update_controls (DownloaderViewPrivate *priv)
 {
-	GtkTreeSelection *selection;
-	ControlsInfo *info;
-
-	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(priv->treeview));
-
-	info = g_new0 (ControlsInfo, 1);
-	info->priv = priv;
-
-	/* initial conditions */
-	info->is_paused = info->can_abort = info->can_open = info->can_pause = FALSE;
-
-	if (selection)
-	{
-		gtk_tree_selection_selected_foreach
-			(selection,
-			 (GtkTreeSelectionForeachFunc)controls_info_foreach,
-			 info);
-	}
-
-	/* setup buttons */
-	gtk_widget_set_sensitive (priv->open_button, info->can_open);
-	gtk_widget_set_sensitive (priv->pause_button, info->can_pause);
-	gtk_widget_set_sensitive (priv->abort_button, info->can_abort);
-
-	if (info->is_paused)
-	{
-		gtk_button_set_label (GTK_BUTTON (priv->pause_button), _("_Resume"));
-	}
-	else
-	{
-		gtk_button_set_label (GTK_BUTTON (priv->pause_button), _("_Pause"));
-	}
-
-	g_free (info);
 }
 
 static void
 downloader_view_update_details (DownloaderViewPrivate *priv,
 				DownloadDetails *details)
 {
-	gchar buffer[50];
-
-	ephy_ellipsizing_label_set_text
-		(EPHY_ELLIPSIZING_LABEL (priv->details_location),
-		 details->source);
-
-	if (details->size_total >= 10000)
-	{
-		sprintf (buffer, _("%.1f of %.1f MB"),
-			 details->size_done / 1024.0,
-			 details->size_total / 1024.0);
-	}
-	else if (details->size_total > 0)
-	{
-		sprintf (buffer, _("%d of %d kB"),
-			 details->size_done,
-			 details->size_total);
-	}
-	else
-	{
-		sprintf (buffer, _("%d kB"),
-			 details->size_done);
-	}
-
-	if (details->speed > 0)
-	{
-		sprintf (buffer, _("%s at %.1f kB/s"), buffer, details->speed);
-	}
-	gtk_label_set_text (GTK_LABEL (priv->details_status),
-			    buffer);
-
-	format_time (buffer, details->elapsed);
-	gtk_label_set_text (GTK_LABEL (priv->details_elapsed),
-			    buffer);
-
-	format_time (buffer, details->remaining);
-	gtk_label_set_text (GTK_LABEL (priv->details_remaining),
-			    buffer);
-
-	if (details->progress >= 0)
-	{
-		gtk_progress_bar_set_fraction
-			(GTK_PROGRESS_BAR (priv->details_progress),
-			 details->progress);
-	}
-	else
-	{
-		gtk_progress_bar_pulse
-			(GTK_PROGRESS_BAR (priv->details_progress));
-	}
-}
-
-static gboolean
-get_selected_row (DownloaderViewPrivate *priv, GtkTreeIter *iter)
-{
-	GList *l;
-	GtkTreePath *node;
-	GtkTreeSelection *selection;
-	GtkTreeModel *model;
-
-	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(priv->treeview));
-	l = gtk_tree_selection_get_selected_rows (selection, &model);
-
-	if (l == NULL) return FALSE;
-
-	node = l->data;
-	gtk_tree_model_get_iter (model, iter, node);
-
-	g_list_foreach (l, (GFunc)gtk_tree_path_free, NULL);
-	g_list_free (l);
-
-	return TRUE;
 }
 
 static void
@@ -415,131 +247,11 @@ downloader_view_set_download_info (DownloaderViewPrivate *priv,
 				   DownloadDetails *details,
 				   GtkTreeIter *iter)
 {
-	gchar buffer[50];
-	GtkTreePath *path = NULL;
-	GtkTreePath *selected_path = NULL;
-	GtkTreeIter selected_iter;
-	GtkTreeSelection *selection;
-
-	selection = gtk_tree_view_get_selection
-		(GTK_TREE_VIEW(priv->treeview));
-
-	if (get_selected_row (priv, &selected_iter))
-	{
-		selected_path = gtk_tree_model_get_path
-			(priv->model, &selected_iter);
-	}
-
-	path = gtk_tree_row_reference_get_path (details->ref);
-
-	gtk_list_store_set (GTK_LIST_STORE (priv->model),
-			    iter,
-			    COL_FILENAME, details->filename,
-			    -1);
-
-	/* Pause Activation */
-
-	if (details->download_started == FALSE &&
-	    details->status != DOWNLOAD_STATUS_COMPLETED &&
-	    details->size_total != -1)
-	{
-		details->download_started = TRUE;
-		downloader_view_update_controls (priv);
-	}
-
-	/* Progress */
-	if (details->status == DOWNLOAD_STATUS_COMPLETED)
-	{
-		details->progress = 1;
-		if (details->size_total > 0)
-		{
-			details->size_done = details->size_total;
-		}
-	}
-
-	sprintf (buffer, "%.1f%%",
-		 details->progress > 0 ?
-		 details->progress * 100.0 :
-		 0);
-	gtk_list_store_set (GTK_LIST_STORE (priv->model),
-			    iter,
-			    COL_PERCENT, buffer,
-			    -1);
-
-	/* Total */
-	if (details->size_total >= 10000)
-	{
-		sprintf (buffer, "%.2f MB", details->size_total / 1024.0);
-	}
-	else if (details->size_total > 0)
-	{
-		sprintf (buffer, "%d kB", details->size_total);
-	}
-	else
-	{
-		sprintf (buffer, _("Unknown"));
-	}
-
-	gtk_list_store_set (GTK_LIST_STORE (priv->model),
-			    iter,
-			    COL_SIZE, buffer,
-			    -1);
-
-	/* Remaining */
-	if (details->remaining >= 0)
-	{
-		format_time (buffer, details->remaining);
-	}
-	else
-	{
-		sprintf (buffer,
-			 details->progress > 0 ?
-			 _("00.00") :
-			 _("Unknown"));
-	}
-
-	gtk_list_store_set (GTK_LIST_STORE (priv->model),
-			    iter,
-			    COL_REMAINING, buffer,
-			    -1);
-
-	if (gtk_tree_path_compare (path, selected_path) == 0)
-	{
-		downloader_view_update_details (priv, details);
-	}
-
-	gtk_tree_path_free (path);
-	gtk_tree_path_free (selected_path);
-}
-
-static void
-ensure_selected_row (DownloaderView *dv)
-{
-	GtkTreeIter iter;
-	GtkTreeSelection *selection;
-
-	g_return_if_fail (EPHY_IS_DOWNLOADER_VIEW(dv));
-
-	selection = gtk_tree_view_get_selection
-		(GTK_TREE_VIEW(dv->priv->treeview));
-	if (get_selected_row (dv->priv, &iter))
-	{
-		/* there is already a selection */
-		return;
-	}
-
-	if (gtk_tree_model_get_iter_first (dv->priv->model, &iter))
-	{
-		gtk_tree_selection_select_iter (selection, &iter);
-	}
 }
 
 void
 downloader_view_add_download (DownloaderView *dv,
-			      gchar *filename,
-			      gchar *source,
-			      gchar *dest,
-			      gpointer persist_object)
+			      EphyDownload *download)
 {
 	GtkTreeIter iter;
 	DownloadDetails *details;
@@ -547,20 +259,9 @@ downloader_view_add_download (DownloaderView *dv,
 	GtkTreePath *path;
 
 	details = g_new0 (DownloadDetails, 1);
-	details->filename = g_strdup (filename);
-	details->source = g_strdup (source);
-	details->dest = g_strdup (dest);
-	details->elapsed = -1;
-	details->remaining = -1;
-	details->speed = -1;
-	details->size_total = -1;
-	details->size_done = 0;
-	details->progress = -1;
-	details->download_started = FALSE;
-	dv->priv->show_details = FALSE;
 
 	g_hash_table_insert (dv->priv->details_hash,
-			     persist_object,
+			     g_object_ref (download),
 			     details);
 
 	gtk_list_store_append (GTK_LIST_STORE (dv->priv->model),
@@ -573,7 +274,7 @@ downloader_view_add_download (DownloaderView *dv,
 
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
-			    COL_PERSIST_OBJECT, persist_object,
+			    COL_PERSIST_OBJECT, download,
 			    -1);
 
 	selection = gtk_tree_view_get_selection
@@ -584,99 +285,6 @@ downloader_view_add_download (DownloaderView *dv,
 	downloader_view_set_download_info (dv->priv, details, &iter);
 
 	ephy_dialog_show (EPHY_DIALOG (dv));
-}
-
-void
-downloader_view_remove_download (DownloaderView *dv,
-				 gpointer persist_object)
-{
-	DownloadDetails *details;
-	GtkTreePath *path = NULL;
-	GtkTreeIter iter;
-
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       persist_object);
-	g_return_if_fail (details);
-
-	path = gtk_tree_row_reference_get_path (details->ref);
-
-	gtk_tree_model_get_iter (GTK_TREE_MODEL (dv->priv->model),
-				 &iter, path);
-
-	gtk_list_store_remove (GTK_LIST_STORE (dv->priv->model), &iter);
-
-	g_hash_table_remove (dv->priv->details_hash,
-			     persist_object);
-
-	ensure_selected_row (dv);
-
-	gtk_tree_path_free (path);
-}
-
-void
-downloader_view_set_download_progress (DownloaderView *dv,
-				       glong elapsed,
-				       glong remaining,
-				       gfloat speed,
-				       gint size_total,
-				       gint size_done,
-				       gfloat progress,
-				       gpointer persist_object)
-{
-	DownloadDetails *details;
-	GtkTreePath *path = NULL;
-	GtkTreeIter iter;
-
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       persist_object);
-	g_return_if_fail (details);
-
-	details->elapsed = elapsed;
-	details->remaining = remaining;
-	details->speed = speed;
-	details->size_total = size_total;
-	details->size_done = size_done;
-	details->progress = progress;
-
-	path = gtk_tree_row_reference_get_path (details->ref);
-
-	gtk_tree_model_get_iter (GTK_TREE_MODEL (dv->priv->model),
-				 &iter, path);
-
-	downloader_view_set_download_info (dv->priv, details, &iter);
-
-	gtk_tree_path_free (path);
-}
-
-void
-downloader_view_set_download_status (DownloaderView *dv,
-				     DownloadStatus status,
-				     gpointer persist_object)
-{
-	DownloadDetails *details;
-	GtkTreePath *path = NULL;
-	GtkTreeIter iter;
-
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       persist_object);
-	g_return_if_fail (details);
-
-	details->status = status;
-
-	path = gtk_tree_row_reference_get_path (details->ref);
-
-	gtk_tree_model_get_iter (GTK_TREE_MODEL (dv->priv->model),
-				 &iter, path);
-
-	downloader_view_set_download_info (dv->priv, details, &iter);
-	downloader_view_update_controls (dv->priv);
-
-/*	if (status == DOWNLOAD_STATUS_COMPLETED)
-	{
-		downloader_view_remove_download (dv, persist_object);
-	}*/
-
-	gtk_tree_path_free (path);
 }
 
 static void
@@ -723,7 +331,7 @@ downloader_view_build_ui (DownloaderView *dv)
 					G_TYPE_STRING,
 					G_TYPE_STRING,
 					G_TYPE_STRING,
-					G_TYPE_POINTER);
+					G_TYPE_OBJECT);
 
 	gtk_tree_view_set_model (GTK_TREE_VIEW(priv->treeview),
 				 GTK_TREE_MODEL (liststore));
@@ -797,85 +405,37 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 	GtkTreeIter iter;
 	DownloadDetails *details;
 	GValue val = {0, };
-	gpointer *persist_object;
+	EphyDownload *download;
+	EphyDownloadStatus status;
 
 	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(dv->priv->treeview));
 
 	if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
 
 	gtk_tree_model_get_value (model, &iter, COL_PERSIST_OBJECT, &val);
-	persist_object = g_value_get_pointer (&val);
+	download = g_value_get_object (&val);
 	g_value_unset (&val);
 
 	details = g_hash_table_lookup (dv->priv->details_hash,
-				       persist_object);
+				       download);
 	g_return_if_fail (details);
 
-	if (details->status == DOWNLOAD_STATUS_COMPLETED) 
+	/* FIXME */
+	status = 0;
+
+	if (status == EPHY_DOWNLOAD_STATUS_DOWNLOADING)
 	{
-		return;
+		ephy_download_pause (download);
 	}
-	else if (details->status == DOWNLOAD_STATUS_DOWNLOADING ||
-		 details->status == DOWNLOAD_STATUS_RESUMING)
+	else if (status == EPHY_DOWNLOAD_STATUS_PAUSED)
 	{
-		downloader_pause_download (dv, persist_object);
-		downloader_view_set_download_status (dv, DOWNLOAD_STATUS_PAUSED, persist_object);
-	}
-	else if (details->status == DOWNLOAD_STATUS_PAUSED)
-	{
-		downloader_resume_download (dv, persist_object);
-		downloader_view_set_download_status (dv, DOWNLOAD_STATUS_RESUMING, persist_object);
+		ephy_download_pause (download);
 	}
 }
 
 void
 download_dialog_abort_cb (GtkButton *button, DownloaderView *dv)
 {
-	GList *llist, *rlist = NULL, *l, *r;
-	GtkTreeSelection *selection;
-	GtkTreeModel *model;
-
-	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(dv->priv->treeview));
-	llist = gtk_tree_selection_get_selected_rows (selection, &model);
-	for (l = llist;l != NULL; l = l->next)
-	{
-		rlist = g_list_prepend (rlist, gtk_tree_row_reference_new
-					(model, (GtkTreePath *)l->data));
-	}
-
-        for (r = rlist; r != NULL; r = r->next)
-        {
-                GtkTreeRowReference *node = r->data;
-		GtkTreePath *path = NULL;
-		GValue val = {0, };
-		gpointer *persist_object;
-		GtkTreeIter iter;
-		DownloadDetails *details;
-
-		path = gtk_tree_row_reference_get_path (node);
-
-                gtk_tree_model_get_iter (model, &iter, path);
-
-		gtk_tree_model_get_value (model, &iter,
-					  COL_PERSIST_OBJECT, &val);
-		persist_object = g_value_get_pointer (&val);
-		g_value_unset (&val);
-
-		details = g_hash_table_lookup (dv->priv->details_hash,
-					       persist_object);
-		g_return_if_fail (details);
-
-		downloader_cancel_download (dv, persist_object);
-
-		downloader_view_remove_download (dv, persist_object);
-
-                gtk_tree_row_reference_free (node);
-		gtk_tree_path_free (path);
-        }
-
-	g_list_foreach (llist, (GFunc)gtk_tree_path_free, NULL);
-	g_list_free (llist);
-	g_list_free (rlist);
 }
 
 static void
@@ -895,7 +455,7 @@ downloader_treeview_selection_changed_cb (GtkTreeSelection *selection,
 	details_frame = ephy_dialog_get_control (EPHY_DIALOG(dv),
 						 PROP_DETAILS_FRAME);
 
-	if (get_selected_row (priv, &iter))
+	if (gtk_tree_selection_count_selected_rows (selection) > 0)
 	{
 		gtk_tree_model_get_value (priv->model, &iter, COL_PERSIST_OBJECT, &val);
 		persist_object = g_value_get_pointer (&val);
@@ -927,66 +487,11 @@ downloader_treeview_selection_changed_cb (GtkTreeSelection *selection,
 	}
 }
 
-static void
-alive_download_foreach (gpointer persist_object,
-			DownloadDetails *details,
-			gboolean *alive)
-{
-	if (details->status != DOWNLOAD_STATUS_COMPLETED)
-	{
-		*alive = TRUE;
-	}
-}
-
-static gboolean
-delete_pending_foreach  (gpointer persist_object,
-			 DownloadDetails *details,
-			 DownloaderView *dv)
-{
-	if (details->status != DOWNLOAD_STATUS_COMPLETED)
-        {
-		downloader_cancel_download (dv, persist_object);
-	}
-
-	return TRUE;
-}
-
 gboolean
 download_dialog_delete_cb (GtkWidget *window, GdkEventAny *event,
 			   DownloaderView *dv)
 {
-	GtkWidget *dialog;
-	gboolean choice;
-	gboolean alive_download = FALSE;
-
-	g_hash_table_foreach (dv->priv->details_hash,
-			      (GHFunc)alive_download_foreach,
-			      &alive_download);
-
-	if (!alive_download) return FALSE;
-
-	/* build question dialog */
-	dialog = gtk_message_dialog_new (
-		 GTK_WINDOW (window),
-		 GTK_DIALOG_MODAL,
-		 GTK_MESSAGE_WARNING,
-		 GTK_BUTTONS_YES_NO,
-		 _("Cancel all pending downloads?"));
-
-	/* run it */
-	choice = gtk_dialog_run (GTK_DIALOG (dialog));
-	gtk_widget_destroy (dialog);
-
-	/* do the appropriate thing */
-	if (choice == GTK_RESPONSE_YES)
-	{
-		g_hash_table_foreach_remove (dv->priv->details_hash,
-				             (GHRFunc)delete_pending_foreach,
-				             dv);
-		return FALSE;
-	}
-
-	return TRUE;
+	return FALSE;
 }
 
 void
@@ -1014,40 +519,6 @@ static void
 open_selection_foreach (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
 			DownloaderView *dv)
 {
-	DownloadDetails *details;
-	GValue val = {0, };
-	gpointer *persist_object;
-	GnomeVFSMimeApplication *app;
-	char *mime;
-
-	gtk_tree_model_get_value (model, iter, COL_PERSIST_OBJECT, &val);
-	persist_object = g_value_get_pointer (&val);
-	g_value_unset (&val);
-
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       persist_object);
-	g_return_if_fail (details);
-
-	if (details->status != DOWNLOAD_STATUS_COMPLETED) return;
-
-	mime = gnome_vfs_get_mime_type (details->dest);
-	g_return_if_fail (mime != NULL);
-
-	app = gnome_vfs_mime_get_default_application (mime);
-	if (app)
-	{
-		ephy_file_launch_application (app->command,
-					      details->dest,
-					      app->requires_terminal);
-	}
-	else
-	{
-		GtkWidget *parent;
-		parent = gtk_widget_get_toplevel (dv->priv->open_button);
-		ephy_embed_utils_nohandler_dialog_run (parent);
-	}
-
-	g_free(mime);
 }
 
 void
@@ -1063,25 +534,3 @@ download_dialog_open_cb (GtkWidget *button,
 		 (GtkTreeSelectionForeachFunc)open_selection_foreach,
 		 (gpointer)dv);
 }
-
-void
-downloader_cancel_download (DownloaderView *dv, gpointer persist_object)
-{
-	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (dv);
-	klass->cancel_download(dv, persist_object);
-}
-
-void
-downloader_pause_download (DownloaderView *dv, gpointer persist_object)
-{
-	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
-	klass->pause_download(dv, persist_object);
-}
-
-void
-downloader_resume_download (DownloaderView *dv, gpointer persist_object)
-{
-	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
-	klass->resume_download(dv, persist_object);
-}
-

@@ -20,6 +20,7 @@
 #define DOWNLOADER_VIEW_H
 
 #include "ephy-dialog.h"
+#include "ephy-download.h"
 
 #include <glib-object.h>
 #include <glib.h>
@@ -37,14 +38,6 @@ typedef struct DownloaderView DownloaderView;
 typedef struct DownloaderViewClass DownloaderViewClass;
 typedef struct DownloaderViewPrivate DownloaderViewPrivate;
 
-typedef enum
-{
-	DOWNLOAD_STATUS_DOWNLOADING,
-	DOWNLOAD_STATUS_PAUSED,
-	DOWNLOAD_STATUS_RESUMING,
-	DOWNLOAD_STATUS_COMPLETED
-} DownloadStatus;
-
 struct DownloaderView
 {
         EphyDialog parent;
@@ -54,10 +47,6 @@ struct DownloaderView
 struct DownloaderViewClass
 {
         EphyDialogClass parent_class;
-
-	void (*cancel_download)    (DownloaderView *dv, gpointer persist_object);
-	void (*pause_download)     (DownloaderView *dv, gpointer persist_object);
-	void (*resume_download)    (DownloaderView *dv, gpointer persist_object);
 };
 
 GType           downloader_view_get_type              (void);
@@ -65,34 +54,7 @@ GType           downloader_view_get_type              (void);
 DownloaderView *downloader_view_new                   (void);
 
 void            downloader_view_add_download          (DownloaderView *dv,
-						       gchar *filename,
-						       gchar *source,
-						       gchar *dest,
-						       gpointer persist_object);
-
-void            downloader_view_remove_download       (DownloaderView *dv,
-						       gpointer persist_object);
-
-void            downloader_view_set_download_status   (DownloaderView *dv,
-						       DownloadStatus status,
-						       gpointer persist_object);
-
-void            downloader_view_set_download_progress (DownloaderView *dv,
-						       glong elapsed,
-						       glong remaining,
-						       gfloat speed,
-						       gint size_total,
-						       gint size_done,
-						       gfloat progress,
-						       gpointer persist_object);
-void		downloader_cancel_download	      (DownloaderView *dv,
-						       gpointer persist_object);
-
-void		downloader_pause_download	      (DownloaderView *dv,
-						       gpointer persist_object);
-
-void		downloader_resume_download	      (DownloaderView *dv,
-						       gpointer persist_object);
+						       EphyDownload *download);
 
 G_END_DECLS
 

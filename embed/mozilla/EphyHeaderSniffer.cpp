@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "EphyDownload.h"
+#include "MozDownload.h"
 #include "EphyHeaderSniffer.h"
 #include "netCore.h"
 
@@ -188,7 +188,7 @@ nsresult EphyHeaderSniffer::InitiateDownload(nsISupports* inSourceData, nsILocal
   nsAutoString fileDisplayName;
   inDestFile->GetLeafName(fileDisplayName);
   
-  EphyDownload *downloader = new EphyDownload ();
+  MozDownload *downloader = new MozDownload ();
   // dlListener attaches to its progress dialog here, which gains ownership
   rv = downloader->Init(inOriginalURI, inDestFile, fileDisplayName.get(), nsnull, timeNow, webPersist);
   if (NS_FAILED(rv)) return rv;

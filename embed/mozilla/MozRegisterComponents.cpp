@@ -25,7 +25,7 @@
 #include "GlobalHistory.h"
 #include "ExternalProtocolHandlers.h"
 #include "PrintingPromptService.h"
-#include "EphyDownload.h"
+#include "MozDownload.h"
 #include "ExternalProtocolService.h"
 #include "EphyAboutRedirector.h"
 
@@ -41,7 +41,7 @@
 #include <glib.h>
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(EphyAboutRedirector)
-NS_GENERIC_FACTORY_CONSTRUCTOR(EphyDownload)	
+NS_GENERIC_FACTORY_CONSTRUCTOR(MozDownload)	
 NS_GENERIC_FACTORY_CONSTRUCTOR(GFilePicker)
 NS_GENERIC_FACTORY_CONSTRUCTOR(GContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR(MozGlobalHistory)
@@ -63,10 +63,10 @@ static const nsModuleComponentInfo sAppComps[] = {
  		GExternalProtocolServiceConstructor
 	},
 	{
-		EPHY_DOWNLOAD_CLASSNAME,
-		EPHY_DOWNLOAD_CID,
+		MOZ_DOWNLOAD_CLASSNAME,
+		MOZ_DOWNLOAD_CID,
 		NS_DOWNLOAD_CONTRACTID,
-		EphyDownloadConstructor
+		MozDownloadConstructor
 	},
 	{
 		G_FILEPICKER_CLASSNAME,

@@ -18,7 +18,6 @@
  *  $Id$
  */
 
-#include "EphyDownload.h"
 #include "EphyWrapper.h"
 #include "EphyHeaderSniffer.h"
 #include "mozilla-embed.h"
@@ -112,7 +111,6 @@ mozilla_embed_persist_finalize (GObject *object)
 {
         MozillaEmbedPersist *persist = MOZILLA_EMBED_PERSIST (object);
 
-	persist->priv->mPersist->SetProgressListener (nsnull);
 	persist->priv->mPersist = nsnull;
 
         G_OBJECT_CLASS (parent_class)->finalize (object);

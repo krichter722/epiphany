@@ -36,7 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "EphyDownload.h"
+#include "MozDownload.h"
+#include "mozilla-download.h"
 
 #include "nsIExternalHelperAppService.h"
 #include "nsDirectoryServiceDefs.h"
@@ -46,25 +47,25 @@
 #include "nsIObserver.h"
 
 //*****************************************************************************
-// EphyDownload
+// MozDownload
 //*****************************************************************************
 
-EphyDownload::EphyDownload() :
+MozDownload::MozDownload() :
     mGotFirstStateChange(false), mIsNetworkTransfer(false),
     mUserCanceled(false),
     mStatus(NS_OK)
 {
 }
 
-EphyDownload::~EphyDownload()
+MozDownload::~MozDownload()
 {
 }
 
-NS_IMPL_ISUPPORTS2(EphyDownload, nsIDownload, nsIWebProgressListener)
+NS_IMPL_ISUPPORTS2(MozDownload, nsIDownload, nsIWebProgressListener)
 
 /* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
 NS_IMETHODIMP
-EphyDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
+MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
 		   nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
     try {
@@ -85,10 +86,14 @@ EphyDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDis
             // until nsIWebBrowserPersist supports weak refs - bug #163889.
             aPersist->SetProgressListener(this);
         }
-	// FIXME, get source, dest and filename
-	mDownloaderView = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
-			(embed_shell));
-	downloader_view_add_download (mDownloaderView, "A", "B", "C", (gpointer)this);
+
+	DownloaderView *dview;
+	dview = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
+			             (embed_shell));
+	EphyDownload *download;
+	download = mozilla_download_new ();
+	MOZILLA_DOWNLOAD (download)->moz_download = this;
+	downloader_view_add_download (dview, download);
     }
     catch (...) {
         return NS_ERROR_FAILURE;
@@ -98,7 +103,7 @@ EphyDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDis
 
 /* readonly attribute nsIURI source; */
 NS_IMETHODIMP
-EphyDownload::GetSource(nsIURI * *aSource)
+MozDownload::GetSource(nsIURI * *aSource)
 {
     NS_ENSURE_ARG_POINTER(aSource);
     NS_IF_ADDREF(*aSource = mSource);
@@ -107,7 +112,7 @@ EphyDownload::GetSource(nsIURI * *aSource)
 
 /* readonly attribute nsILocalFile target; */
 NS_IMETHODIMP
-EphyDownload::GetTarget(nsILocalFile * *aTarget)
+MozDownload::GetTarget(nsILocalFile * *aTarget)
 {
     NS_ENSURE_ARG_POINTER(aTarget);
     NS_IF_ADDREF(*aTarget = mDestination);
@@ -116,7 +121,7 @@ EphyDownload::GetTarget(nsILocalFile * *aTarget)
 
 /* readonly attribute nsIWebBrowserPersist persist; */
 NS_IMETHODIMP
-EphyDownload::GetPersist(nsIWebBrowserPersist * *aPersist)
+MozDownload::GetPersist(nsIWebBrowserPersist * *aPersist)
 {
     NS_ENSURE_ARG_POINTER(aPersist);
     NS_IF_ADDREF(*aPersist = mWebPersist);
@@ -125,7 +130,7 @@ EphyDownload::GetPersist(nsIWebBrowserPersist * *aPersist)
 
 /* readonly attribute PRInt32 percentComplete; */
 NS_IMETHODIMP
-EphyDownload::GetPercentComplete(PRInt32 *aPercentComplete)
+MozDownload::GetPercentComplete(PRInt32 *aPercentComplete)
 {
     NS_ENSURE_ARG_POINTER(aPercentComplete);
     *aPercentComplete = mPercentComplete;
@@ -134,20 +139,20 @@ EphyDownload::GetPercentComplete(PRInt32 *aPercentComplete)
 
 /* attribute wstring displayName; */
 NS_IMETHODIMP
-EphyDownload::GetDisplayName(PRUnichar * *aDisplayName)
+MozDownload::GetDisplayName(PRUnichar * *aDisplayName)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-EphyDownload::SetDisplayName(const PRUnichar * aDisplayName)
+MozDownload::SetDisplayName(const PRUnichar * aDisplayName)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* readonly attribute long long startTime; */
 NS_IMETHODIMP
-EphyDownload::GetStartTime(PRInt64 *aStartTime)
+MozDownload::GetStartTime(PRInt64 *aStartTime)
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     *aStartTime = mStartTime;
@@ -156,14 +161,14 @@ EphyDownload::GetStartTime(PRInt64 *aStartTime)
 
 /* readonly attribute nsIMIMEInfo MIMEInfo; */
 NS_IMETHODIMP
-EphyDownload::GetMIMEInfo(nsIMIMEInfo * *aMIMEInfo)
+MozDownload::GetMIMEInfo(nsIMIMEInfo * *aMIMEInfo)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* attribute nsIWebProgressListener listener; */
 NS_IMETHODIMP
-EphyDownload::GetListener(nsIWebProgressListener * *aListener)
+MozDownload::GetListener(nsIWebProgressListener * *aListener)
 {
     NS_ENSURE_ARG_POINTER(aListener);
     NS_IF_ADDREF(*aListener = (nsIWebProgressListener *)this);
@@ -171,20 +176,20 @@ EphyDownload::GetListener(nsIWebProgressListener * *aListener)
 }
 
 NS_IMETHODIMP
-EphyDownload::SetListener(nsIWebProgressListener * aListener)
+MozDownload::SetListener(nsIWebProgressListener * aListener)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* attribute nsIObserver observer; */
 NS_IMETHODIMP
-EphyDownload::GetObserver(nsIObserver * *aObserver)
+MozDownload::GetObserver(nsIObserver * *aObserver)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-EphyDownload::SetObserver(nsIObserver * aObserver)
+MozDownload::SetObserver(nsIObserver * aObserver)
 {
     if (aObserver)
         aObserver->QueryInterface(NS_GET_IID(nsIHelperAppLauncher), getter_AddRefs(mHelperAppLauncher));
@@ -192,14 +197,14 @@ EphyDownload::SetObserver(nsIObserver * aObserver)
 }
 
 void
-EphyDownload::SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist)
+MozDownload::SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist)
 {
 	mEmbedPersist = aEmbedPersist;
 }
 
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
 NS_IMETHODIMP 
-EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
+MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			    PRUint32 aStateFlags, nsresult aStatus)
 {
     // For a file download via the external helper app service, we will never get a start
@@ -214,12 +219,6 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
   
     // We will get this even in the event of a cancel,
     if ((aStateFlags & STATE_STOP) && (!mIsNetworkTransfer || (aStateFlags & STATE_IS_NETWORK))) {
-        if (mWebPersist) {
-            mWebPersist->SetProgressListener(nsnull);
-            mWebPersist = nsnull;
-        }
-        mHelperAppLauncher = nsnull;
-
 	if (mEmbedPersist)
 	{
 		if (NS_SUCCEEDED (aStatus))
@@ -231,6 +230,12 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			mozilla_embed_persist_cancelled (mEmbedPersist);
 		}
 	}
+
+        if (mWebPersist) {
+            mWebPersist->SetProgressListener(nsnull);
+            mWebPersist = nsnull;
+        }
+        mHelperAppLauncher = nsnull;
     }
         
     return NS_OK; 
@@ -238,7 +243,7 @@ EphyDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 
 /* void onProgressChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aCurSelfProgress, in long aMaxSelfProgress, in long aCurTotalProgress, in long aMaxTotalProgress); */
 NS_IMETHODIMP 
-EphyDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
+MozDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			       PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress,
 			       PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress)
 {
@@ -254,91 +259,19 @@ EphyDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aReques
     else
         mPercentComplete = (PRInt32)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0 + 0.5);
     
-    // From ProgressListener
-    PRInt64 now = PR_Now();
-    mElapsed = now - mStartTime;
-
-    if ((now - mLastUpdate < mInterval) && 
-	    (aMaxTotalProgress != -1) &&  
-	    (aCurTotalProgress < aMaxTotalProgress))
-	{
-		return NS_OK;
-	}
-    mLastUpdate = now;
-
-
-    gfloat progress = -1;
-	if (aMaxTotalProgress > 0)
-	{
-		progress = (gfloat)aCurTotalProgress /
-			(gfloat)aMaxTotalProgress;
-	}
-
-	/* compute download rate */
-	gfloat speed = -1;
-	PRInt64 currentRate;
-	if (mElapsed)
-	{
-		currentRate = ((PRInt64)(aCurTotalProgress)) * 1000000 / mElapsed;
-	}
-	else
-	{
-		currentRate = 0;
-	}		
-
-	if (!mIsPaused && currentRate)
-	{
-		PRFloat64 currentKRate = ((PRFloat64)currentRate)/1024;
-		if (currentKRate != mPriorKRate)
-		{
-			if (mRateChanges++ == mRateChangeLimit)
-			{
-				mPriorKRate = currentKRate;
-				mRateChanges = 0;
-			}
-			else
-			{
-				currentKRate = mPriorKRate;
-			}
-		}
-		else
-		{
-			mRateChanges = 0;
-		}
-
-		speed = currentKRate;
-	}
-	
-	/* compute time remaining */
-	gint remaining = -1;
-	if (currentRate && (aMaxTotalProgress > 0))
-	{
-		 remaining = (gint)((aMaxTotalProgress - aCurTotalProgress)
-				 /currentRate + 0.5);
-	}
-
-    downloader_view_set_download_progress (mDownloaderView,
-		    			   mElapsed / 1000000,
-					   remaining,
-					   speed,
-					   aMaxTotalProgress / 1024.0 + 0.5,
-					   aCurTotalProgress / 1024.0 + 0.5,
-					   progress,
-					   (gpointer)this);
-
     return NS_OK;
 }
 
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
 NS_IMETHODIMP
-EphyDownload::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
+MozDownload::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
 {
     return NS_OK;
 }
 
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
 NS_IMETHODIMP 
-EphyDownload::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
+MozDownload::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			     nsresult aStatus, const PRUnichar *aMessage)
 {
 	return NS_OK;
@@ -346,13 +279,13 @@ EphyDownload::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 
 /* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long state); */
 NS_IMETHODIMP 
-EphyDownload::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 state)
+MozDownload::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 state)
 {
     return NS_OK;
 }
 
 void
-EphyDownload::Cancel()
+MozDownload::Cancel()
 {
     mUserCanceled = true;
     // nsWebBrowserPersist does the right thing: After canceling, next time through
@@ -362,11 +295,11 @@ EphyDownload::Cancel()
 }
 
 void
-EphyDownload::Pause()
+MozDownload::Pause()
 {
 }
 
 void
-EphyDownload::Resume()
+MozDownload::Resume()
 {
 }

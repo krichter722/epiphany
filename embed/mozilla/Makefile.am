@@ -37,7 +37,6 @@ INCLUDES = \
 	$(EPIPHANY_DEPENDENCY_CFLAGS) 			\
 	-DG_DISABLE_DEPRECATED          		\
         -DGDK_DISABLE_DEPRECATED        		\
-        -DGTK_DISABLE_DEPRECATED        		\
         -DGDK_PIXBUF_DISABLE_DEPRECATED 		\
         -DGNOME_DISABLE_DEPRECATED			\
 	-DSHARE_DIR=\"$(pkgdatadir)\"   		\
@@ -54,8 +53,6 @@ libephymozillaembed_la_SOURCES = 	\
 	ContentHandler.h		\
 	EphyAboutRedirector.cpp		\
 	EphyAboutRedirector.h		\
-	EphyDownload.cpp		\
-	EphyDownload.h			\
 	EphyEventListener.cpp		\
 	EphyEventListener.h		\
 	EphyHeaderSniffer.cpp		\
@@ -74,14 +71,16 @@ libephymozillaembed_la_SOURCES = 	\
 	GlobalHistory.h                 \
 	GtkNSSDialogs.cpp		\
 	GtkNSSDialogs.h			\
+	MozDownload.cpp			\
+	MozDownload.h			\
 	MozillaPrivate.cpp		\
 	MozillaPrivate.h		\
 	MozRegisterComponents.cpp       \
 	MozRegisterComponents.h         \
 	PrintingPromptService.cpp	\
 	PrintingPromptService.h		\
-	mozilla-downloader-view.cpp	\
-	mozilla-downloader-view.h	\
+	mozilla-download.cpp		\
+	mozilla-download.h		\
 	mozilla-embed.cpp	        \
 	mozilla-embed.h			\
 	mozilla-embed-persist.cpp       \

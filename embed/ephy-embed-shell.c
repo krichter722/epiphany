@@ -24,8 +24,8 @@
 #include "ephy-marshal.h"
 #include "ephy-favicon-cache.h"
 #include "mozilla-embed-single.h"
+#include "downloader-view.h"
 #include "ephy-debug.h"
-#include "mozilla-downloader-view.h"
 
 #include <string.h>
 
@@ -34,7 +34,7 @@
 struct EphyEmbedShellPrivate
 {
 	EphyHistory *global_history;
-	MozillaDownloaderView *downloader_view;
+	DownloaderView *downloader_view;
 	EphyFaviconCache *favicon_cache;
 	EphyEmbedSingle *embed_single;
 };
@@ -234,7 +234,7 @@ impl_get_downloader_view (EphyEmbedShell *shell)
 {
 	if (!shell->priv->downloader_view)
 	{
-		shell->priv->downloader_view = mozilla_downloader_view_new ();
+		shell->priv->downloader_view = downloader_view_new ();
 		g_object_add_weak_pointer
 			(G_OBJECT(shell->priv->downloader_view),
 			 (gpointer *)&shell->priv->downloader_view);

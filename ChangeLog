@@ -1,3 +1,40 @@
+2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/Makefile.am:
+	* embed/downloader-view.c: (destroy_details_cb),
+	(downloader_view_update_controls),
+	(downloader_view_update_details),
+	(downloader_view_set_download_info),
+	(downloader_view_add_download), (downloader_view_build_ui),
+	(download_dialog_pause_cb), (download_dialog_abort_cb),
+	(downloader_treeview_selection_changed_cb),
+	(download_dialog_delete_cb), (open_selection_foreach),
+	(download_dialog_open_cb):
+	* embed/downloader-view.h:
+	* embed/ephy-download.c: (ephy_download_get_type),
+	(ephy_download_class_init), (ephy_download_init),
+	(ephy_download_new), (ephy_download_cancel), (ephy_download_pause),
+	(ephy_download_resume):
+	* embed/ephy-download.h:
+	* embed/ephy-embed-shell.c: (impl_get_downloader_view):
+	* embed/mozilla/EphyDownload.cpp:
+	* embed/mozilla/EphyDownload.h:
+	* embed/mozilla/EphyHeaderSniffer.cpp:
+	* embed/mozilla/Makefile.am:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+	* embed/mozilla/MozRegisterComponents.cpp:
+	* embed/mozilla/mozilla-download.cpp:
+	* embed/mozilla/mozilla-download.h:
+	* embed/mozilla/mozilla-embed-persist.cpp:
+	* lib/Makefile.am:
+	* lib/widgets/Makefile.am:
+	* src/Makefile.am:
+	* src/bookmarks/Makefile.am:
+
+	Big architectural changes. Now I think it make sense,
+	but we need to rewrite a lot of ui code.
+
 2003-10-14  Xan Lopez  <xan@masilla.org>
 
 	* embed/downloader-view.c: (downloader_view_class_init),
