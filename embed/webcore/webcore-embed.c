@@ -61,7 +61,7 @@ static EmbedSecurityLevel webcore_embed_security_level (WebcoreEmbed *membed);
 #define WEBCORE_EMBED_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), WEBCORE_TYPE_EMBED, WebcoreEmbedPrivate))
 
 #undef GTK_KHTML
-#define GTK_KHTML(obj) G_TYPE_CHECK_INSTANCE_CAST((GTK_BIN(obj)->child), gtk_khtml_get_type(), GtkKHTML)
+#define GTK_KHTML(obj) (G_TYPE_CHECK_INSTANCE_CAST(((GTK_BIN(obj))->child), gtk_khtml_get_type(), GtkKHTML))
 
 typedef enum
 {
@@ -180,11 +180,6 @@ impl_find_set_properties (EphyEmbed *embed,
 }
 
 static void
-webcore_embed_realize (GtkWidget *widget)
-{
-}
-
-static void
 embed_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
 {
         GtkWidget *child;
@@ -223,7 +218,6 @@ webcore_embed_class_init (WebcoreEmbedClass *klass)
 	gtk_object_class->destroy = webcore_embed_destroy;
 
 	widget_class->size_allocate = embed_size_allocate;
-	widget_class->realize = webcore_embed_realize;
 
 	g_type_class_add_private (object_class, sizeof(WebcoreEmbedPrivate));
 }
@@ -231,9 +225,14 @@ webcore_embed_class_init (WebcoreEmbedClass *klass)
 static void
 webcore_embed_init (WebcoreEmbed *embed)
 {
+	GtkWidget *khtml;
         embed->priv = WEBCORE_EMBED_GET_PRIVATE (embed);
 	//embed->priv->browser = new EphyBrowser ();
 	embed->priv->security_state = STATE_IS_UNKNOWN;
+
+	khtml = gtk_khtml_new ();
+	gtk_widget_show (khtml);
+        gtk_container_add (GTK_CONTAINER (embed), khtml);
 
 	g_signal_connect_object (G_OBJECT (embed), "location",
 				 G_CALLBACK (webcore_embed_location_changed_cb),
