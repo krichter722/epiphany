@@ -746,9 +746,9 @@ EphyBrowser::CompareFormsText (nsAString &aDefaultText, nsAString &aUserText)
 	}
 	else
 	{
-		return memcmp (aDefaultText.BeginReading(),
-			       aUserText.BeginReading(),
-			       aUserText.Length());
+		return (memcmp (aDefaultText.BeginReading(),
+			        aUserText.BeginReading(),
+			        aUserText.Length()) == 0);
 	}
 }
 
@@ -796,7 +796,7 @@ nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUi
 				areaElement->GetDefaultValue (defaultText);
 				areaElement->GetValue (userText);
 
-				if (CompareFormsText (defaultText, userText))
+				if (!CompareFormsText (defaultText, userText))
 				{
 					*aHasTextArea = PR_TRUE;
 					return NS_OK;
@@ -832,7 +832,7 @@ nsresult EphyBrowser::GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUi
 					defaultText.Cut (max_length, PR_UINT32_MAX);
 				}
 
-				if (CompareFormsText (defaultText, userText))
+				if (!CompareFormsText (defaultText, userText))
 				{
 					(*aNumTextFields)++;
 					if (*aNumTextFields >= NUM_MODIFIED_TEXTFIELDS_REQUIRED)
