@@ -44,6 +44,7 @@
 #include <nsIDOMElementCSSInlineStyle.h>
 #include <nsIDOMCSSStyleDeclaration.h>
 #include <nsIDOM3Node.h>
+#include <nsIDOMCSSPrimitiveValue.h>
 
 #ifdef ALLOW_PRIVATE_API
 #include <nsIDOMXULDocument.h>
@@ -535,11 +536,8 @@ nsresult EventContext::GetCSSBackground (nsIDOMNode *node, nsAString& url)
 {
 	nsresult result;
 
-	const PRUnichar bg[] = {'b', 'a', 'c', 'k', 'g', 'r', 'o', 'u', 'n', 'd', '\0'};
 	const PRUnichar bgimage[] = {'b', 'a', 'c', 'k', 'g', 'r', 'o', 'u', 'n', 'd',
-				     '-', 'i'. 'm', 'a', 'g', 'e', '\0'};
-	const PRUnichar bgrepeat[] = {'b', 'a', 'c', 'k', 'g', 'r', 'o', 'u', 'n', 'd',
-				     '-', 'r'. 'e', 'p', 'e', 'a', 't', '\0'};
+				     '-', 'i', 'm', 'a', 'g', 'e', '\0'};
 
 	nsCOMPtr<nsIDOMElementCSSInlineStyle> style;
 	style = do_QueryInterface (node);
@@ -549,33 +547,15 @@ nsresult EventContext::GetCSSBackground (nsIDOMNode *node, nsAString& url)
 	result = style->GetStyle (getter_AddRefs(decl));
 	if (NS_FAILED(result)) return NS_ERROR_FAILURE;
 
-	nsEmbedString value;
-	decl->GetPropertyValue (nsEmbedString(bgImage), value);
+	nsCOMPtr<nsIDOMCSSValue> cssValue;
+	decl->GetPropertyCSSValue (nsEmbedString(bgimage),
+				   getter_AddRefs(cssValue));
+	nsCOMPtr<nsIDOMCSSPrimitiveValue> primitiveValue;
 
-	if (value.IsEmpty())
-	{
-		decl->GetPropertyValue (nsEmbedString(bgimage), value);
-		if (!value.Length())
-		{
-			decl->GetPropertyValue (nsEmbedString(bgrepeat), value);
-			if (!value.Length())
-				return NS_ERROR_FAILURE;
-		}
-	}
+	primitiveValue = do_QueryInterface(cssValue);
+	if (!primitiveValue) return NS_ERROR_FAILURE;
 
-	PRInt32 start, end;
-	nsEmbedString cssurl;
-
-	NS_NAMED_LITERAL_STRING(startsub, "url(");
-	NS_NAMED_LITERAL_STRING(endsub, ")");
-
-	start = value.Find (startsub) + 4;
-	end = value.Find (endsub);
-
-	if (start == -1 || end == -1)
-		return NS_ERROR_FAILURE;
-
-	url.Assign(Substring (value, start, end - start));
+	primitiveValue->GetStringValue(url);
 
 	return NS_OK;
 }
@@ -622,12 +602,14 @@ nsresult EventContext::GetMouseEventInfo (nsIDOMMouseEvent *aMouseEvent, Mozilla
 
 	nsEmbedString nodename;
 	OriginalNode->GetNodeName(nodename);
+	nsEmbedCString cNodeName;
+	NS_UTF16ToCString (nodename, NS_CSTRING_ENCODING_UTF8, cNodeName);
 
-	if (nodename.EqualsIgnoreCase("xul:scrollbarbutton") ||
-	    nodename.EqualsIgnoreCase("xul:thumb")	     ||
-	    nodename.EqualsIgnoreCase("xul:vbox")	     ||
-	    nodename.EqualsIgnoreCase("xul:spacer")	     ||
-	    nodename.EqualsIgnoreCase("xul:slider"))
+	if (strcasecmp (cNodeName.get(), "xul:scrollbarbutton") == 0 ||
+	    strcasecmp (cNodeName.get(), "xul:thumb") == 0 ||
+	    strcasecmp (cNodeName.get(), "xul:vbox") == 0 ||
+	    strcasecmp (cNodeName.get(), "xul:spacer") == 0 ||
+	    strcasecmp (cNodeName.get(), "xul:slider") == 0)
 		return NS_ERROR_FAILURE;
 
 	nsCOMPtr<nsIDOMEventTarget> EventTarget;
@@ -757,14 +739,14 @@ nsresult EventContext::CheckLinkScheme (const nsAString &link)
 	rv = uri->GetScheme (scheme);
 	if (NS_FAILED (rv)) return NS_ERROR_FAILURE;
 
-	if (scheme.EqualsIgnoreCase ("http")	 ||
-	    scheme.EqualsIgnoreCase ("https")	 ||
-	    scheme.EqualsIgnoreCase ("ftp")	 ||
-	    scheme.EqualsIgnoreCase ("file")	 ||
-	    scheme.EqualsIgnoreCase ("data")	 ||
-	    scheme.EqualsIgnoreCase ("resource") ||
-	    scheme.EqualsIgnoreCase ("about")	 ||
-	    scheme.EqualsIgnoreCase ("gopher"))
+	if (strcasecmp (scheme.get(), "http") ||
+	    strcasecmp (scheme.get(), "https") ||
+	    strcasecmp (scheme.get(), "ftp") ||
+	    strcasecmp (scheme.get(), "file") ||
+	    strcasecmp (scheme.get(), "data") ||
+	    strcasecmp (scheme.get(), "resource") ||
+	    strcasecmp (scheme.get(), "about") ||
+	    strcasecmp (scheme.get(), "gopher"))
 	{
 		SetIntProperty ("link-has-web-scheme", TRUE);
 	}
@@ -801,5 +783,7 @@ nsresult EventContext::SetStringProperty (const char *name, const char *value)
 
 nsresult EventContext::SetStringProperty (const char *name, const nsAString &value)
 {
-	return SetStringProperty (name, NS_ConvertUTF16toUTF8(value).get());
+	nsEmbedCString cValue;
+	NS_UTF16ToCString (value, NS_CSTRING_ENCODING_UTF8, cValue);
+	return SetStringProperty (name, cValue.get());
 }

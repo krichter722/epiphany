@@ -1,6 +1,13 @@
 2004-05-30  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* embed/mozilla/EventContext.cpp:
+	* embed/mozilla/MozillaPrivate.cpp:
+
+	port to embed strings
+
+2004-05-30  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/mozilla/EventContext.cpp:
 	* embed/mozilla/Makefile.am:
 	* embed/mozilla/mozilla-embed-persist.cpp:
 	* embed/mozilla/mozilla-embed.cpp:
