@@ -1,5 +1,23 @@
 2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/ephy-history.c: (ephy_history_get_type),
+	(ephy_history_init), (ephy_history_visited):
+	* lib/Makefile.am:
+	* lib/ephy-autocompletion-source.c:
+	* lib/ephy-autocompletion-source.h:
+	* lib/ephy-autocompletion.c:
+	* lib/ephy-autocompletion.h:
+	* lib/widgets/Makefile.am:
+	* lib/widgets/ephy-autocompletion-window.c:
+	* lib/widgets/ephy-autocompletion-window.h:
+	* src/bookmarks/ephy-bookmarks.c: (ephy_bookmarks_get_type),
+	(bookmarks_changed_cb), (bookmarks_removed_cb),
+	(ephy_bookmarks_init), (ephy_bookmarks_add):
+
+	Remove old implementation completely
+
+2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/widgets/ephy-location-entry.c:
 	(ephy_location_entry_class_init), (editable_changed_cb),
 	(entry_activate_cb), (ephy_location_entry_construct_contents),

@@ -32,7 +32,6 @@
 #include "ephy-toolbars-model.h"
 #include "ephy-bookmarks-export.h"
 #include "ephy-bookmarks-import.h"
-#include "ephy-autocompletion.h"
 #include "session.h"
 
 #include <string.h>
@@ -112,8 +111,6 @@ static void
 ephy_bookmarks_init (EphyBookmarks *tab);
 static void
 ephy_bookmarks_finalize (GObject *object);
-static void
-ephy_bookmarks_autocompletion_source_init (EphyAutocompletionSourceIface *iface);
 
 static GObjectClass *parent_class = NULL;
 
@@ -137,76 +134,12 @@ ephy_bookmarks_get_type (void)
                         (GInstanceInitFunc) ephy_bookmarks_init
                 };
 
-		static const GInterfaceInfo autocompletion_source_info =
-		{
-			(GInterfaceInitFunc) ephy_bookmarks_autocompletion_source_init,
-			NULL,
-			NULL
-		};
-
                 ephy_bookmarks_type = g_type_register_static (G_TYPE_OBJECT,
 							      "EphyBookmarks",
 							      &our_info, 0);
-
-		g_type_add_interface_static (ephy_bookmarks_type,
-					     EPHY_TYPE_AUTOCOMPLETION_SOURCE,
-					     &autocompletion_source_info);
         }
 
         return ephy_bookmarks_type;
-}
-
-static void
-ephy_bookmarks_autocompletion_source_set_basic_key (EphyAutocompletionSource *source,
-						    const gchar *basic_key)
-{
-	/* nothing to do here */
-}
-
-static void
-ephy_bookmarks_autocompletion_source_foreach (EphyAutocompletionSource *source,
-					      const gchar *current_text,
-					      EphyAutocompletionSourceForeachFunc func,
-					      gpointer data)
-{
-	GPtrArray *children;
-	int i;
-	EphyBookmarks *eb = EPHY_BOOKMARKS (source);
-
-	children = ephy_node_get_children (eb->priv->bookmarks);
-	for (i = 0; i < children->len; i++)
-	{
-		EphyNode *kid;
-		const char *url, *title, *keywords;
-		gboolean smart_url;
-
-		kid = g_ptr_array_index (children, i);
-		url = ephy_node_get_property_string
-			(kid, EPHY_NODE_BMK_PROP_LOCATION);
-		smart_url = ephy_node_get_property_boolean
-			(kid, EPHY_NODE_BMK_PROP_HAS_SMART_ADDRESS);
-		title = ephy_node_get_property_string
-			(kid, EPHY_NODE_BMK_PROP_TITLE);
-		keywords = ephy_node_get_property_string
-			(kid, EPHY_NODE_BMK_PROP_KEYWORDS);
-
-		func (source, keywords, title, url, smart_url,
-		      !smart_url, 0, data);
-	}
-	ephy_node_thaw (eb->priv->bookmarks);
-}
-
-static void
-ephy_bookmarks_emit_data_changed (EphyBookmarks *eb)
-{
-	g_signal_emit_by_name (eb, "data-changed");
-}
-
-static void
-ephy_bookmarks_autocompletion_source_init (EphyAutocompletionSourceIface *iface)
-{
-	iface->foreach = ephy_bookmarks_autocompletion_source_foreach;
-	iface->set_basic_key = ephy_bookmarks_autocompletion_source_set_basic_key;
 }
 
 static void
@@ -527,7 +460,6 @@ bookmarks_changed_cb (EphyNode *node,
 		      EphyNode *child,
 		      EphyBookmarks *eb)
 {
-	ephy_bookmarks_emit_data_changed (eb);
 	ephy_bookmarks_save_delayed (eb, BOOKMARKS_SAVE_DELAY);
 }
 
@@ -537,7 +469,6 @@ bookmarks_removed_cb (EphyNode *node,
 		      guint old_index,
 		      EphyBookmarks *eb)
 {
-	ephy_bookmarks_emit_data_changed (eb);
 	g_signal_emit (G_OBJECT (eb), ephy_bookmarks_signals[TREE_CHANGED], 0);
 	ephy_bookmarks_save_delayed (eb, BOOKMARKS_SAVE_DELAY);
 }
@@ -725,8 +656,6 @@ ephy_bookmarks_init (EphyBookmarks *eb)
 		}
 	}
 
-	ephy_bookmarks_emit_data_changed (eb);
-
 	ephy_setup_history_notifiers (eb);
 	ephy_bookmarks_update_favorites (eb);
 }
@@ -819,7 +748,6 @@ ephy_bookmarks_add (EphyBookmarks *eb,
 	ephy_node_add_child (eb->priv->bookmarks, bm);
 	ephy_node_add_child (eb->priv->notcategorized, bm);
 
-	ephy_bookmarks_emit_data_changed (eb);
 	g_signal_emit (G_OBJECT (eb), ephy_bookmarks_signals[TREE_CHANGED], 0);
 	ephy_bookmarks_save_delayed (eb, 0);
 
