@@ -4,6 +4,7 @@ INCLUDES = \
 	-I$(top_srcdir)		    			\
 	$(MOZILLA_COMPONENT_CFLAGS)			\
 	-I$(MOZILLA_INCLUDE_ROOT)			\
+	-I$(MOZILLA_INCLUDE_ROOT)/chardet		\
 	-I$(MOZILLA_INCLUDE_ROOT)/commandhandler	\
 	-I$(MOZILLA_INCLUDE_ROOT)/content		\
 	-I$(MOZILLA_INCLUDE_ROOT)/cookie		\
@@ -29,7 +30,6 @@ INCLUDES = \
 	$(EPIPHANY_DEPENDENCY_CFLAGS) 			\
 	-DSHARE_DIR=\"$(pkgdatadir)\"   		\
 	-DALLOW_PRIVATE_API				\
-	-DALLOW_PRIVATE_STRINGS				\
 	-include $(MOZILLA_INCLUDE_ROOT)/mozilla-config.h
 
 if MAINTAINER_MODE

@@ -130,6 +130,7 @@ private:
 	nsresult GetSHistory (nsISHistory **aSHistory);
 	nsresult GetContentViewer (nsIContentViewer **aViewer);
 	nsresult GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUint32 *aNumTextFields, PRBool *aHasTextArea);
+	PRBool   CompareFormsText (nsAString &aDefaultText, nsAString &aUserText);
 };
 
 #endif
