@@ -48,8 +48,6 @@ impl_pause (DownloaderView *view, gpointer persist_object);
 static void 
 impl_resume (DownloaderView *view, gpointer);
 
-#define MOZILLA_EMBED_PERSIST_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), MOZILLA_TYPE_EMBED_PERSIST, MozillaDownloaderViewPrivate))
-
 static GObjectClass *parent_class = NULL;
 
 GType

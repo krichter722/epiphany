@@ -1,5 +1,13 @@
 2003-10-14  Xan Lopez  <xan@masilla.org>
 
+	* embed/downloader-view.c: (download_dialog_abort_cb),
+	(downloader_cancel_download):
+	* embed/mozilla/mozilla-downloader-view.cpp:
+
+	Evil stuff.
+
+2003-10-14  Xan Lopez  <xan@masilla.org>
+
 	* embed/ephy-embed-shell.c: (impl_get_downloader_view):
 	* embed/mozilla/mozilla-downloader-view.cpp:
 	* embed/mozilla/mozilla-downloader-view.h:

@@ -906,7 +906,6 @@ download_dialog_abort_cb (GtkButton *button, DownloaderView *dv)
 		g_return_if_fail (details);
 
 		downloader_cancel_download (dv, persist_object);
-//		g_signal_emit (G_OBJECT (dv), downloader_view_signals[DOWNLOAD_REMOVE], 0, persist_object);
 
 		downloader_view_remove_download (dv, persist_object);
 
@@ -1110,7 +1109,7 @@ download_dialog_open_cb (GtkWidget *button,
 void
 downloader_cancel_download (DownloaderView *dv, gpointer persist_object)
 {
-	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (persist_object);
+	DownloaderViewClass *klass = EPHY_DOWNLOADER_VIEW_GET_CLASS (dv);
 	klass->cancel_download(dv, persist_object);
 }
 
