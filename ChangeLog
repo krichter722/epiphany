@@ -1,3 +1,20 @@
+2004-06-10  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/egg/egg-editable-toolbar.c: (toolbar_drag_motion_cb),
+	(egg_editable_toolbar_get_model):
+	* lib/egg/egg-editable-toolbar.h:
+	* lib/egg/egg-toolbars-model.h:
+
+	Add a getter for the model.
+	Add a flag to accept only tool items as source.
+
+	* src/bookmarks/ephy-bookmarksbar.c:
+	* src/ephy-toolbars-model.c: (update_flags_and_save_changes):
+	* src/toolbar.c: (toolbar_added_cb), (toolbar_realize),
+	(toolbar_unrealize), (toolbar_class_init), (toolbar_finalize):
+
+	Fixup dnd targets and use the new flag for main toolbar.
+
 2004-06-10  Christian Persch  <chpe@cvs.gnome.org>
 
 	* lib/egg/egg-toolbars-model.c: (egg_toolbars_model_class_init):

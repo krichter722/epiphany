@@ -42,9 +42,8 @@
 
 static GtkTargetEntry drag_targets[] =
 {
-	{ EGG_TOOLBAR_ITEM_TYPE,	0,	0 },
-	{ EPHY_DND_TOPIC_TYPE,		0,	1 },
-	{ EPHY_DND_URL_TYPE,		0,	2 }
+	{ EPHY_DND_TOPIC_TYPE,		0,	0 },
+	{ EPHY_DND_URL_TYPE,		0,	1 }
 };
 static int n_drag_targets = G_N_ELEMENTS (drag_targets);
 

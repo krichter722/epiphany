@@ -601,6 +601,24 @@ toolbar_drag_motion_cb (GtkWidget          *widget,
   int index;
   GtkToolbar *toolbar = GTK_TOOLBAR (widget);
   GtkToolItem *item;
+  GtkWidget *source;
+
+  source = gtk_drag_get_source_widget (context);
+  if (source)
+    {
+      EggTbModelFlags flags;
+      int pos;
+
+      pos = get_toolbar_position (etoolbar, widget);
+      flags = egg_toolbars_model_get_flags (etoolbar->priv->model, pos);
+
+      if ((flags & EGG_TB_MODEL_ACCEPT_ITEMS_ONLY) &&
+          !GTK_IS_TOOL_ITEM (source))
+        {
+          gdk_drag_status (context, 0, time);
+          return FALSE;
+        }
+    }
 
   target = gtk_drag_dest_find_target (widget, context, NULL);
   if (target == GDK_NONE)
@@ -1437,3 +1455,10 @@ _egg_editable_toolbar_new_separator_image (void)
 
   return image;
 }
+
+EggToolbarsModel *
+egg_editable_toolbar_get_model (EggEditableToolbar *etoolbar)
+{
+  return etoolbar->priv->model;
+}
+

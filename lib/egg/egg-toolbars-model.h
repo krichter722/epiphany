@@ -41,11 +41,12 @@ typedef struct EggToolbarsModelPrivate EggToolbarsModelPrivate;
 
 typedef enum
 {
-  EGG_TB_MODEL_NOT_REMOVABLE	= 1 << 0,
-  EGG_TB_MODEL_ICONS_ONLY	= 1 << 1,
-  EGG_TB_MODEL_TEXT_ONLY	= 1 << 2,
-  EGG_TB_MODEL_ICONS_TEXT	= 1 << 3,
-  EGG_TB_MODEL_ICONS_TEXT_HORIZ	= 1 << 4,
+  EGG_TB_MODEL_NOT_REMOVABLE	 = 1 << 0,
+  EGG_TB_MODEL_ICONS_ONLY	 = 1 << 1,
+  EGG_TB_MODEL_TEXT_ONLY	 = 1 << 2,
+  EGG_TB_MODEL_ICONS_TEXT	 = 1 << 3,
+  EGG_TB_MODEL_ICONS_TEXT_HORIZ	 = 1 << 4,
+  EGG_TB_MODEL_ACCEPT_ITEMS_ONLY = 1 << 5
 } EggTbModelFlags;
 
 struct EggToolbarsModel

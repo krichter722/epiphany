@@ -60,6 +60,7 @@ struct EggEditableToolbarClass
 GType               egg_editable_toolbar_get_type        (void);
 GtkWidget	   *egg_editable_toolbar_new		 (GtkUIManager         *merge,
 							  EggToolbarsModel     *model);
+EggToolbarsModel   *egg_editable_toolbar_get_model       (EggEditableToolbar   *etoolbar);
 void		    egg_editable_toolbar_set_edit_mode	 (EggEditableToolbar   *etoolbar,
 							  gboolean              mode);
 gboolean	    egg_editable_toolbar_get_edit_mode	 (EggEditableToolbar   *etoolbar);

@@ -31,6 +31,7 @@
 #include "ephy-location-action.h"
 #include "ephy-navigation-action.h"
 #include "ephy-spinner.h"
+#include "ephy-dnd.h"
 #include "ephy-topic-action.h"
 #include "ephy-zoom-action.h"
 #include "ephy-shell.h"
@@ -47,6 +48,14 @@ static void toolbar_class_init (ToolbarClass *klass);
 static void toolbar_init (Toolbar *t);
 static void toolbar_finalize (GObject *object);
 static void toolbar_set_window (Toolbar *t, EphyWindow *window);
+
+static GtkTargetEntry drag_targets[] =
+{
+	{ EGG_TOOLBAR_ITEM_TYPE,	0,	0 },
+	{ EPHY_DND_TOPIC_TYPE,		0,	1 },
+	{ EPHY_DND_URL_TYPE,		0,	2 }
+};
+static int n_drag_targets = G_N_ELEMENTS (drag_targets);
 
 enum
 {
@@ -175,15 +184,72 @@ toolbar_get_property (GObject *object,
 }
 
 static void
+toolbar_added_cb (EggToolbarsModel *model,
+		  int position,
+		  EggEditableToolbar *toolbar)
+{
+	const char *t_name;
+
+	t_name = egg_toolbars_model_toolbar_nth (model, position);
+	g_return_if_fail (t_name != NULL);
+
+	egg_editable_toolbar_set_drag_dest
+		(toolbar, drag_targets, n_drag_targets, t_name);
+}
+
+static void
+toolbar_realize (GtkWidget *widget)
+{
+	EggEditableToolbar *eggtoolbar = EGG_EDITABLE_TOOLBAR (widget);
+	Toolbar *toolbar = EPHY_TOOLBAR (widget);
+	EggToolbarsModel *model = egg_editable_toolbar_get_model (eggtoolbar);
+	int i, n_toolbars;
+
+	GTK_WIDGET_CLASS (parent_class)->realize (widget);
+
+	g_signal_connect (model, "toolbar_added",
+			  G_CALLBACK (toolbar_added_cb), toolbar);
+
+	/* now that the toolbar has been constructed, set drag dests */
+	n_toolbars = egg_toolbars_model_n_toolbars (model);
+	for (i = 0; i < n_toolbars; i++)
+	{
+		const char *t_name;
+
+		t_name = egg_toolbars_model_toolbar_nth (model, i);
+		g_return_if_fail (t_name != NULL);
+
+		egg_editable_toolbar_set_drag_dest
+			(eggtoolbar, drag_targets, n_drag_targets, t_name);
+	}	
+}
+
+static void
+toolbar_unrealize (GtkWidget *widget)
+{
+	EggEditableToolbar *eggtoolbar = EGG_EDITABLE_TOOLBAR (widget);
+	Toolbar *toolbar = EPHY_TOOLBAR (widget);
+	EggToolbarsModel *model = egg_editable_toolbar_get_model (eggtoolbar);
+
+	g_signal_handlers_disconnect_by_func
+		(model, G_CALLBACK (toolbar_added_cb), toolbar);
+
+	GTK_WIDGET_CLASS (parent_class)->unrealize (widget);
+}
+
+static void
 toolbar_class_init (ToolbarClass *klass)
 {
         GObjectClass *object_class = G_OBJECT_CLASS (klass);
+        GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
         parent_class = g_type_class_peek_parent (klass);
 
         object_class->finalize = toolbar_finalize;
 	object_class->set_property = toolbar_set_property;
 	object_class->get_property = toolbar_get_property;
+	widget_class->realize = toolbar_realize;
+	widget_class->unrealize = toolbar_unrealize;
 
 	g_object_class_install_property (object_class,
                                          PROP_WINDOW,
@@ -374,9 +440,14 @@ static void
 toolbar_finalize (GObject *object)
 {
 	Toolbar *t = EPHY_TOOLBAR (object);
+	EggEditableToolbar *eggtoolbar = EGG_EDITABLE_TOOLBAR (object);
 
 	eel_gconf_notification_remove
 		(t->priv->disable_arbitrary_url_notifier_id);
+
+	g_signal_handlers_disconnect_by_func
+		(egg_editable_toolbar_get_model (eggtoolbar),
+		 G_CALLBACK (toolbar_added_cb), t);
 
 	g_object_unref (t->priv->action_group);
 

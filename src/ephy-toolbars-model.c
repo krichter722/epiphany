@@ -103,23 +103,25 @@ update_flags_and_save_changes (EphyToolbarsModel *model)
 {
 	EggToolbarsModel *eggmodel = EGG_TOOLBARS_MODEL (model);
 	int i, n_toolbars;
-	int flag = 0;
+	int flag = EGG_TB_MODEL_ACCEPT_ITEMS_ONLY;
 
 	n_toolbars = egg_toolbars_model_n_toolbars (eggmodel);
 
 	if (n_toolbars <= 1)
 	{
-		flag = EGG_TB_MODEL_NOT_REMOVABLE;
+		flag |= EGG_TB_MODEL_NOT_REMOVABLE;
 	}
 
 	for (i = 0; i < n_toolbars; i++)
 	{
 		const char *t_name;
+		EggTbModelFlags flags;
 
 		t_name = egg_toolbars_model_toolbar_nth (eggmodel, i);
 		g_return_if_fail (t_name != NULL);
 
-		egg_toolbars_model_set_flags (eggmodel, flag, i);
+		flags = egg_toolbars_model_get_flags (eggmodel, i);
+		egg_toolbars_model_set_flags (eggmodel, flags | flag, i);
 	}
 
 	save_changes (model);
