@@ -1,5 +1,14 @@
 2004-10-24  Xan Lopez  <xan@gnome.org>
 
+	* embed/webcore/webcore-embed-single.c:
+	* embed/webcore/webcore-embed.c: (webcore_embed_init),
+	(webcore_embed_destroy), (webcore_embed_finalize),
+	(impl_get_location):
+
+	EphyBrowser is embed/mozilla stuff.
+
+2004-10-24  Xan Lopez  <xan@gnome.org>
+
 	* embed/webcore/webcore-embed.c: (impl_manager_do_command),
 	(impl_manager_can_do_command), (webcore_embed_class_init),
 	(impl_set_zoom), (impl_get_zoom):

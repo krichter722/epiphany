@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- *
+ *  $Id$
  */
 
 #ifdef HAVE_CONFIG_H
@@ -73,7 +73,6 @@ typedef enum
 
 struct WebcoreEmbedPrivate
 {
-	/* EphyBrowser *browser;*/
 	guint security_state;
 	WebcoreEmbedLoadState load_state;
 };
@@ -206,7 +205,6 @@ webcore_embed_init (WebcoreEmbed *embed)
 {
 	GtkWidget *khtml;
         embed->priv = WEBCORE_EMBED_GET_PRIVATE (embed);
-	//embed->priv->browser = new EphyBrowser ();
 	embed->priv->security_state = STATE_IS_UNKNOWN;
 
 	khtml = gtk_khtml_new ();
@@ -236,27 +234,10 @@ webcore_embed_init (WebcoreEmbed *embed)
 				 embed, (GConnectFlags) 0);
 }
 
-gpointer
-_webcore_embed_get_ephy_browser (WebcoreEmbed *embed)
-{
-	return NULL;
-	/*
-	g_return_val_if_fail (embed->priv->browser != NULL, NULL);
-	
-	return embed->priv->browser;
-	*/
-}
-
 static void
 webcore_embed_destroy (GtkObject *object)
 {
 	WebcoreEmbed *embed = WEBCORE_EMBED (object);
-	/*
-	if (embed->priv->browser)
-	{
-		embed->priv->browser->Destroy();
-	}
-	*/
 	GTK_OBJECT_CLASS (parent_class)->destroy (object);
 }
 
@@ -264,13 +245,6 @@ static void
 webcore_embed_finalize (GObject *object)
 {
 	WebcoreEmbed *embed = WEBCORE_EMBED (object);
-	/*
-	if (embed->priv->browser)
-	{
-        	delete embed->priv->browser;
-	       	embed->priv->browser = nsnull;
-	}
-	*/
 	G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
@@ -348,7 +322,7 @@ static char *
 impl_get_location (EphyEmbed *embed, 
                    gboolean toplevel)
 {
-	return g_strdup(gtk_khtml_get_location (GTK_KHTML (embed)));
+	return g_strdup (gtk_khtml_get_location (GTK_KHTML (embed)));
 }
 
 static void
