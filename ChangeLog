@@ -1,5 +1,15 @@
 2004-06-08  Christian Persch  <chpe@cvs.gnome.org>
 
+	* data/ui/epiphany-bookmarksbar.xml:
+	* src/bookmarks/ephy-bookmarksbar-model.c:
+	* src/bookmarks/ephy-bookmarksbar-model.h:
+	* src/bookmarks/ephy-bookmarksbar.c: 
+	* src/bookmarks/ephy-bookmarksbar.h:
+
+	I committed to wrong branch, merging from there.
+
+2004-06-08  Christian Persch  <chpe@cvs.gnome.org>
+
 	Separation of bookmarks and normal toolbars.
 
 	* lib/egg/egg-editable-toolbar.c: (find_action), (create_item),
