@@ -285,37 +285,10 @@ update_flags_and_save_changes (EphyBookmarksBarModel *model)
 }
 
 static void
-bookmark_destroy_cb (EphyNode *node,
-		     EphyBookmarksBarModel *model)
-{
-	long id;
-
-	id = ephy_node_get_id (node);
-	ephy_bookmarksbar_model_remove_bookmark (model, id);
-}
-
-static void
 item_added_cb (EphyBookmarksBarModel *model,
 	       int toolbar_position,
 	       int position)
 {
-	EphyNode *node;
-	const char *i_name;
-	gboolean is_separator;
-
-	egg_toolbars_model_item_nth (EGG_TOOLBARS_MODEL (model), toolbar_position,
-				     position, &is_separator, &i_name, NULL);
-	if (!is_separator && g_str_has_prefix (i_name, "GoBookmark-"))
-	{
-		node = ephy_bookmarksbar_model_get_node (model, i_name);
-		g_return_if_fail (node != NULL);
-
-		ephy_node_signal_connect_object (node,
-						 EPHY_NODE_DESTROY,
-						 (EphyNodeCallback) bookmark_destroy_cb,
-						 G_OBJECT (model));
-	}
-
 	save_changes (model);
 }
 

@@ -1,5 +1,14 @@
 2004-06-10  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* src/bookmarks/ephy-bookmarksbar-model.c: (item_added_cb):
+	* src/bookmarks/ephy-bookmarksbar.c: (remove_action_from_model),
+	(bookmark_destroy_cb), (ephy_bookmarksbar_action_request):
+
+	Cleanup the toolbars model when destroying a bookmark
+	action. Remove the cleanup code from the model.
+
+2004-06-10  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/egg/egg-editable-toolbar.c: (toolbar_drag_motion_cb),
 	(egg_editable_toolbar_get_model):
 	* lib/egg/egg-editable-toolbar.h:
