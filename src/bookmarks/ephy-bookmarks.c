@@ -166,6 +166,47 @@ ephy_bookmarks_init_defaults (EphyBookmarks *eb)
 	}
 }
 
+static char *
+get_item_type_forward_cb (EggToolbarsModel *model,
+			  GdkAtom type,
+			  EggToolbarsModel *bookmarksbar_model)
+{
+	char *retval;
+
+	g_signal_emit_by_name (bookmarksbar_model, "get_item_type",
+			       type, &retval);
+
+	return retval;
+}
+
+static char *
+get_item_id_forward_cb (EggToolbarsModel *model,
+			const char *type,
+			const char *name,
+			EggToolbarsModel *bookmarksbar_model)
+{
+	char *retval;
+
+	g_signal_emit_by_name (bookmarksbar_model, "get_item_id",
+			       type, name, &retval);
+
+	return retval;
+}
+
+static char *
+get_item_data_forward_cb (EggToolbarsModel *model,
+			  const char *type,
+			  const char *id,
+			  EggToolbarsModel *bookmarksbar_model)
+{
+	char *retval;
+
+	g_signal_emit_by_name (bookmarksbar_model, "get_item_data",
+			       type, id, &retval);
+
+	return retval;
+}
+
 EggToolbarsModel *
 ephy_bookmarks_get_toolbars_model (EphyBookmarks *eb)
 {
@@ -173,8 +214,23 @@ ephy_bookmarks_get_toolbars_model (EphyBookmarks *eb)
 
 	if (eb->priv->toolbars_model == NULL)
 	{
+		GObject *toolbars_model;
+
 		eb->priv->toolbars_model = EPHY_BOOKMARKSBAR_MODEL
 			(ephy_bookmarksbar_model_new (eb));
+
+		/* forward those signals, so that bookmarks can also be on the main model */
+		toolbars_model = ephy_shell_get_toolbars_model (ephy_shell, FALSE);
+
+		g_signal_connect_after (toolbars_model, "get_item_type",
+					G_CALLBACK (get_item_type_forward_cb),
+					eb->priv->toolbars_model);
+		g_signal_connect_after (toolbars_model, "get_item_id",
+					G_CALLBACK (get_item_id_forward_cb),
+					eb->priv->toolbars_model);
+		g_signal_connect_after (toolbars_model, "get_item_data",
+					G_CALLBACK (get_item_data_forward_cb),
+					eb->priv->toolbars_model);
 
 		if (eb->priv->init_defaults)
 		{

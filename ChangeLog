@@ -1,5 +1,20 @@
 2004-06-10  Christian Persch  <chpe@cvs.gnome.org>
 
+	* lib/egg/egg-toolbars-model.c: (egg_toolbars_model_class_init):
+	* src/bookmarks/ephy-bookmarks.c: (get_item_type_forward_cb),
+	(get_item_id_forward_cb), (get_item_data_forward_cb),
+	(ephy_bookmarks_get_toolbars_model):
+	* src/ephy-shell.c: (ephy_shell_get_toolbars_model):
+	* src/ephy-toolbars-model.c: (ephy_toolbars_model_load),
+	(ephy_toolbars_model_init):
+	* src/ephy-toolbars-model.h:
+
+	Forward get_item_[type|id|data] from toolbars model to
+	bookmarksbar model. That way we can have bookmarks/topics also
+	on the main toolbar.
+
+2004-06-10  Christian Persch  <chpe@cvs.gnome.org>
+
 	* lib/egg/egg-toolbars-model.c: (_egg_accumulator_STRING),
 	(egg_toolbars_model_class_init), (egg_toolbars_model_get_item_id),
 	(egg_toolbars_model_get_item_data),

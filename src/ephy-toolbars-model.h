@@ -55,6 +55,8 @@ GType		  ephy_toolbars_model_get_type	(void);
 
 EggToolbarsModel *ephy_toolbars_model_new	(void);
 
+void		  ephy_toolbars_model_load	(EphyToolbarsModel *model);
+
 G_END_DECLS
 
 #endif

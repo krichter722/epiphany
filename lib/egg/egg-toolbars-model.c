@@ -569,7 +569,7 @@ egg_toolbars_model_class_init (EggToolbarsModelClass *klass)
   egg_toolbars_model_signals[GET_ITEM_TYPE] =
     g_signal_new ("get_item_type",
 		  G_OBJECT_CLASS_TYPE (object_class),
-		  G_SIGNAL_RUN_LAST,
+		  G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (EggToolbarsModelClass, get_item_type),
 		  _egg_accumulator_STRING, NULL,
 		  _egg_marshal_STRING__POINTER,
@@ -577,7 +577,7 @@ egg_toolbars_model_class_init (EggToolbarsModelClass *klass)
   egg_toolbars_model_signals[GET_ITEM_ID] =
     g_signal_new ("get_item_id",
 		  G_OBJECT_CLASS_TYPE (object_class),
-		  G_SIGNAL_RUN_LAST,
+		  G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (EggToolbarsModelClass, get_item_id),
 		  _egg_accumulator_STRING, NULL,
 		  _egg_marshal_STRING__STRING_STRING,
@@ -585,7 +585,7 @@ egg_toolbars_model_class_init (EggToolbarsModelClass *klass)
   egg_toolbars_model_signals[GET_ITEM_DATA] =
     g_signal_new ("get_item_data",
 		  G_OBJECT_CLASS_TYPE (object_class),
-		  G_SIGNAL_RUN_LAST,
+		  G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (EggToolbarsModelClass, get_item_data),
 		  _egg_accumulator_STRING, NULL,
 		  _egg_marshal_STRING__STRING_STRING,

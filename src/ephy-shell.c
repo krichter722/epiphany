@@ -684,7 +684,21 @@ ephy_shell_get_toolbars_model (EphyShell *shell, gboolean fullscreen)
 	{
 		if (shell->priv->toolbars_model == NULL)
 		{
+			EphyBookmarks *bookmarks;
+			EggToolbarsModel *bookmarksbar_model;
+
 			shell->priv->toolbars_model = ephy_toolbars_model_new ();
+
+			/* get the bookmarks toolbars model. we have to do this
+			 * before loading the toolbars model from disk, since
+			 * this will connect the get_item_* signals
+			 */
+			bookmarks = ephy_shell_get_bookmarks (shell);
+			bookmarksbar_model = ephy_bookmarks_get_toolbars_model (bookmarks);
+
+			/* ok, now we can load the model */
+			ephy_toolbars_model_load
+			(EPHY_TOOLBARS_MODEL (shell->priv->toolbars_model));
 		}
 
 		return G_OBJECT (shell->priv->toolbars_model);

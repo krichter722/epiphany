@@ -148,8 +148,8 @@ get_toolbar_pos (EggToolbarsModel *model,
 	return -1;
 }
 
-static void
-load_toolbars (EphyToolbarsModel *model)
+void
+ephy_toolbars_model_load (EphyToolbarsModel *model)
 {
 	EggToolbarsModel *eggmodel = EGG_TOOLBARS_MODEL (model);
 	gboolean success;
@@ -215,8 +215,6 @@ ephy_toolbars_model_init (EphyToolbarsModel *model)
 				G_CALLBACK (update_flags_and_save_changes), NULL);
 	g_signal_connect_after (model, "toolbar_removed",
 				G_CALLBACK (update_flags_and_save_changes), NULL);
-
-	load_toolbars (model);
 }
 
 static void
