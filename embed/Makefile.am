@@ -1,10 +1,9 @@
-SUBDIRS = mozilla 
+SUBDIRS = $(ENGINE)
 
 INCLUDES = \
 	-I$(top_srcdir)/lib       		\
 	-I$(top_srcdir)/lib/egg       		\
 	-I$(top_srcdir)/lib/widgets      	\
-	-I$(MOZILLA_INCLUDE_ROOT)/gtkembedmoz 	\
 	$(EPIPHANY_DEPENDENCY_CFLAGS) 		\
 	-DSHARE_DIR=\"$(pkgdatadir)\"
 
@@ -13,7 +12,7 @@ INCLUDES += -I$(top_srcdir)/embed/mozilla
 endif
 
 if ENABLE_WEBCORE_EMBED
-INCLUDES += -I$(top_srcdir)/embed/webcore
+INCLUDES += -I$(top_srcdir)/embed/webcore -I$(MOZILLA_INCLUDE_ROOT)/gtkembedmoz
 endif
 
 if MAINTAINER_MODE
@@ -73,3 +72,6 @@ libephyembed_la_SOURCES = \
 libephyembedfactory_la_SOURCES =	\
 	ephy-embed-factory.c		\
 	ephy-embed-factory.h
+
+DIST_SUBDIRS = mozilla webcore
+

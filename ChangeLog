@@ -1,6 +1,13 @@
 2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
 
 	* configure.ac:
+	* embed/Makefile.am:
+
+	Only go to $(ENGINE) subdir in embed/. Add DIST_SUBDIRS.
+
+2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
+
+	* configure.ac:
 
 	More quoting. Add AC_DEFINE for ENABLE_MOZILLA_EMBED.
 

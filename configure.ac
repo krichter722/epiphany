@@ -136,6 +136,7 @@ AC_ARG_WITH([rendering-engine],
 	[ENGINE="$withval"])
 
 AC_MSG_RESULT($ENGINE)
+AC_SUBST([ENGINE])
 
 dnl ******************
 dnl Mozilla name check
