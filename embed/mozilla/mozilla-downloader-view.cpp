@@ -15,22 +15,11 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * $Id$
+ *  $Id$
  */
 
 #include "EphyDownload.h"
-#include "EphyWrapper.h"
-#include "EphyHeaderSniffer.h"
-#include "mozilla-embed.h"
 #include "mozilla-downloader-view.h"
-
-#include <stddef.h>
-#include <nsIWebBrowserPersist.h>
-#include <nsString.h>
-#include <nsCWebBrowserPersist.h>
-#include <nsNetUtil.h>
-#include <nsIHistoryEntry.h>
-#include <nsISHEntry.h>
 
 static void
 mozilla_downloader_view_class_init (MozillaDownloaderViewClass *klass);
@@ -128,16 +117,3 @@ mozilla_downloader_view_new (void)
 {
 	return MOZILLA_DOWNLOADER_VIEW (g_object_new (MOZILLA_TYPE_DOWNLOADER_VIEW, NULL));
 }
-/*void
-mozilla_downloader_view_completed (MozillaDownloaderView *view)
-{
-	g_signal_emit_by_name (view, "completed");
-	g_object_unref (view);
-}
-
-void
-mozilla_downloader_view_cancelled (MozillaDownloaderView *view)
-{
-	g_object_unref (view);
-}*/
-

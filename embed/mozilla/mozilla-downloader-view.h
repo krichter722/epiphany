@@ -40,7 +40,6 @@ typedef struct MozillaDownloaderViewPrivate MozillaDownloaderViewPrivate;
 struct MozillaDownloaderView
 {
         DownloaderView parent;
-//        MozillaDownloaderViewPrivate *priv;
 };
 
 struct MozillaDownloaderViewClass
@@ -48,12 +47,9 @@ struct MozillaDownloaderViewClass
         DownloaderViewClass parent_class;
 };
 
-GType               mozilla_downloader_view_get_type   (void);
+GType               	mozilla_downloader_view_get_type   (void);
+
 MozillaDownloaderView*	mozilla_downloader_view_new (void);
-
-/*void		    mozilla_downloader_view_completed  (MozillaDownloaderView *persist);
-
-void		    mozilla_downloader_view_cancelled  (MozillaDownloaderView *persist);*/
 
 G_END_DECLS
 
