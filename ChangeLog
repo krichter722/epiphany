@@ -1,3 +1,9 @@
+2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
+
+	* configure.ac:
+
+	More quoting. Add AC_DEFINE for ENABLE_MOZILLA_EMBED.
+
 2004-10-22  Christian Persch  <chpe@cvs.gnome.org>
 
 	* src/ephy-extensions-manager.c: (load_extension),

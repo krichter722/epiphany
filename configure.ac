@@ -123,16 +123,17 @@ dnl ******************
 
 AC_CHECK_FUNCS([mkdtemp])
 
-dnl ####################
+dnl *******************
 dnl Render engine check
-dnl ####################
+dnl *******************
+
 AC_MSG_CHECKING(for which rendering engine to use)
 
 ENGINE=mozilla
-AC_ARG_WITH(rendering-engine,
-  AC_HELP_STRING([--with-rendering-engine@<:@=mozilla|gtkhtml|webcore@:>@],
-                 [Which rendering engine to build against @<:@mozilla@:>@]),
-                 [ENGINE="$withval"])
+AC_ARG_WITH([rendering-engine],
+	AC_HELP_STRING([--with-rendering-engine@<:@=mozilla|gwebcore@:>@],
+		[Which rendering engine to build against @<:@mozilla@:>@]),
+	[ENGINE="$withval"])
 
 AC_MSG_RESULT($ENGINE)
 
@@ -140,8 +141,10 @@ dnl ******************
 dnl Mozilla name check
 dnl ******************
 
-AM_CONDITIONAL(ENABLE_MOZILLA_EMBED, test "$ENGINE" = "mozilla" )
-if test "$ENGINE" = "mozilla" ; then
+AM_CONDITIONAL([ENABLE_MOZILLA_EMBED], test "$ENGINE" = "mozilla")
+if test "x$ENGINE" = "xmozilla" ; then
+
+AC_DEFINE([ENABLE_MOZILLA_EMBED],[1],[Define if you wish to enable mozilla renderer])
 
 AC_MSG_CHECKING([which mozilla to use])
 
@@ -392,14 +395,13 @@ dnl *******************************
 dnl webkit renderer
 dnl *******************************
 
-AM_CONDITIONAL(ENABLE_WEBCORE_EMBED, test "$ENGINE" = "webcore" )
-if test "$ENGINE" = "webcore" ; then
-   AC_DEFINE(ENABLE_WEBCORE_EMBED, 1, [Define to 1 if you wish to enable webcore renderer.])
-   PKG_CHECK_MODULES(WEBCORE, osb-jscore osb-nrcore osb-nrcit)
-   AC_SUBST(WEBCORE_CFLAGS)
-   AC_SUBST(WEBCORE_LIBS)
+AM_CONDITIONAL([ENABLE_WEBCORE_EMBED], test "$ENGINE" = "webcore")
+if test "x$ENGINE" = "xwebcore" ; then
+   AC_DEFINE([ENABLE_WEBCORE_EMBED],[1],[Define if you wish to enable webcore renderer])
+   PKG_CHECK_MODULES([WEBCORE], osb-jscore osb-nrcore osb-nrcit)
+   AC_SUBST([WEBCORE_CFLAGS])
+   AC_SUBST([WEBCORE_LIBS])
 fi
-
 
 dnl *******************************
 dnl Internationalization
