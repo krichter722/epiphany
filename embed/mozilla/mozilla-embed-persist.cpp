@@ -18,7 +18,8 @@
  *  $Id$
  */
 
-#include "ProgressListener.h"
+//#include "ProgressListener.h"
+#include "EphyDownload.h"
 #include "EphyWrapper.h"
 #include "mozilla-embed.h"
 #include "mozilla-embed-persist.h"
@@ -145,7 +146,7 @@ impl_cancel (EphyEmbedPersist *persist)
 static gresult 
 impl_save (EphyEmbedPersist *persist)
 {
-	nsresult rv;
+/*	nsresult rv;
 	nsAutoString s;
 	char *filename;
 	char *uri;
@@ -275,7 +276,7 @@ impl_save (EphyEmbedPersist *persist)
 		rv = bpersist->SaveURI (linkURI, nsnull, nsnull, nsnull, nsnull, file);
 		if (NS_FAILED(rv)) return G_FAILED;
 	}
-	
+	*/
 	return G_OK;
 }
 

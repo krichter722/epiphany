@@ -54,8 +54,12 @@ libephymozillaembed_la_SOURCES = 	\
 	ContentHandler.h		\
 	EphyAboutRedirector.cpp		\
 	EphyAboutRedirector.h		\
+	EphyDownload.cpp		\
+	EphyDownload.h			\
 	EphyEventListener.cpp		\
 	EphyEventListener.h		\
+	EphyHeaderSniffer.cpp		\
+	EphyHeaderSniffer.h		\
 	EphyWrapper.cpp                 \
 	EphyWrapper.h	                \
 	EventContext.cpp                \
@@ -76,8 +80,6 @@ libephymozillaembed_la_SOURCES = 	\
 	MozRegisterComponents.h         \
 	PrintingPromptService.cpp	\
 	PrintingPromptService.h		\
-	ProgressListener.cpp		\
-	ProgressListener.h		\
 	mozilla-embed.cpp	        \
 	mozilla-embed.h			\
 	mozilla-embed-persist.cpp       \
