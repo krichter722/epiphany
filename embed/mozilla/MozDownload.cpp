@@ -45,6 +45,8 @@
 #include "config.h"
 #endif
 
+#include "mozilla-version.h"
+
 #include "mozilla-download.h"
 #include "eel-gconf-extensions.h"
 #include "ephy-prefs.h"
@@ -324,7 +326,24 @@ MozDownload::OnStateChange (nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 		else if (NS_SUCCEEDED (aStatus))
 		{
 			GnomeVFSMimeApplication *helperApp;
-#if MOZILLA_SNAPSHOT < 18
+#if MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1)
+			nsEmbedCString mimeType;
+			rv = mMIMEInfo->GetMIMEType (mimeType);
+			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+
+			helperApp = gnome_vfs_mime_get_default_application (mimeType.get()); 
+
+			nsEmbedString description;
+			mMIMEInfo->GetApplicationDescription (description);
+
+			nsEmbedCString cDesc;
+			NS_UTF16ToCString (description, NS_CSTRING_ENCODING_UTF8, cDesc);
+
+			/* HACK we use the application description to decide
+			   if we have to open the saved file */
+			if ((strcmp (cDesc.get(), "gnome-default") == 0) &&
+			    helperApp)
+#else
 			char *mimeType;
 			rv = mMIMEInfo->GetMIMEType (&mimeType);
 			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
@@ -341,23 +360,6 @@ MozDownload::OnStateChange (nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			/* HACK we use the application description to decide
 			   if we have to open the saved file */
 			if (strcmp (cDesc.get(), "gnome-default") == 0 &&
-			    helperApp)
-#else
-			nsEmbedCString mimeType;
-			rv = mMIMEInfo->GetMIMEType (mimeType);
-			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
-
-			helperApp = gnome_vfs_mime_get_default_application (mimeType.get()); 
-
-			nsEmbedString description;
-			mMIMEInfo->GetApplicationDescription (description);
-
-			nsEmbedCString cDesc;
-			NS_UTF16ToCString (description, NS_CSTRING_ENCODING_UTF8, cDesc);
-
-			/* HACK we use the application description to decide
-			   if we have to open the saved file */
-			if ((strcmp (cDesc.get(), "gnome-default") == 0) &&
 			    helperApp)
 #endif
 			{

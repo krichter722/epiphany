@@ -94,7 +94,7 @@ EphyFaviconEventListener::HandleFaviconLink (nsIDOMNode *node)
 
 	PRUnichar relAttr[] = { 'r', 'e', 'l', '\0' };
 	nsEmbedString value;
-	result = linkElement->GetAttribute (nsEmbedString(relAtttr), value);
+	result = linkElement->GetAttribute (nsEmbedString(relAttr), value);
 	if (NS_FAILED (result)) return NS_ERROR_FAILURE;
 
 	if (strcasecmp (value.get(), "SHORTCUT ICON") == 0 ||
@@ -202,7 +202,7 @@ EphyBrowser::GetListener (void)
 	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWindow));
 	NS_ENSURE_TRUE (piWin, NS_ERROR_FAILURE);
 
-#if MOZILLA_SNAPSHOT >= 18
+#if MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1)
   	nsIChromeEventHandler* chromeHandler;
   	chromeHandler = piWin->GetChromeEventHandler();
 #else

@@ -21,6 +21,12 @@
 #ifndef __ContentHandler_h
 #define __ContentHandler_h
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include "mozilla-version.h"
+
 #include "ephy-embed-shell.h"
 
 #include <libgnomevfs/gnome-vfs-mime-handlers.h>
@@ -80,11 +86,11 @@ class GContentHandler : public nsIHelperAppLauncherDialog
 
 	nsEmbedCString mUrl;
 	nsEmbedCString mScheme;
-#if MOZILLA_SNAPSHOT < 18
-	char *mMimeType;
-#else
+#if MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1)
 	nsEmbedCString mMimeType;
+#else
+	char *mMimeType;
 #endif
 };
 
-#endif
+#endif /* __ContentHandler_h */

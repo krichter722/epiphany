@@ -25,6 +25,8 @@
 
 #include "EphyContentPolicy.h"
 
+#include "mozilla-version.h"
+
 #include "eel-gconf-extensions.h"
 #include "ephy-debug.h"
 
@@ -57,7 +59,7 @@ EphyContentPolicy::~EphyContentPolicy()
 	g_slist_free (mSafeProtocols);
 }
 
-#if MOZILLA_SNAPSHOT >= 18
+#if MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1)
 NS_IMETHODIMP
 EphyContentPolicy::ShouldLoad(PRUint32 aContentType,
 			      nsIURI *aContentLocation,
@@ -156,4 +158,5 @@ NS_IMETHODIMP EphyContentPolicy::ShouldProcess(PRInt32 contentType,
 	*_retval = PR_TRUE;
 	return NS_OK;
 }
-#endif /* MOZILLA_SNAPSHOT >= 18 */
+#endif /* MOZILLA_CHECK_VERSION4 (1, 8, MOZILLA_ALPHA, 1) */
+
