@@ -61,7 +61,7 @@ static EmbedSecurityLevel webcore_embed_security_level (WebcoreEmbed *membed);
 #define WEBCORE_EMBED_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), WEBCORE_TYPE_EMBED, WebcoreEmbedPrivate))
 
 #undef GTK_KHTML
-#define GTK_KHTML(obj) (G_TYPE_CHECK_INSTANCE_CAST(((GTK_BIN(obj))->child), gtk_khtml_get_type(), GtkKHTML))
+#define GTK_KHTML(obj) (G_TYPE_CHECK_INSTANCE_CAST((GTK_BIN(obj)->child), gtk_khtml_get_type(), GtkKHTML))
 
 typedef enum
 {
@@ -84,22 +84,12 @@ static void
 impl_manager_do_command (EphyCommandManager *manager,
 			 const char *command) 
 {
-/*	WebcoreEmbedPrivate *mpriv = WEBCORE_EMBED(manager)->priv;
-
-	mpriv->browser->DoCommand (command);*/
 }
 
 static gboolean
 impl_manager_can_do_command (EphyCommandManager *manager,
 			     const char *command) 
 {
-/*	WebcoreEmbedPrivate *mpriv = WEBCORE_EMBED(manager)->priv;
-	nsresult rv;
-	PRBool enabled;
-
-        rv = mpriv->browser->GetCommandState (command, &enabled);
-
-	return NS_SUCCEEDED (rv) ? enabled : FALSE;*/
 }
 
 static void
@@ -193,16 +183,6 @@ embed_size_allocate(GtkWidget *widget, GtkAllocation *allocation)
         }
 }
 
-/*static GObject *
-webcore_embed_constructor (GType type, guint n_construct_properties,
-			   GObjectConstructParam *construct_params)
-{
-	ephy_embed_shell_get_embed_single (embed_shell);
-
-	return parent_class->constructor (type, n_construct_properties,
-					  construct_params);
-}*/
-
 static void
 webcore_embed_class_init (WebcoreEmbedClass *klass)
 {
@@ -212,7 +192,6 @@ webcore_embed_class_init (WebcoreEmbedClass *klass)
 
 	parent_class = (GObjectClass *) g_type_class_peek_parent (klass);
 
-	/*object_class->constructor = webcore_embed_constructor;*/
 	object_class->finalize = webcore_embed_finalize;
 
 	gtk_object_class->destroy = webcore_embed_destroy;
@@ -383,13 +362,16 @@ static void
 impl_set_zoom (EphyEmbed *embed, 
                float zoom) 
 {
-	gtk_khtml_set_text_multiplier (GTK_KHTML (embed), zoom/100.0);
+	g_return_if_fail (zoom > 0.0);
+
+	gtk_khtml_set_text_multiplier (GTK_KHTML (embed), zoom);
+	g_signal_emit_by_name (embed, "ge_zoom_change", zoom);
 }
 
 static float
 impl_get_zoom (EphyEmbed *embed)
 {
-	return (gtk_khtml_get_text_multiplier (GTK_KHTML (embed)) * 100.0);
+	return gtk_khtml_get_text_multiplier (GTK_KHTML (embed));
 }
 
 static int

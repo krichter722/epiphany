@@ -1,3 +1,11 @@
+2004-10-24  Xan Lopez  <xan@gnome.org>
+
+	* embed/webcore/webcore-embed.c: (impl_manager_do_command),
+	(impl_manager_can_do_command), (webcore_embed_class_init),
+	(impl_set_zoom), (impl_get_zoom):
+
+	Fix zoom, remove unused stuff.
+
 2004-10-23  Crispin Flowerday  <gnome@flowerday.cx>
 
 	* embed/webcore/webcore-embed.c (impl_get_security_level): 
