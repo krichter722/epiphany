@@ -1,3 +1,19 @@
+2004-06-10  Christian Persch  <chpe@cvs.gnome.org>
+
+	* lib/egg/egg-toolbars-model.c: (_egg_accumulator_STRING),
+	(egg_toolbars_model_class_init), (egg_toolbars_model_get_item_id),
+	(egg_toolbars_model_get_item_data),
+	(egg_toolbars_model_get_item_type):
+	* lib/egg/egg-toolbars-model.h:
+	* lib/egg/eggmarshalers.c:
+	(_egg_marshal_BOOLEAN__OBJECT_STRING_STRING),
+	(_egg_marshal_STRING__POINTER),
+	(_egg_marshal_STRING__STRING_STRING):
+	* lib/egg/eggmarshalers.h:
+	* lib/egg/eggmarshalers.list:
+
+	Make get_item_[type|id|data] signals.
+
 2004-06-08  Christian Persch  <chpe@cvs.gnome.org>
 
         * lib/egg/egg-editable-toolbar.c: (find_action), (create_item),
