@@ -1,3 +1,17 @@
+2004-06-10  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* src/bookmarks/ephy-bookmarks-editor.c:
+	(toolbar_items_changed_cb), (cmd_show_in_bookmarks_bar),
+
+	Block the signal when removing bookmarks from toolbars.
+
+	(ephy_bookmarks_editor_get_property):
+	* src/bookmarks/ephy-bookmarksbar-model.c:
+	(ephy_bookmarksbar_model_remove_bookmark):
+
+	Remove all copy of a bookmark from toolbar, not just one
+	of them.
+
 2004-06-10  Christian Persch  <chpe@cvs.gnome.org>
 
 	* src/bookmarks/ephy-bookmarksbar-model.c:
