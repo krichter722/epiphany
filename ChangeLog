@@ -1,5 +1,12 @@
 2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/ContentHandler.cpp:
+
+	pass handler with full path, not only
+	exec name. I dont get how it worked before.
+
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/widgets/ephy-cell-renderer-progress.c:
 	(ephy_cell_renderer_progress_init),
 	(ephy_cell_renderer_progress_set_value),
