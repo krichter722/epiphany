@@ -23,6 +23,7 @@
 
 #include "ephy-embed.h"
 
+#include <gtk/gtkbin.h>
 #include <glib-object.h>
 #include <glib.h>
 

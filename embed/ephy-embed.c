@@ -26,14 +26,6 @@
 
 #include "ephy-marshal.h"
 
-#ifdef ENABLE_MOZILLA_EMBED
-#include "mozilla-embed-single.h"
-#include "mozilla-embed.h"
-#elif ENABLE_WEBCORE_EMBED
-#include "webcore-embed-single.h"
-#include "webcore-embed.h"
-#endif
-
 
 static void ephy_embed_base_init (gpointer g_class);
 

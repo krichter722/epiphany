@@ -24,6 +24,11 @@
 #endif
 
 #include "webcore-embed-single.h"
+#include "ephy-embed-single.h"
+#include "ephy-cookie-manager.h"
+#include "ephy-password-manager.h"
+#include "ephy-permission-manager.h"
+
 #include "glib.h"
 #include <glib/gi18n.h>
 

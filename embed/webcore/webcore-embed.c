@@ -24,6 +24,7 @@
 #endif
 
 #include <gtk-khtml.h>
+#include "ephy-command-manager.h"
 #include "webcore-embed.h"
 
 static void	webcore_embed_class_init	(WebcoreEmbedClass *klass);
@@ -59,7 +60,8 @@ static EmbedSecurityLevel webcore_embed_security_level (WebcoreEmbed *membed);
 
 #define WEBCORE_EMBED_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), WEBCORE_TYPE_EMBED, WebcoreEmbedPrivate))
 
-#define GTK_KHTML (obj) G_TYPE_CHECK_INSTANCE_CAST((GTK_BIN(obj)->child), gtk_khtml_get_type(), GtkKHTML)
+#undef GTK_KHTML
+#define GTK_KHTML(obj) G_TYPE_CHECK_INSTANCE_CAST((GTK_BIN(obj)->child), gtk_khtml_get_type(), GtkKHTML)
 
 typedef enum
 {
@@ -71,7 +73,7 @@ typedef enum
 
 struct WebcoreEmbedPrivate
 {
-	EphyBrowser *browser;
+	/* EphyBrowser *browser;*/
 	guint security_state;
 	WebcoreEmbedLoadState load_state;
 };
@@ -220,7 +222,7 @@ webcore_embed_class_init (WebcoreEmbedClass *klass)
 
 	gtk_object_class->destroy = webcore_embed_destroy;
 
-	widget_class->allocate = embed_size_allocate;
+	widget_class->size_allocate = embed_size_allocate;
 	widget_class->realize = webcore_embed_realize;
 
 	g_type_class_add_private (object_class, sizeof(WebcoreEmbedPrivate));
@@ -230,7 +232,7 @@ static void
 webcore_embed_init (WebcoreEmbed *embed)
 {
         embed->priv = WEBCORE_EMBED_GET_PRIVATE (embed);
-	embed->priv->browser = new EphyBrowser ();
+	//embed->priv->browser = new EphyBrowser ();
 	embed->priv->security_state = STATE_IS_UNKNOWN;
 
 	g_signal_connect_object (G_OBJECT (embed), "location",
@@ -259,21 +261,24 @@ webcore_embed_init (WebcoreEmbed *embed)
 gpointer
 _webcore_embed_get_ephy_browser (WebcoreEmbed *embed)
 {
+	return NULL;
+	/*
 	g_return_val_if_fail (embed->priv->browser != NULL, NULL);
 	
 	return embed->priv->browser;
+	*/
 }
 
 static void
 webcore_embed_destroy (GtkObject *object)
 {
 	WebcoreEmbed *embed = WEBCORE_EMBED (object);
-
+	/*
 	if (embed->priv->browser)
 	{
 		embed->priv->browser->Destroy();
 	}
-	
+	*/
 	GTK_OBJECT_CLASS (parent_class)->destroy (object);
 }
 
@@ -281,13 +286,13 @@ static void
 webcore_embed_finalize (GObject *object)
 {
 	WebcoreEmbed *embed = WEBCORE_EMBED (object);
-
+	/*
 	if (embed->priv->browser)
 	{
         	delete embed->priv->browser;
 	       	embed->priv->browser = nsnull;
 	}
-
+	*/
 	G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
@@ -348,7 +353,7 @@ impl_go_up (EphyEmbed *embed)
 static char *
 impl_get_title (EphyEmbed *embed)
 {
-	return gtk_khtml_get_title (GTK_KHTML (embed));
+	return g_strdup (gtk_khtml_get_title (GTK_KHTML (embed)));
 }
 
 static char *
@@ -365,7 +370,7 @@ static char *
 impl_get_location (EphyEmbed *embed, 
                    gboolean toplevel)
 {
-	return gtk_khtml_get_location (GTK_KHTML (embed));
+	return g_strdup(gtk_khtml_get_location (GTK_KHTML (embed)));
 }
 
 static void

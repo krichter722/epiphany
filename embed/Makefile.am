@@ -8,11 +8,11 @@ INCLUDES = \
 	-DSHARE_DIR=\"$(pkgdatadir)\"
 
 if ENABLE_MOZILLA_EMBED
-INCLUDES += -I$(top_srcdir)/embed/mozilla
+INCLUDES += -I$(top_srcdir)/embed/mozilla -I$(MOZILLA_INCLUDE_ROOT)/gtkembedmoz
 endif
 
 if ENABLE_WEBCORE_EMBED
-INCLUDES += -I$(top_srcdir)/embed/webcore -I$(MOZILLA_INCLUDE_ROOT)/gtkembedmoz
+INCLUDES += -I$(top_srcdir)/embed/webcore
 endif
 
 if MAINTAINER_MODE

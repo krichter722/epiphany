@@ -26,10 +26,6 @@
 #include "webcore-embed.h"
 #include "ephy-embed-shell.h"
 #include "ephy-file-helpers.h"
-#include "EphyBrowser.h"
-#include "EphyHeaderSniffer.h"
-#include "MozDownload.h"
-#include "EphyUtils.h"
 
 #include <stddef.h>
 
@@ -91,6 +87,7 @@ webcore_embed_persist_finalize (GObject *object)
         G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
+void
 webcore_embed_persist_completed (WebcoreEmbedPersist *persist)
 {
 	g_signal_emit_by_name (persist, "completed");

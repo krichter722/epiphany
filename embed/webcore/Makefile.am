@@ -1,5 +1,6 @@
 INCLUDES = \
 	-I$(top_srcdir)/embed       \
+	-I$(top_srcdir)/lib	\
 	$(WEBCORE_CFLAGS)	    \
 	$(GALEON_DEPENDENCY_CFLAGS) \
 	-DSHARE_DIR=\"$(pkgdatadir)\"

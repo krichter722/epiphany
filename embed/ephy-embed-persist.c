@@ -24,7 +24,6 @@
 #endif
 
 #include "ephy-embed-persist.h"
-#include "mozilla-embed-persist.h"
 #include "ephy-debug.h"
 
 enum

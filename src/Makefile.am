@@ -106,16 +106,24 @@ epiphany_LDADD = \
 	$(top_builddir)/src/libephymain.la \
 	$(top_builddir)/src/bookmarks/libephybookmarks.la \
 	$(top_builddir)/embed/libephyembedfactory.la \
-	$(top_builddir)/embed/mozilla/libephymozillaembed.la \
+	$(webcoreembed_libs)	\
+	$(mozillaembed_libs)	\
 	$(top_builddir)/embed/libephyembed.la \
 	$(top_builddir)/lib/widgets/libephywidgets.la \
 	$(top_builddir)/lib/libephymisc.la \
 	$(top_builddir)/lib/egg/libegg.la \
-	$(MOZILLA_COMPONENT_LIBS)	\
 	$(EPIPHANY_DEPENDENCY_LIBS) \
 	$(INTLLIBS)
 
+if ENABLE_MOZILLA_EMBED
+mozillaembed_libs = $(top_builddir)/embed/mozilla/libmozillaembed.la $(MOZILLA_COMPONENT_LIBS)
+
 epiphany_LDFLAGS = -R$(MOZILLA_HOME) -dlopen self
+endif
+
+if ENABLE_WEBCORE_EMBED
+webcoreembed_libs = $(top_builddir)/embed/webcore/libwebcoreembed.la
+endif
 
 BUILT_SOURCES = $(CORBA_SOURCE)
 

@@ -22,12 +22,6 @@
 #include "config.h"
 #endif
 
-#ifdef ENABLE_MOZILLA_EMBED
-#include "mozilla-embed-single.h"
-#elif ENABLE_WEBCORE_EMBED
-#include "webcore-embed-single.h"
-#endif
-
 #include "ephy-embed-shell.h"
 #include "ephy-embed-single.h"
 #include "ephy-embed-factory.h"
