@@ -1,3 +1,9 @@
+2004-05-31  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/mozilla/FilePicker.cpp:
+
+	port to embed string. We are at -1 ;)
+
 2004-05-31  Christian Persch  <chpe@cvs.gnome.org>
 
 	* embed/mozilla/GlobalHistory.cpp:
