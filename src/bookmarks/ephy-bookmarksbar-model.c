@@ -204,7 +204,7 @@ ephy_bookmarksbar_model_remove_bookmark (EphyBookmarksBarModel *model,
 	action_name = ephy_bookmarksbar_model_get_action_name (model, id);
 	g_return_if_fail (action_name != NULL);
 
-	if (get_toolbar_and_item_pos (model, action_name, &toolbar, &position))
+	while (get_toolbar_and_item_pos (model, action_name, &toolbar, &position))
 	{
 		egg_toolbars_model_remove_item (EGG_TOOLBARS_MODEL (model),
 						toolbar, position);

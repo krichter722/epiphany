@@ -322,6 +322,15 @@ get_target_window (EphyBookmarksEditor *editor)
 }
 
 static void
+toolbar_items_changed_cb (EggToolbarsModel *model,
+			  int toolbar_position,
+			  int position,
+			  EphyBookmarksEditor *editor)
+{
+	ephy_bookmarks_editor_update_menu (editor);
+}
+
+static void
 cmd_show_in_bookmarks_bar (GtkAction *action,
 		           EphyBookmarksEditor *editor)
 {
@@ -358,8 +367,14 @@ cmd_show_in_bookmarks_bar (GtkAction *action,
 	}
 	else
 	{
+		g_signal_handlers_block_by_func
+				(editor->priv->tb_model,
+                                 G_CALLBACK (toolbar_items_changed_cb), editor);
 		ephy_bookmarksbar_model_remove_bookmark
 			(editor->priv->tb_model, id);
+		g_signal_handlers_unblock_by_func
+				(editor->priv->tb_model,
+                                 G_CALLBACK (toolbar_items_changed_cb), editor);
 	}
 
 	g_list_free (selection);
@@ -1650,15 +1665,6 @@ ephy_bookmarks_editor_get_property (GObject *object,
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
 	}
-}
-
-static void
-toolbar_items_changed_cb (EggToolbarsModel *model,
-			  int toolbar_position,
-			  int position,
-			  EphyBookmarksEditor *editor)
-{
-	ephy_bookmarks_editor_update_menu (editor);
 }
 
 static void
