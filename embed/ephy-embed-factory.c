@@ -24,11 +24,11 @@
 
 #include "ephy-embed-factory.h"
 
-#ifdef ENABLE_MOZILLA_EMBED
+#if defined(ENABLE_MOZILLA_EMBED)
 #include "mozilla-embed.h"
 #include "mozilla-embed-persist.h"
 #include "mozilla-embed-single.h"
-#elif ENABLE_WEBCORE_EMBED
+#elif defined(ENABLE_WEBCORE_EMBED)
 #include "webcore-embed.h"
 #include "webcore-embed-persist.h"
 #include "webcore-embed-single.h"
@@ -53,25 +53,25 @@ ephy_embed_factory_new_object (GType type)
 
 	if (type == EPHY_TYPE_EMBED)
 	{
-#ifdef ENABLE_MOZILLA_EMBED
+#if defined(ENABLE_MOZILLA_EMBED)
 		object = g_object_new (MOZILLA_TYPE_EMBED, NULL);
-#elif ENABLE_WEBCORE_EMBED
+#elif defined(ENABLE_WEBCORE_EMBED)
 		object = g_object_new (WEBCORE_TYPE_EMBED, NULL);
 #endif
 	}
 	else if (type == EPHY_TYPE_EMBED_PERSIST)
 	{
-#ifdef ENABLE_MOZILLA_EMBED
+#if defined(ENABLE_MOZILLA_EMBED)
 		object = g_object_new (MOZILLA_TYPE_EMBED_PERSIST, NULL);
-#elif ENABLE_WEBCORE_EMBED
+#elif defined(ENABLE_WEBCORE_EMBED)
 		object = g_object_new (WEBCORE_TYPE_EMBED_PERSIST, NULL);
 #endif
 	}
 	else if (type == EPHY_TYPE_EMBED_SINGLE)
 	{
-#ifdef ENABLE_MOZILLA_EMBED
+#if defined(ENABLE_MOZILLA_EMBED)
 		object = g_object_new (MOZILLA_TYPE_EMBED_SINGLE, NULL);
-#elif ENABLE_WEBCORE_EMBED
+#elif defined(ENABLE_WEBCORE_EMBED)
 		object = g_object_new (WEBCORE_TYPE_EMBED_SINGLE, NULL);
 #endif
 	}

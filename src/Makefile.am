@@ -115,10 +115,12 @@ epiphany_LDADD = \
 	$(EPIPHANY_DEPENDENCY_LIBS) \
 	$(INTLLIBS)
 
+epiphany_LDFLAGS = -dlopen self
+
 if ENABLE_MOZILLA_EMBED
 mozillaembed_libs = $(top_builddir)/embed/mozilla/libmozillaembed.la $(MOZILLA_COMPONENT_LIBS)
 
-epiphany_LDFLAGS = -R$(MOZILLA_HOME) -dlopen self
+epiphany_LDFLAGS += -R$(MOZILLA_HOME)
 endif
 
 if ENABLE_WEBCORE_EMBED
