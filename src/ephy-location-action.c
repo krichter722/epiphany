@@ -34,6 +34,7 @@ struct _EphyLocationActionPrivate
 	GList *actions;
 	char *address;
 	EphyNode *smart_bmks;
+	EphyBookmarks *bookmarks;
 };
 
 static void ephy_location_action_init       (EphyLocationAction *action);
@@ -89,32 +90,48 @@ ephy_location_action_get_type (void)
 }
 
 static void
-location_url_activate_cb (EphyLocationEntry *entry,
-			  const char *content,
-			  const char *target,
-			  EphyLocationAction *action)
+action_activated_cb (GtkEntryCompletion *completion,
+                     gint index,
+		     EphyLocationAction *action)
 {
-	EphyBookmarks *bookmarks;
+	GtkWidget *entry;
+	char *content;
 
-	LOG ("Location url activated, content %s target %s", content, target)
-
-	bookmarks = ephy_shell_get_bookmarks (ephy_shell);
-
-	if (!content)
+	entry = gtk_entry_completion_get_entry (completion);
+	content = gtk_editable_get_chars (GTK_EDITABLE (entry), 0, -1);
+	if (content)
 	{
-		LOG ("Go to %s", target);
-		g_signal_emit (action, signals[GO_LOCATION], 0, target);
-	}
-	else
-	{
+		EphyNode *node;
+		const char *smart_url;
 		char *url;
 
+		node = (EphyNode *)g_list_nth_data (action->priv->actions, index);
+		smart_url = ephy_node_get_property_string
+	                (node, EPHY_NODE_BMK_PROP_LOCATION);
+		g_return_if_fail (smart_url != NULL);
+
 		url = ephy_bookmarks_solve_smart_url
-			(bookmarks, target, content);
+			(action->priv->bookmarks, smart_url, content);
 		g_return_if_fail (url != NULL);
-		LOG ("Go to %s", url);
+
 		g_signal_emit (action, signals[GO_LOCATION], 0, url);
+
 		g_free (url);
+		g_free (content);
+	}
+}
+
+static void
+location_url_activate_cb (EphyLocationEntry *entry,
+			  EphyLocationAction *action)
+{
+	char *content;
+
+	content = gtk_editable_get_chars (GTK_EDITABLE(entry), 0, -1);
+	if (content)
+	{
+		g_signal_emit (action, signals[GO_LOCATION], 0, content);
+		g_free (content);
 	}
 }
 
@@ -164,6 +181,9 @@ remove_completion_actions (GtkAction *action, GtkWidget *proxy)
 		index = g_list_position (la->priv->actions, l);
 		gtk_entry_completion_delete_action (completion, index);
 	}
+
+	g_signal_handlers_disconnect_by_func
+			(completion, G_CALLBACK (action_activated_cb), la);
 }
 
 static void
@@ -188,18 +208,23 @@ add_completion_actions (GtkAction *action, GtkWidget *proxy)
 	                (bmk, EPHY_NODE_BMK_PROP_TITLE);
 		gtk_entry_completion_insert_action_text (completion, index, (char*)title);
 	}
+
+	g_signal_connect (completion, "action_activated",
+			  G_CALLBACK (action_activated_cb), la);
 }
 
 static void
 connect_proxy (GtkAction *action, GtkWidget *proxy)
 {
+	EphyLocationAction *la = EPHY_LOCATION_ACTION (action);
+
 	LOG ("Connect proxy")
 
 	if (EPHY_IS_LOCATION_ENTRY (proxy))
 	{
 		EphyHistory *history;
-		EphyBookmarks *bookmarks;
 		EphyNode *node;
+		GtkWidget *entry;
 
 		history = ephy_embed_shell_get_global_history
 			(EPHY_EMBED_SHELL (ephy_shell));
@@ -209,8 +234,7 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 						    EPHY_NODE_PAGE_PROP_LOCATION,
 						    EPHY_NODE_PAGE_PROP_TITLE);
 
-		bookmarks = ephy_shell_get_bookmarks (ephy_shell);
-		node = ephy_bookmarks_get_bookmarks (bookmarks);
+		node = ephy_bookmarks_get_bookmarks (la->priv->bookmarks);
 		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
 						    EPHY_NODE_BMK_PROP_TITLE,
 						    EPHY_NODE_BMK_PROP_LOCATION,
@@ -222,7 +246,8 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 		g_signal_connect_object (action, "notify::address",
 					 G_CALLBACK (sync_address), proxy, 0);
 
-		g_signal_connect_object (proxy, "activated",
+		entry = ephy_location_entry_get_entry (EPHY_LOCATION_ENTRY (proxy));
+		g_signal_connect_object (entry, "activate",
 					 G_CALLBACK (location_url_activate_cb),
 					 action, 0);
 		g_signal_connect_object (proxy, "user_changed",
@@ -406,15 +431,14 @@ actions_child_changed_cb (EphyNode *node,
 static void
 ephy_location_action_init (EphyLocationAction *action)
 {
-	EphyBookmarks *bookmarks;
-
 	action->priv = EPHY_LOCATION_ACTION_GET_PRIVATE (action);
 
 	action->priv->address = g_strdup ("");
 	action->priv->actions = NULL;
 
-	bookmarks = ephy_shell_get_bookmarks (ephy_shell);
-	action->priv->smart_bmks = ephy_bookmarks_get_smart_bookmarks (bookmarks);
+	action->priv->bookmarks = ephy_shell_get_bookmarks (ephy_shell);
+	action->priv->smart_bmks = ephy_bookmarks_get_smart_bookmarks
+		(action->priv->bookmarks);
 
 	init_actions_list (action);
 

@@ -77,7 +77,6 @@ static GObjectClass *parent_class = NULL;
 
 enum EphyLocationEntrySignalsEnum
 {
-	ACTIVATED,
 	USER_CHANGED,
 	LAST_SIGNAL
 };
@@ -152,16 +151,6 @@ ephy_location_entry_class_init (EphyLocationEntryClass *klass)
 
 	tool_item_class->set_tooltip = ephy_location_entry_set_tooltip;
 
-	EphyLocationEntrySignals[ACTIVATED] = g_signal_new (
-		"activated", G_OBJECT_CLASS_TYPE (klass),
-		G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST | G_SIGNAL_RUN_CLEANUP,
-                G_STRUCT_OFFSET (EphyLocationEntryClass, activated),
-		NULL, NULL,
-		ephy_marshal_VOID__STRING_STRING,
-		G_TYPE_NONE,
-		2,
-		G_TYPE_STRING,
-		G_TYPE_STRING);
 	EphyLocationEntrySignals[USER_CHANGED] = g_signal_new (
 		"user_changed", G_OBJECT_CLASS_TYPE (klass),
 		G_SIGNAL_RUN_FIRST | G_SIGNAL_RUN_LAST | G_SIGNAL_RUN_CLEANUP,
@@ -299,8 +288,6 @@ entry_activate_cb (GtkEntry *entry, EphyLocationEntry *le)
 	char *content;
 
 	content = gtk_editable_get_chars (GTK_EDITABLE(entry), 0, -1);
-	g_signal_emit (le, EphyLocationEntrySignals[ACTIVATED], 0,
-		       NULL, content);
 	if (content)
 	{
 		add_to_history (le, content);

@@ -1,5 +1,21 @@
 2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* lib/widgets/ephy-location-entry.c:
+	(ephy_location_entry_class_init), (entry_activate_cb):
+	* lib/widgets/ephy-location-entry.h:
+
+	Remove the activated signal.
+
+	* src/ephy-location-action.c: (action_activated_cb),
+	(location_url_activate_cb), (remove_completion_actions),
+	(add_completion_actions), (connect_proxy),
+	(ephy_location_action_init):
+
+	Just use entry activate signal. Implement smart
+	bookmarks activation.
+
+2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/ephy-node-common.h:
 	* lib/widgets/ephy-location-entry.c:
 	(ephy_location_entry_get_entry):

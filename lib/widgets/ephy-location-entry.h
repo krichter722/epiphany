@@ -45,10 +45,6 @@ struct _EphyLocationEntryClass
 {
 	GtkToolItemClass parent_class;
 
-	void		(*activated)	(EphyLocationEntry *le,
-					 const char *content,
-					 const char *target);
-
 	void		(*user_changed)	(EphyLocationEntry *le);
 };
 
