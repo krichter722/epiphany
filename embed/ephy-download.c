@@ -122,14 +122,17 @@ ephy_download_get_name (EphyDownload *download)
 long
 ephy_download_get_remaining_time (EphyDownload *download)
 {
-	long elapsed_time, remaining_time;
+	long elapsed_time, remaining_time = 0;
 	long total, cur;
 
 	total = ephy_download_get_total_progress (download);
 	cur = ephy_download_get_current_progress (download);
 	elapsed_time = ephy_download_get_elapsed_time (download);
 
-	remaining_time = elapsed_time * (total - cur) / cur;
+	if (cur > 0)
+	{
+		remaining_time = elapsed_time * (total - cur) / cur;
+	}
 
 	return remaining_time;
 }
