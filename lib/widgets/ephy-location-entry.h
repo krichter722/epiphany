@@ -45,11 +45,11 @@ struct _EphyLocationEntryClass
 {
 	GtkToolItemClass parent_class;
 
-	void		(*activated)	(EphyLocationEntry *w,
+	void		(*activated)	(EphyLocationEntry *le,
 					 const char *content,
 					 const char *target);
 
-	void		(*user_changed)	(EphyLocationEntry *w);
+	void		(*user_changed)	(EphyLocationEntry *le);
 };
 
 struct _EphyLocationEntry
@@ -63,18 +63,18 @@ GType			ephy_location_entry_get_type		(void);
 
 GtkWidget              *ephy_location_entry_new			(void);
 
-void			ephy_location_entry_add_completion	(EphyLocationEntry *w,
+void			ephy_location_entry_add_completion	(EphyLocationEntry *le,
 								 EphyNode *root,
 								 guint text_property,
 								 guint action_property);
 
-void			ephy_location_entry_set_location	(EphyLocationEntry *w,
+void			ephy_location_entry_set_location	(EphyLocationEntry *le,
 								 const gchar *new_location);
 
-const char	       *ephy_location_entry_get_location	(EphyLocationEntry *w);
+const char	       *ephy_location_entry_get_location	(EphyLocationEntry *le);
 
-void			ephy_location_entry_activate		(EphyLocationEntry *w);
+void			ephy_location_entry_activate		(EphyLocationEntry *le);
 
-void			ephy_location_entry_clear_history	(EphyLocationEntry *w);
+void			ephy_location_entry_clear_history	(EphyLocationEntry *le);
 
 #endif

@@ -1,5 +1,18 @@
 2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* lib/widgets/ephy-location-entry.c: (location_focus_out_cb),
+	(ephy_location_entry_construct_contents),
+	(ephy_location_entry_init), (ephy_location_entry_finalize),
+	(ephy_location_entry_add_completion),
+	(ephy_location_entry_set_location),
+	(ephy_location_entry_get_location), (ephy_location_entry_activate),
+	(ephy_location_entry_clear_history):
+	* lib/widgets/ephy-location-entry.h:
+
+	cleanups
+
+2003-10-01  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/ephy-history.c: (ephy_history_get_type),
 	(ephy_history_init), (ephy_history_visited):
 	* lib/Makefile.am:

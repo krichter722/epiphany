@@ -45,7 +45,7 @@ struct _EphyLocationEntryPrivate
 };
 
 static void ephy_location_entry_class_init (EphyLocationEntryClass *klass);
-static void ephy_location_entry_init (EphyLocationEntry *w);
+static void ephy_location_entry_init (EphyLocationEntry *le);
 static void ephy_location_entry_finalize (GObject *o);
 
 static GObjectClass *parent_class = NULL;
@@ -152,9 +152,9 @@ ephy_location_entry_activation_finished (EphyLocationEntry *entry)
 }
 
 static gboolean
-location_focus_out_cb (GtkWidget *widget, GdkEventFocus *event, EphyLocationEntry *w)
+location_focus_out_cb (GtkWidget *leidget, GdkEventFocus *event, EphyLocationEntry *le)
 {
-	ephy_location_entry_activation_finished (w);
+	ephy_location_entry_activation_finished (le);
 
 	return FALSE;
 }
@@ -182,50 +182,52 @@ entry_activate_cb (GtkEntry *entry, EphyLocationEntry *e)
 }
 
 static void
-ephy_location_entry_construct_contents (EphyLocationEntry *w)
+ephy_location_entry_construct_contents (EphyLocationEntry *le)
 {
-	EphyLocationEntryPrivate *p = w->priv;
+	EphyLocationEntryPrivate *p = le->priv;
 
-	LOG ("EphyLocationEntry constructing contents %p", w)
+	LOG ("EphyLocationEntry constructing contents %p", le)
 
 	p->combo_model = gtk_list_store_new (1, G_TYPE_STRING);
 	p->combo = gtk_combo_box_entry_new (GTK_TREE_MODEL (p->combo_model), 0);
-	gtk_container_add (GTK_CONTAINER (w), p->combo);
+	gtk_container_add (GTK_CONTAINER (le), p->combo);
 	gtk_widget_show (p->combo);
 	p->entry = GTK_BIN (p->combo)->child;
 
 	g_signal_connect (p->entry, "changed",
-			  G_CALLBACK (editable_changed_cb), w);
+			  G_CALLBACK (editable_changed_cb), le);
 	g_signal_connect (p->entry, "activate",
-			  G_CALLBACK (entry_activate_cb), w);
+			  G_CALLBACK (entry_activate_cb), le);
 }
 
 static void
-ephy_location_entry_init (EphyLocationEntry *w)
+ephy_location_entry_init (EphyLocationEntry *le)
 {
 	EphyLocationEntryPrivate *p;
 
-	LOG ("EphyLocationEntry initialising %p", w)
+	LOG ("EphyLocationEntry initialising %p", le)
 
-	p = EPHY_LOCATION_ENTRY_GET_PRIVATE (w);
-	w->priv = p;
+	p = EPHY_LOCATION_ENTRY_GET_PRIVATE (le);
+	le->priv = p;
 
 	p->user_changed = TRUE;
 	p->activation_mode = FALSE;
 
-	ephy_location_entry_construct_contents (w);
+	ephy_location_entry_construct_contents (le);
 
-	gtk_tool_item_set_expand (GTK_TOOL_ITEM (w), TRUE);
+	gtk_tool_item_set_expand (GTK_TOOL_ITEM (le), TRUE);
 
-	g_signal_connect (w->priv->entry,
+	g_signal_connect (le->priv->entry,
 	       		  "focus_out_event",
-                          G_CALLBACK (location_focus_out_cb), w);
+                          G_CALLBACK (location_focus_out_cb), le);
 }
 
 static void
 ephy_location_entry_finalize (GObject *o)
 {
-//	EphyLocationEntry *w = EPHY_LOCATION_ENTRY (o);
+	EphyLocationEntry *le;
+	
+	le = EPHY_LOCATION_ENTRY (o);
 
 	LOG ("EphyLocationEntry finalized")
 
@@ -239,7 +241,7 @@ ephy_location_entry_new (void)
 }
 
 void
-ephy_location_entry_add_completion (EphyLocationEntry *w,
+ephy_location_entry_add_completion (EphyLocationEntry *le,
 				    EphyNode *root,
 				    guint text_property,
 				    guint action_property)
@@ -258,14 +260,14 @@ ephy_location_entry_add_completion (EphyLocationEntry *w,
 	gtk_entry_completion_set_model (completion, GTK_TREE_MODEL (node_model));
 	gtk_entry_completion_set_text_column (completion, action_col);
 
-	gtk_entry_set_completion (GTK_ENTRY (w->priv->entry), completion);
+	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
 
 void
-ephy_location_entry_set_location (EphyLocationEntry *w,
+ephy_location_entry_set_location (EphyLocationEntry *le,
 				  const gchar *new_location)
 {
-	EphyLocationEntryPrivate *p = w->priv;
+	EphyLocationEntryPrivate *p = le->priv;
 	int pos;
 
 	g_return_if_fail (new_location != NULL);
@@ -280,34 +282,34 @@ ephy_location_entry_set_location (EphyLocationEntry *w,
 }
 
 const char *
-ephy_location_entry_get_location (EphyLocationEntry *w)
+ephy_location_entry_get_location (EphyLocationEntry *le)
 {
-	return gtk_entry_get_text (GTK_ENTRY (w->priv->entry));
+	return gtk_entry_get_text (GTK_ENTRY (le->priv->entry));
 }
 
 void
-ephy_location_entry_activate (EphyLocationEntry *w)
+ephy_location_entry_activate (EphyLocationEntry *le)
 {
 	GtkWidget *toplevel, *toolbar;
 
-	toolbar = gtk_widget_get_ancestor (GTK_WIDGET (w), GTK_TYPE_TOOLBAR);
+	toolbar = gtk_widget_get_ancestor (GTK_WIDGET (le), GTK_TYPE_TOOLBAR);
 
 	if (!GTK_WIDGET_VISIBLE (toolbar))
 	{
-		w->priv->activation_mode = TRUE;
+		le->priv->activation_mode = TRUE;
 
 		gtk_widget_show (toolbar);
 	}
 
-	toplevel = gtk_widget_get_toplevel (w->priv->entry);
+	toplevel = gtk_widget_get_toplevel (le->priv->entry);
 
-	gtk_editable_select_region (GTK_EDITABLE(w->priv->entry),
+	gtk_editable_select_region (GTK_EDITABLE(le->priv->entry),
 				    0, -1);
         gtk_window_set_focus (GTK_WINDOW(toplevel),
-                              w->priv->entry);
+                              le->priv->entry);
 }
 
 void
-ephy_location_entry_clear_history (EphyLocationEntry *w)
+ephy_location_entry_clear_history (EphyLocationEntry *le)
 {
 }
