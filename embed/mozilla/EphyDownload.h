@@ -77,17 +77,8 @@
 
 class EphyDownload : public nsIDownload,
                      public nsIWebProgressListener
-//                     public LBroadcaster
 {
 public:
-    
-    // Messages we broadcast to listeners.
-    enum {
-        msg_OnDLStart           = 57723,    // param is EphyDownload*
-        msg_OnDLComplete,                   // param is EphyDownload*
-        msg_OnDLProgressChange              // param is MsgOnDLProgressChangeInfo*
-    };
-       
                             EphyDownload();
     virtual                 ~EphyDownload();
     

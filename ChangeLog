@@ -1,5 +1,17 @@
 2003-10-13  Xan Lopez  <xan@masilla.org>
 
+	* embed/mozilla/EphyDownload.h:
+
+	Cleanup
+	
+	* embed/mozilla/Makefile.am:
+	* embed/mozilla/mozilla-downloader-view.cpp:
+	* embed/mozilla/mozilla-downloader-view.h:
+
+	Yet More Work.
+
+2003-10-13  Xan Lopez  <xan@masilla.org>
+
 	* embed/downloader-view.c: (downloader_view_class_init),
 	(download_dialog_pause_cb), (download_dialog_abort_cb),
 	(delete_pending_foreach), (downloader_cancel_download),

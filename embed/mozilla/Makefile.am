@@ -80,6 +80,8 @@ libephymozillaembed_la_SOURCES = 	\
 	MozRegisterComponents.h         \
 	PrintingPromptService.cpp	\
 	PrintingPromptService.h		\
+	mozilla-downloader-view.cpp	\
+	mozilla-downloader-view.h	\
 	mozilla-embed.cpp	        \
 	mozilla-embed.h			\
 	mozilla-embed-persist.cpp       \
