@@ -1,3 +1,45 @@
+2003-01-16  Marco Pesenti Gritti  <marco@it.gnome.org>
+
+	* configure.in:
+	* data/ui/Makefile.am:
+	* data/ui/epiphany-ui.xml.in:
+	* embed/mozilla/GlobalHistory.cpp:
+	* lib/Makefile.am:
+	* src/Makefile.am:
+	* src/ephy-favorites-menu.c: (ephy_favorites_menu_init),
+	(ephy_favorites_menu_clean), (ephy_favorites_menu_finalize_impl),
+	(ephy_favorites_menu_set_property), (ephy_favorites_menu_rebuild):
+	* src/ephy-favorites-menu.h:
+	* src/ephy-nautilus-view.c: (gnv_bonobo_control_activate_cb),
+	(gnv_popup_cmd_frame_in_new_window):
+	* src/ephy-window.c: (add_widget), (setup_window),
+	(setup_popup_factory), (ephy_window_init), (ephy_window_finalize),
+	(ephy_window_set_chrome), (ephy_window_activate_location),
+	(update_status_message), (update_progress), (update_security),
+	(update_nav_control), (update_location_control),
+	(update_favicon_control), (update_spinner_control),
+	(save_old_embed_status), (ephy_window_get_toolbar):
+	* src/ppview-toolbar.c: (ppview_toolbar_set_window),
+	(ppview_toolbar_init), (ppview_toolbar_finalize),
+	(toolbar_update_sensitivity), (toolbar_cmd_ppv_goto_first),
+	(toolbar_cmd_ppv_goto_last), (toolbar_cmd_ppv_go_back),
+	(toolbar_cmd_ppv_go_forward), (toolbar_cmd_ppv_close):
+	* src/ppview-toolbar.h:
+	* src/statusbar.c: (statusbar_get_type), (statusbar_class_init),
+	(create_statusbar_security_icon), (create_statusbar_progress),
+	(statusbar_init), (statusbar_new), (statusbar_set_message):
+	* src/statusbar.h:
+	* src/toolbar.c: (toolbar_get_type), (toolbar_class_init),
+	(toolbar_setup_favicon), (toolbar_setup_location_entry),
+	(toolbar_set_window), (toolbar_init), (toolbar_finalize),
+	(toolbar_set_visibility), (toolbar_button_set_sensitive),
+	(toolbar_get_location):
+	* src/toolbar.h:
+	* src/window-commands.c:
+	* src/window-commands.h:
+
+	More menu work ...
+
 2003-01-14  Marco Pesenti Gritti  <marco@it.gnome.org>
 	
 	* src/ephy-window.c:

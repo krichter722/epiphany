@@ -18,48 +18,16 @@
  */
 
 #include "toolbar.h"
-#include "ephy-spinner.h"
-#include "ephy-window.h"
-#include "ephy-bonobo-extensions.h"
-#include "ephy-string.h"
-#include "ephy-gui.h"
-#include "ephy-location-entry.h"
+#include "egg-menu-merge.h"
 #include "ephy-shell.h"
+#include "ephy-location-entry.h"
 #include "ephy-dnd.h"
-#include "ephy-toolbar-bonobo-view.h"
-#include "ephy-toolbar-item-factory.h"
-#include "ephy-prefs.h"
-#include "eel-gconf-extensions.h"
-#include "ephy-navigation-button.h"
-#include "ephy-debug.h"
-
-#include <string.h>
-#include <bonobo/bonobo-i18n.h>
-#include <bonobo/bonobo-window.h>
-#include <bonobo/bonobo-control.h>
-#include <bonobo/bonobo-ui-toolbar-button-item.h>
-#include <bonobo/bonobo-property-bag.h>
-#include <gtk/gtkentry.h>
-#include <gtk/gtkmenu.h>
-
-#define DEFAULT_TOOLBAR_SETUP \
-	"back_menu=navigation_button(direction=back,arrow=TRUE);" \
-	"forward_menu=navigation_button(direction=forward,arrow=TRUE);" \
-	"stop=std_toolitem(item=stop);" \
-	"reload=std_toolitem(item=reload);" \
-	"home=std_toolitem(item=home);" \
-	"favicon=favicon;" \
-	"location=location;" \
-	"spinner=spinner;"
-
-#define ZOOM_DELAY 50
+#include "ephy-spinner.h"
 
 static void toolbar_class_init (ToolbarClass *klass);
 static void toolbar_init (Toolbar *t);
 static void toolbar_finalize (GObject *object);
 static void toolbar_set_window (Toolbar *t, EphyWindow *window);
-static void toolbar_get_widgets (Toolbar *t);
-static void toolbar_changed_cb (EphyToolbar *gt, Toolbar *t);
 static void
 toolbar_set_property (GObject *object,
                       guint prop_id,
@@ -78,31 +46,16 @@ enum
 	PROP_EPHY_WINDOW
 };
 
-enum
-{
-        TOOLBAR_ITEM_STYLE_PROP,
-        TOOLBAR_ITEM_ORIENTATION_PROP,
-	TOOLBAR_ITEM_PRIORITY_PROP
-};
-
 static GObjectClass *parent_class = NULL;
 
 struct ToolbarPrivate
 {
 	EphyWindow *window;
-	BonoboUIComponent *ui_component;
-	EphyTbBonoboView *bview;
-
-	GtkWidget *spinner;
+	EggMenuMerge *ui_merge;
 	gboolean visibility;
 	GtkWidget *location_entry;
-	GSList *navigation_buttons;
-	GtkTooltips *tooltips;
+	GtkWidget *spinner;
 	GtkWidget *favicon;
-	GtkWidget *favicon_ebox;
-	GtkWidget *zoom_spinbutton;
-	guint zoom_timeout_id;
-	gboolean zoom_lock;
 };
 
 GType
@@ -125,7 +78,7 @@ toolbar_get_type (void)
                         (GInstanceInitFunc) toolbar_init
                 };
 
-                toolbar_type = g_type_register_static (EPHY_TYPE_TOOLBAR,
+                toolbar_type = g_type_register_static (G_TYPE_OBJECT,
 						       "Toolbar",
 						       &our_info, 0);
         }
@@ -153,8 +106,6 @@ toolbar_class_init (ToolbarClass *klass)
                                                               "Parent window",
                                                               EPHY_WINDOW_TYPE,
                                                               G_PARAM_READWRITE));
-	ephy_toolbar_item_register_type
-		("navigation_button", (EphyTbItemConstructor) ephy_navigation_button_new);
 }
 
 static void
@@ -245,70 +196,27 @@ favicon_drag_data_get_cb (GtkWidget *widget,
 }
 
 static void
-toolbar_setup_favicon_ebox (Toolbar *t, GtkWidget *w)
+toolbar_setup_favicon (Toolbar *t)
 {
-	ToolbarPrivate *p = t->priv;
+	g_return_if_fail (t->priv->favicon != NULL);
 
-	g_return_if_fail (w == p->favicon_ebox);
+	ephy_dnd_url_drag_source_set (t->priv->favicon);
 
-	p->favicon = g_object_ref (gtk_image_new ());
-	gtk_container_add (GTK_CONTAINER (p->favicon_ebox), p->favicon);
-	gtk_container_set_border_width (GTK_CONTAINER (p->favicon_ebox), 2);
-
-	ephy_dnd_url_drag_source_set (p->favicon_ebox);
-
-	g_signal_connect (G_OBJECT (p->favicon_ebox),
+	g_signal_connect (G_OBJECT (t->priv->favicon),
 			  "drag_data_get",
 			  G_CALLBACK (favicon_drag_data_get_cb),
-			  p->window);
-	gtk_widget_show_all (p->favicon_ebox);
-}
-
-static gboolean
-toolbar_zoom_timeout_cb (gpointer data)
-{
-	Toolbar *t = data;
-	gint zoom = toolbar_get_zoom (t);
-
-	g_return_val_if_fail (IS_EPHY_WINDOW (t->priv->window), FALSE);
-
-	ephy_window_set_zoom (t->priv->window, zoom);
-
-	return FALSE;
+			  t->priv->window);
 }
 
 static void
-toolbar_zoom_spinbutton_value_changed_cb (GtkSpinButton *sb, Toolbar *t)
-{
-	ToolbarPrivate *p = t->priv;
-	if (p->zoom_timeout_id != 0)
-	{
-		g_source_remove (p->zoom_timeout_id);
-	}
-	if (!p->zoom_lock)
-	{
-		p->zoom_timeout_id = g_timeout_add (ZOOM_DELAY, toolbar_zoom_timeout_cb, t);
-	}
-}
-
-static void
-toolbar_setup_zoom_spinbutton (Toolbar *t, GtkWidget *w)
-{
-	g_signal_connect (w, "value_changed",
-			  G_CALLBACK (toolbar_zoom_spinbutton_value_changed_cb), t);
-	gtk_tooltips_set_tip (t->priv->tooltips, w, _("Zoom"), NULL);
-}
-
-static void
-toolbar_setup_location_entry (Toolbar *t, GtkWidget *w)
+toolbar_setup_location_entry (Toolbar *t)
 {
 	EphyAutocompletion *ac = ephy_shell_get_autocompletion (ephy_shell);
 	EphyLocationEntry *e;
 
-	g_return_if_fail (w == t->priv->location_entry);
-	g_return_if_fail (EPHY_IS_LOCATION_ENTRY (w));
+	g_return_if_fail (t->priv->location_entry != NULL);
 
-	e = EPHY_LOCATION_ENTRY (w);
+	e = EPHY_LOCATION_ENTRY (t->priv->location_entry);
 	ephy_location_entry_set_autocompletion (e, ac);
 
 	g_signal_connect (e, "activated",
@@ -317,160 +225,15 @@ toolbar_setup_location_entry (Toolbar *t, GtkWidget *w)
 }
 
 static void
-toolbar_setup_spinner (Toolbar *t, GtkWidget *w)
-{
-	ToolbarPrivate *p = t->priv;
-        GtkWidget *spinner;
-
-	g_return_if_fail (w == p->spinner);
-
-        /* build the spinner and insert it into the box */
-        spinner = ephy_spinner_new ();
-	ephy_spinner_set_small_mode (EPHY_SPINNER (spinner), TRUE);
-	gtk_container_add (GTK_CONTAINER (p->spinner), spinner);
-	gtk_widget_show (spinner);
-
-	/* don't care about the box anymore */
-	g_object_unref (p->spinner);
-	p->spinner = g_object_ref (spinner);
-}
-
-
-static void
 toolbar_set_window (Toolbar *t, EphyWindow *window)
 {
 	g_return_if_fail (t->priv->window == NULL);
 
 	t->priv->window = window;
-	t->priv->ui_component = g_object_ref (t->priv->window->ui_component);
+	t->priv->ui_merge = EGG_MENU_MERGE (window->ui_merge);
 
-	ephy_tb_bonobo_view_set_path (t->priv->bview, t->priv->ui_component, "/Toolbar");
-
-	toolbar_get_widgets (t);
-}
-
-static void
-toolbar_get_widgets (Toolbar *t)
-{
-	ToolbarPrivate *p;
-	EphyToolbar *gt;
-	EphyTbItem *it;
-	GSList *li;
-	const gchar *nav_buttons_ids[] = {"back", "back_menu", "up", "up_menu", "forward", "forward_menu" };
-	guint i;
-
-	LOG ("in toolbar_get_widgets");
-
-	g_return_if_fail (IS_TOOLBAR (t));
-	p = t->priv;
-	g_return_if_fail (IS_EPHY_WINDOW (p->window));
-	g_return_if_fail (BONOBO_IS_UI_COMPONENT (p->ui_component));
-
-	/* release all the widgets */
-
-	for (li = p->navigation_buttons; li; li = li->next)
-	{
-		g_object_unref (li->data);
-	}
-	g_slist_free (p->navigation_buttons);
-	p->navigation_buttons = NULL;
-
-	if (p->favicon_ebox)
-	{
-		g_object_unref (p->favicon_ebox);
-		p->favicon_ebox = NULL;
-	}
-
-	if (p->favicon)
-	{
-		g_object_unref (p->favicon);
-		p->favicon = NULL;
-	}
-
-	if (p->location_entry)
-	{
-		g_object_unref (p->location_entry);
-		p->location_entry = NULL;
-	}
-
-	if (p->spinner)
-	{
-		g_object_unref (p->spinner);
-		p->spinner = NULL;
-	}
-
-	if (p->zoom_spinbutton)
-	{
-		g_object_unref (p->zoom_spinbutton);
-		p->zoom_spinbutton = NULL;
-	}
-
-	gt = EPHY_TOOLBAR (t);
-
-	for (i = 0; i < G_N_ELEMENTS (nav_buttons_ids); ++i)
-	{
-		it = ephy_toolbar_get_item_by_id (gt, nav_buttons_ids[i]);
-		if (it)
-		{
-			if (EPHY_IS_NAVIGATION_BUTTON (it))
-			{
-				LOG ("got a navigation button")
-				p->navigation_buttons = g_slist_prepend (p->navigation_buttons, g_object_ref (it));
-				if (p->window)
-				{
-					ephy_tbi_set_window (EPHY_TBI (it), p->window);
-				}
-			}
-			else
-			{
-				g_warning ("An unexpected button has been found in your toolbar. "
-					   "Maybe your setup is too old.");
-			}
-		}
-	}
-
-	it = ephy_toolbar_get_item_by_id (gt, "location");
-	if (it)
-	{
-		p->location_entry = ephy_tb_item_get_widget (it);
-		g_object_ref (p->location_entry);
-		toolbar_setup_location_entry (t, p->location_entry);
-
-		LOG ("got a location entry")
-	}
-
-	it = ephy_toolbar_get_item_by_id (gt, "favicon");
-	if (it)
-	{
-		p->favicon_ebox = ephy_tb_item_get_widget (it);
-		g_object_ref (p->favicon_ebox);
-		toolbar_setup_favicon_ebox (t, p->favicon_ebox);
-
-		LOG ("got a favicon ebox")
-	}
-
-	it = ephy_toolbar_get_item_by_id (gt, "spinner");
-	if (it)
-	{
-		p->spinner = ephy_tb_item_get_widget (it);
-		g_object_ref (p->spinner);
-		toolbar_setup_spinner (t, p->spinner);
-
-		LOG ("got a spinner")
-	}
-
-	it = ephy_toolbar_get_item_by_id (gt, "zoom");
-	if (it)
-	{
-		p->zoom_spinbutton = ephy_tb_item_get_widget (it);
-		g_object_ref (p->zoom_spinbutton);
-		toolbar_setup_zoom_spinbutton (t, p->zoom_spinbutton);
-
-		LOG ("got a zoom control")
-	}
-
-	/* update the controls */
-	ephy_window_update_all_controls (p->window);
+	toolbar_setup_favicon (t);
+	toolbar_setup_location_entry (t);
 }
 
 static void
@@ -479,38 +242,8 @@ toolbar_init (Toolbar *t)
         t->priv = g_new0 (ToolbarPrivate, 1);
 
 	t->priv->window = NULL;
-	t->priv->ui_component = NULL;
-	t->priv->navigation_buttons = NULL;
+	t->priv->ui_merge = NULL;
 	t->priv->visibility = TRUE;
-	t->priv->tooltips = gtk_tooltips_new ();
-	g_object_ref (t->priv->tooltips);
-	gtk_object_sink (GTK_OBJECT (t->priv->tooltips));
-
-	if (!ephy_toolbar_listen_to_gconf (EPHY_TOOLBAR (t), CONF_TOOLBAR_SETUP))
-	{
-		/* FIXME: make this a dialog? */
-		g_warning ("An incorrect toolbar configuration has been found, resetting to the default");
-
-		/* this is to make sure we get a toolbar, even if the
-		   setup is wrong or there is no schema */
-		eel_gconf_set_string (CONF_TOOLBAR_SETUP, DEFAULT_TOOLBAR_SETUP);
-	}
-
-	g_signal_connect (t, "changed", G_CALLBACK (toolbar_changed_cb), t);
-
-	t->priv->bview = ephy_tb_bonobo_view_new ();
-	ephy_tb_bonobo_view_set_toolbar (t->priv->bview, EPHY_TOOLBAR (t));
-}
-
-static void
-toolbar_changed_cb (EphyToolbar *gt, Toolbar *t)
-{
-	g_return_if_fail (gt == EPHY_TOOLBAR (t));
-
-	if (t->priv->window)
-	{
-		toolbar_get_widgets (t);
-	}
 }
 
 static void
@@ -518,7 +251,6 @@ toolbar_finalize (GObject *object)
 {
 	Toolbar *t;
 	ToolbarPrivate *p;
-	GSList *li;
 
         g_return_if_fail (object != NULL);
         g_return_if_fail (IS_TOOLBAR (object));
@@ -527,25 +259,6 @@ toolbar_finalize (GObject *object)
 	p = t->priv;
 
         g_return_if_fail (p != NULL);
-
-	if (p->location_entry) g_object_unref (p->location_entry);
-	if (p->favicon_ebox) g_object_unref (p->favicon_ebox);
-	if (p->favicon) g_object_unref (p->favicon);
-	if (p->spinner) g_object_unref (p->spinner);
-	if (p->tooltips) g_object_unref (p->tooltips);
-	if (p->zoom_spinbutton) g_object_unref (p->zoom_spinbutton);
-	if (p->zoom_timeout_id != 0)
-	{
-		g_source_remove (p->zoom_timeout_id);
-	}
-
-	for (li = t->priv->navigation_buttons; li; li = li->next)
-	{
-		g_object_unref (li->data);
-	}
-	g_slist_free (t->priv->navigation_buttons);
-
-	g_object_unref (t->priv->bview);
 
         g_free (t->priv);
 
@@ -572,10 +285,6 @@ toolbar_set_visibility (Toolbar *t, gboolean visibility)
 	if (visibility == t->priv->visibility) return;
 
 	t->priv->visibility = visibility;
-
-	ephy_bonobo_set_hidden (BONOBO_UI_COMPONENT(t->priv->ui_component),
-                               "/Toolbar",
-                               !visibility);
 }
 
 void
@@ -606,22 +315,6 @@ toolbar_spinner_stop (Toolbar *t)
 	}
 }
 
-static void
-toolbar_navigation_button_set_sensitive (Toolbar *t, EphyNavigationDirection d, gboolean sensitivity)
-{
-	GSList *li;
-	ToolbarPrivate *p = t->priv;
-
-	for (li = p->navigation_buttons; li; li = li->next)
-	{
-		EphyNavigationButton *b = EPHY_NAVIGATION_BUTTON (li->data);
-		if (ephy_navigation_button_get_direction (b) == d)
-		{
-			ephy_navigation_button_set_sensitive (b, sensitivity);
-		}
-	}
-}
-
 void
 toolbar_button_set_sensitive (Toolbar *t,
 			      ToolbarButtonID id,
@@ -630,18 +323,10 @@ toolbar_button_set_sensitive (Toolbar *t,
 	switch (id)
 	{
 	case TOOLBAR_BACK_BUTTON:
-		toolbar_navigation_button_set_sensitive (t, EPHY_NAVIGATION_DIRECTION_BACK, sensitivity);
 		break;
 	case TOOLBAR_FORWARD_BUTTON:
-		toolbar_navigation_button_set_sensitive (t, EPHY_NAVIGATION_DIRECTION_FORWARD, sensitivity);
 		break;
 	case TOOLBAR_UP_BUTTON:
-		toolbar_navigation_button_set_sensitive (t, EPHY_NAVIGATION_DIRECTION_UP, sensitivity);
-		break;
-	case TOOLBAR_STOP_BUTTON:
-		ephy_bonobo_set_sensitive (t->priv->ui_component,
-					  "/commands/GoStop",
-					  sensitivity);
 		break;
 	}
 }
@@ -703,31 +388,3 @@ toolbar_get_location (Toolbar *t)
 	}
 	return location;
 }
-
-gint
-toolbar_get_zoom (Toolbar *t)
-{
-	gint zoom;
-	if (t->priv->zoom_spinbutton)
-	{
-		zoom = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (t->priv->zoom_spinbutton));
-	}
-	else
-	{
-		zoom = 100;
-	}
-	return zoom;
-}
-
-void
-toolbar_set_zoom (Toolbar *t, gint zoom)
-{
-	ToolbarPrivate *p = t->priv;
-	if (p->zoom_spinbutton)
-	{
-		p->zoom_lock = TRUE;
-		gtk_spin_button_set_value (GTK_SPIN_BUTTON (p->zoom_spinbutton), zoom);
-		p->zoom_lock = FALSE;
-	}
-}
-

@@ -639,19 +639,6 @@ window_cmd_help_about (EggAction *action,
 }
 
 void
-window_cmd_set_charset (EggAction *action,
-			EncodingMenuData *data)
-{
-	EphyWindow *window = data->data;
-	EphyEmbed *embed;
-
-	embed = ephy_window_get_active_embed (window);
-	g_return_if_fail (embed != NULL);
-
-	ephy_embed_set_charset (embed, data->encoding);
-}
-
-void
 window_cmd_tabs_next (EggAction *action,
 		      EphyWindow *window)
 {

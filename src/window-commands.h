@@ -134,9 +134,6 @@ void window_cmd_edit_toolbar	(EggAction *action,
 void window_cmd_help_about      (EggAction *action,
 				 EphyWindow *window);
 
-void window_cmd_set_charset     (EggAction *action,
-				 EncodingMenuData *data);
-
 void window_cmd_tabs_next       (EggAction *action,
 				 EphyWindow *window);
 

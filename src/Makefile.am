@@ -3,6 +3,7 @@ SUBDIRS = bookmarks
 INCLUDES = \
 	-I$(top_srcdir)/embed 		\
 	-I$(top_srcdir)/lib   		\
+	-I$(top_srcdir)/lib/egg		\
 	-I$(top_srcdir)/lib/widgets   	\
 	-I$(top_srcdir)/lib/toolbar     \
 	-I$(top_srcdir)/src/bookmarks   \
@@ -50,14 +51,10 @@ epiphany_SOURCES = 				    	\
 	ephy-history-model.c				\
 	ephy-history-model.h				\
 	ephy-main.c					\
-	ephy-navigation-button.c			\
-	ephy-navigation-button.h			\
 	ephy-shell.c					\
 	ephy-shell.h					\
 	ephy-tab.c					\
 	ephy-tab.h					\
-	ephy-tbi.c					\
-	ephy-tbi.h					\
 	ephy-window.c					\
 	ephy-window.h					\
 	general-prefs.c					\

@@ -35,6 +35,8 @@
 #include "ephy-embed-utils.h"
 #include "ephy-debug.h"
 #include "ephy-file-helpers.h"
+#include "statusbar.h"
+#include "toolbar.h"
 
 #include <string.h>
 #include <libgnome/gnome-i18n.h>
@@ -70,10 +72,10 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 	{ "Help", N_("_Help"), NULL, NULL, NULL, NULL, NULL },
 
 	/* File menu */
-	{ "FileNewWindow", N_("_New Window"), GTK_STOCK_NEW, "<shift><control>N",
+	{ "FileNewWindow", N_("_New Window"), GTK_STOCK_NEW, "<control>N",
 	  N_("Create a new window"),
 	  G_CALLBACK (window_cmd_file_new_window), NULL },
-	{ "FileNewTab", N_("New _Tab"), GTK_STOCK_NEW, "<shift><control>N",
+	{ "FileNewTab", N_("New _Tab"), NULL, "<shift><control>N",
 	  N_("Create a new tab"),
 	  G_CALLBACK (window_cmd_file_new_tab), NULL },
 	{ "FileOpen", N_("_Open..."), GTK_STOCK_OPEN, "<control>O",
@@ -126,7 +128,7 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 	{ "EditToolbar", N_("T_oolbars"), NULL, NULL,
 	  N_("Costumize toolbars"),
 	  G_CALLBACK (window_cmd_edit_toolbar), NULL },
-	{ "EditPreferences", N_("P_references"), GTK_STOCK_PREFERENCES, NULL,
+	{ "EditPrefs", N_("P_references"), GTK_STOCK_PREFERENCES, NULL,
 	  N_("Configure the web browser"),
 	  G_CALLBACK (window_cmd_edit_prefs), NULL },
 
@@ -139,10 +141,10 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 	  G_CALLBACK (window_cmd_view_stop), NULL },
 	{ "ViewStatusbar", N_("St_atusbar"), NULL, NULL,
 	  N_("Show or hide statusbar"),
-	  G_CALLBACK (window_cmd_view_statusbar), NULL },
+	  G_CALLBACK (window_cmd_view_statusbar), NULL, TOGGLE_ACTION },
 	{ "ViewFullscreen", N_("_Fullscreen"), NULL, NULL,
 	  N_("Browse at full screen"),
-	  G_CALLBACK (window_cmd_view_fullscreen), NULL },
+	  G_CALLBACK (window_cmd_view_fullscreen), NULL, TOGGLE_ACTION},
 	{ "ViewZoomIn", N_("Zoom _In"), GTK_STOCK_ZOOM_IN, "<control>plus",
 	  N_("Show the contents in more detail"),
 	  G_CALLBACK (window_cmd_view_zoom_in), NULL },
@@ -177,7 +179,7 @@ static EggActionGroupEntry ephy_menu_entries [] = {
 	  G_CALLBACK (window_cmd_go_history), NULL },
 	{ "GoBookmarks", N_("_Bookmarks"), NULL, "<control>B",
 	  N_("Go to a bookmark"),
-	  G_CALLBACK (window_cmd_go_history), NULL },
+	  G_CALLBACK (window_cmd_go_bookmarks), NULL },
 
 	/* Tabs menu */
 	{ "TabsPrevious", N_("_Previous Tab"), NULL, "<control>page_up",
@@ -206,6 +208,10 @@ static guint ephy_menu_n_entries = G_N_ELEMENTS (ephy_menu_entries);
 struct EphyWindowPrivate
 {
 	GtkWidget *main_vbox;
+	GtkWidget *menubar;
+	GtkWidget *toolbar_widget;
+	Toolbar *toolbar;
+	GtkWidget *statusbar;
 	EphyFavoritesMenu *fav_menu;
 	PPViewToolbar *ppview_toolbar;
 	GtkNotebook *notebook;
@@ -359,7 +365,15 @@ ephy_window_state_event_cb (GtkWidget *widget,
 static void
 add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 {
-	g_print ("ADD WIDGET");
+	if (GTK_IS_MENU_SHELL (widget))
+	{
+		window->priv->menubar = widget;
+	}
+	else
+	{
+		window->priv->toolbar_widget = widget;
+	}
+
 	gtk_box_pack_start (GTK_BOX (window->priv->main_vbox),
 			    widget, FALSE, FALSE, 0);
 	gtk_widget_show (widget);
@@ -370,11 +384,17 @@ setup_window (EphyWindow *window)
 {
 	EggActionGroup *action_group;
 	EggMenuMerge *merge;
+	int i;
 
 	window->priv->main_vbox = gtk_vbox_new (FALSE, 0);
 	gtk_widget_show (window->priv->main_vbox);
 	gtk_container_add (GTK_CONTAINER (window),
 			   window->priv->main_vbox);
+
+	for (i = 0; i < ephy_menu_n_entries; i++)
+	{
+		ephy_menu_entries[i].user_data = window;
+	}
 
 	action_group = egg_action_group_new ("WindowActions");
 	egg_action_group_add_actions (action_group, ephy_menu_entries,
@@ -385,6 +405,7 @@ setup_window (EphyWindow *window)
 	g_signal_connect (merge, "add_widget", G_CALLBACK (add_widget), window);
 	egg_menu_merge_add_ui_from_file (merge, ephy_file ("epiphany-ui.xml"), NULL);
 	gtk_window_add_accel_group (GTK_WINDOW (window), merge->accel_group);
+	egg_menu_merge_ensure_update (merge);
 	window->ui_merge = G_OBJECT (merge);
 
 	g_signal_connect(window,
@@ -404,12 +425,12 @@ setup_window (EphyWindow *window)
 static EphyEmbedPopupBW *
 setup_popup_factory (EphyWindow *window)
 {
-	EphyEmbedPopupBW *popup;
+/*	EphyEmbedPopupBW *popup;
 
 	popup = ephy_window_get_popup_factory (window);
 	g_object_set_data (G_OBJECT(popup), "EphyWindow", window);
 
-	return popup;
+	return popup;*/
 }
 
 static GtkNotebook *
@@ -465,22 +486,21 @@ ephy_window_init (EphyWindow *window)
 				 window,
 				 0);
 
+	window->priv->toolbar = toolbar_new (window);
+
 	/* Setup the window and connect verbs */
 	setup_window (window);
 
 	/* Setup the embed popups factory */
 	window->priv->embed_popup = setup_popup_factory (window);
 
-	/* Setup menubar */
-	ephy_embed_utils_build_charsets_submenu (window->ui_merge,
-                                                 CHARSET_MENU_PATH,
-                                                 (GCallback)window_cmd_set_charset,
-                                                 window);
 	window->priv->fav_menu = ephy_favorites_menu_new (window);
-	ephy_favorites_menu_set_path (window->priv->fav_menu, GO_FAVORITES_PATH);
 
-	/* Setup toolbar and statusbar */
-	window->priv->ppview_toolbar = ppview_toolbar_new (window);
+	window->priv->statusbar = statusbar_new ();
+	gtk_widget_show (window->priv->statusbar);
+	gtk_box_pack_end (GTK_BOX (window->priv->main_vbox),
+			  GTK_WIDGET (window->priv->statusbar),
+			  FALSE, TRUE, 0);
 
 	/* Setup window contents */
 	window->priv->notebook = setup_notebook (window);
@@ -562,7 +582,14 @@ ephy_window_finalize (GObject *object)
                          (gpointer *)&window->priv->history_dialog);
 	}
 
-        g_free (window->priv);
+	g_object_unref (window->priv->fav_menu);
+
+	if (window->priv->ppview_toolbar)
+	{
+		g_object_unref (window->priv->ppview_toolbar);
+	}
+
+	g_free (window->priv);
 
         G_OBJECT_CLASS (parent_class)->finalize (object);
 
@@ -678,29 +705,52 @@ void
 ephy_window_set_chrome (EphyWindow *window,
 			EmbedChromeMask flags)
 {
-	//gboolean toolbar, ppvtoolbar, statusbar;
-
 	if (flags & EMBED_CHROME_DEFAULT)
 	{
 		translate_default_chrome (&flags);
 	}
 
-/*	dock_item_set_visibility (window, "/menu",
-				  flags & EMBED_CHROME_MENUBARON);
+	if (flags & EMBED_CHROME_MENUBARON)
+	{
+		gtk_widget_show (window->priv->menubar);
+	}
+	else
+	{
+		gtk_widget_hide (window->priv->menubar);
+	}
 
-	toolbar = (flags & EMBED_CHROME_TOOLBARON) != FALSE;
-	toolbar_set_visibility (window->priv->toolbar,
-				toolbar);
+	if (flags & EMBED_CHROME_TOOLBARON)
+	{
+		gtk_widget_show (window->priv->toolbar_widget);
+	}
+	else
+	{
+		gtk_widget_hide (window->priv->toolbar_widget);
+	}
 
-	statusbar = (flags & EMBED_CHROME_STATUSBARON) != FALSE;
-	statusbar_set_visibility (window->priv->statusbar,
-				  statusbar);
+	if (flags & EMBED_CHROME_STATUSBARON)
+	{
+		gtk_widget_show (window->priv->statusbar);
+	}
+	else
+	{
+		gtk_widget_hide (window->priv->statusbar);
+	}
 
-	ppvtoolbar = (flags & EMBED_CHROME_PPVIEWTOOLBARON) != FALSE;
-	ppview_toolbar_set_old_chrome (window->priv->ppview_toolbar,
-				       window->priv->chrome_mask);
-	ppview_toolbar_set_visibility (window->priv->ppview_toolbar,
-				       ppvtoolbar);*/
+	if ((flags & EMBED_CHROME_PPVIEWTOOLBARON) != FALSE)
+	{
+		if (!window->priv->ppview_toolbar)
+		{
+			window->priv->ppview_toolbar = ppview_toolbar_new (window);
+		}
+	}
+	else
+	{
+		if (window->priv->ppview_toolbar)
+		{
+			g_object_unref (window->priv->ppview_toolbar);
+		}
+	}
 
 	/* set fullscreen only when it's really changed */
 	if ((window->priv->chrome_mask & EMBED_CHROME_OPENASFULLSCREEN) !=
@@ -818,7 +868,7 @@ ephy_window_load_url (EphyWindow *window,
 
 void ephy_window_activate_location (EphyWindow *window)
 {
-	//toolbar_activate_location (window->priv->toolbar);
+	toolbar_activate_location (window->priv->toolbar);
 }
 
 void
@@ -859,8 +909,8 @@ update_status_message (EphyWindow *window)
 	message = ephy_tab_get_status_message (tab);
 	g_return_if_fail (message != NULL);
 
-	/*statusbar_set_message (STATUSBAR(window->priv->statusbar),
-			       message);*/
+	statusbar_set_message (STATUSBAR(window->priv->statusbar),
+			       message);
 }
 
 static void
@@ -873,9 +923,9 @@ update_progress (EphyWindow *window)
 	g_return_if_fail (tab != NULL);
 
 	load_percent = ephy_tab_get_load_percent (tab);
-/*
+
 	statusbar_set_progress (STATUSBAR(window->priv->statusbar),
-			        load_percent);*/
+			        load_percent);
 }
 
 static void
@@ -937,23 +987,18 @@ update_security (EphyWindow *window)
 		tooltip = g_strdup_printf (_("Security level: %s"), state);
 
 	}
-/*
+
 	statusbar_set_security_state (STATUSBAR (window->priv->statusbar),
-			              secure, tooltip);*/
+			              secure, tooltip);
 	g_free (tooltip);
 }
 
 static void
 update_nav_control (EphyWindow *window)
 {
-	/* the zoom control is updated at the same time than the navigation
-	   controls. This keeps it synched most of the time, but not always,
-	   because we don't get a notification when zoom changes */
-
 	gresult back, forward, up, stop;
 	EphyEmbed *embed;
 	EphyTab *tab;
-	gint zoom;
 
 	g_return_if_fail (window != NULL);
 
@@ -967,11 +1012,6 @@ update_nav_control (EphyWindow *window)
 	forward = ephy_embed_can_go_forward (embed);
 	up = ephy_embed_can_go_up (embed);
 	stop = ephy_tab_get_load_status (tab) & TAB_LOAD_STARTED;
-
-	if (ephy_embed_zoom_get (embed, &zoom) == G_OK)
-	{
-//		toolbar_set_zoom (window->priv->toolbar, zoom);
-	}
 
 	/*
 	ephy_bonobo_set_sensitive (BONOBO_UI_COMPONENT(window->ui_component),
@@ -1013,8 +1053,7 @@ update_location_control (EphyWindow *window)
 
 	if (!location) location = "";
 
-	/*toolbar_set_location (window->priv->toolbar,
-			      location);*/
+	toolbar_set_location (window->priv->toolbar, location);
 }
 
 static void
@@ -1041,7 +1080,7 @@ update_favicon_control (EphyWindow *window)
 	}
 	gtk_window_set_icon (GTK_WINDOW (window), pixbuf);
 
-	//toolbar_update_favicon (window->priv->toolbar);
+	toolbar_update_favicon (window->priv->toolbar);
 }
 
 static void
@@ -1101,13 +1140,13 @@ update_spinner_control (EphyWindow *window)
 
 		if (ephy_tab_get_load_status (tab) & TAB_LOAD_STARTED)
 		{
-			//toolbar_spinner_start (window->priv->toolbar);
+			toolbar_spinner_start (window->priv->toolbar);
 			return;
 		}
 	}
 	g_list_free (l);
 
-//	toolbar_spinner_stop (window->priv->toolbar);
+	toolbar_spinner_stop (window->priv->toolbar);
 }
 
 void
@@ -1243,8 +1282,11 @@ ephy_window_get_tabs (EphyWindow *window)
 static void
 save_old_embed_status (EphyTab *tab, EphyWindow *window)
 {
-	/* save old tab location status */
-	//ephy_tab_set_location (tab, toolbar_get_location (window->priv->toolbar));
+	char *location;
+
+	location = toolbar_get_location (window->priv->toolbar);
+	ephy_tab_set_location (tab, location);
+	g_free (location);
 }
 
 static void
@@ -1380,8 +1422,7 @@ ephy_window_set_zoom (EphyWindow *window,
 Toolbar *
 ephy_window_get_toolbar (EphyWindow *window)
 {
-	//return window->priv->toolbar;
-	return NULL;
+	return window->priv->toolbar;
 }
 
 void

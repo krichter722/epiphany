@@ -1,4 +1,4 @@
-uixmldir = $(datadir)/gnome-2.0/ui
+uixmldir = $(pkgdatadir)
 uixml_in_files = epiphany-ui.xml.in           \
                  nautilus-epiphany-view.xml.in
 
