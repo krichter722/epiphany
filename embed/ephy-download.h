@@ -37,10 +37,11 @@ typedef struct EphyDownloadPrivate EphyDownloadPrivate;
 
 typedef enum
 {
-	EPHY_DOWNLOAD_STATUS_DOWNLOADING,
-	EPHY_DOWNLOAD_STATUS_PAUSED,
-	EPHY_DOWNLOAD_STATUS_COMPLETED
-} EphyDownloadStatus;
+	EPHY_DOWNLOAD_DOWNLOADING,
+	EPHY_DOWNLOAD_PAUSED,
+	EPHY_DOWNLOAD_COMPLETED,
+	EPHY_DOWNLOAD_FAILED
+} EphyDownloadState;
 
 struct EphyDownload
 {
@@ -51,46 +52,50 @@ struct EphyDownloadClass
 {
         GObjectClass parent_class;
 
-	char * (* get_source)           (EphyDownload *download);
-	char * (* get_target)           (EphyDownload *download);
-	int    (* get_percent)          (EphyDownload *download);
-	long   (* get_current_progress) (EphyDownload *download);
-	long   (* get_total_progress)   (EphyDownload *download);
-	long   (* get_elapsed_time)	(EphyDownload *download);
-	void   (* cancel)               (EphyDownload *download);
-	void   (* pause)                (EphyDownload *download);
-	void   (* resume)               (EphyDownload *download);
+	char * 		  (* get_source)           (EphyDownload *download);
+	char * 		  (* get_target)           (EphyDownload *download);
+	int    		  (* get_percent)          (EphyDownload *download);
+	long   		  (* get_current_progress) (EphyDownload *download);
+	long   		  (* get_total_progress)   (EphyDownload *download);
+	long   		  (* get_elapsed_time)	   (EphyDownload *download);
+	void   		  (* cancel)               (EphyDownload *download);
+	void   		  (* pause)                (EphyDownload *download);
+	void   		  (* resume)               (EphyDownload *download);
+	EphyDownloadState (* get_state)	           (EphyDownload *download);
 
-	void   (* changed)              (EphyDownload *download);
+	/* Signals */
+	void              (* changed)              (EphyDownload *download);
 };
 
 /* Time is expressed in seconds, file sizes in bytes */
 
-GType           ephy_download_get_type             (void);
+GType              ephy_download_get_type             (void);
 
-EphyDownload   *ephy_download_new                  (void);
+EphyDownload      *ephy_download_new                  (void);
 
-char	       *ephy_download_get_name		   (EphyDownload *download);
+char	          *ephy_download_get_name	      (EphyDownload *download);
 
-char	       *ephy_download_get_source	   (EphyDownload *download);
+char	          *ephy_download_get_source	      (EphyDownload *download);
 
-char           *ephy_download_get_target           (EphyDownload *download);
+char              *ephy_download_get_target           (EphyDownload *download);
 
-int             ephy_download_get_percent          (EphyDownload *download);
+int                ephy_download_get_percent          (EphyDownload *download);
 
-long            ephy_download_get_current_progress (EphyDownload *download);
+EphyDownloadState  ephy_download_get_state	      (EphyDownload *download);	   
 
-long            ephy_download_get_total_progress   (EphyDownload *download);
+long               ephy_download_get_current_progress (EphyDownload *download);
 
-long		ephy_download_get_elapsed_time     (EphyDownload *download);
+long               ephy_download_get_total_progress   (EphyDownload *download);
 
-long		ephy_download_get_remaining_time   (EphyDownload *download);
+long		   ephy_download_get_elapsed_time     (EphyDownload *download);
 
-void		ephy_download_cancel	      	   (EphyDownload *download);
+long		   ephy_download_get_remaining_time   (EphyDownload *download);
 
-void		ephy_download_pause		   (EphyDownload *download);
+void		   ephy_download_cancel	      	      (EphyDownload *download);
 
-void		ephy_download_resume		   (EphyDownload *download);
+void		   ephy_download_pause		      (EphyDownload *download);
+
+void		   ephy_download_resume		      (EphyDownload *download);
 
 G_END_DECLS
 

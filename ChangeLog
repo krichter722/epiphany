@@ -1,5 +1,21 @@
 2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* TODO:
+	* embed/downloader-view.c: (downloader_view_init),
+	(get_row_from_download), (download_changed_cb),
+	(downloader_view_add_download), (downloader_view_build_ui),
+	(download_dialog_pause_cb), (downloader_view_remove_download),
+	(download_dialog_abort_cb):
+	* embed/ephy-download.c: (ephy_download_get_state):
+	* embed/ephy-download.h:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+	* embed/mozilla/mozilla-download.cpp:
+
+	Implement state.
+
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* data/glade/epiphany.glade:
 
 	Remove details

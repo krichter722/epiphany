@@ -70,11 +70,6 @@ struct DownloaderViewPrivate
 
 typedef struct
 {
-	GtkTreeRowReference *ref;
-} DownloadDetails;
-
-typedef struct
-{
 	gboolean is_paused;
 	gboolean can_abort;
 	gboolean can_open;
@@ -118,9 +113,6 @@ void
 download_dialog_pause_cb (GtkButton *button, DownloaderView *dv);
 void
 download_dialog_abort_cb (GtkButton *button, DownloaderView *dv);
-static void
-downloader_treeview_selection_changed_cb (GtkTreeSelection *selection,
-					  DownloaderView *dv);
 gboolean
 download_dialog_delete_cb (GtkWidget *window, GdkEventAny *event,
 			   DownloaderView *dv);
@@ -175,10 +167,10 @@ downloader_view_init (DownloaderView *dv)
 {
         dv->priv = EPHY_DOWNLOADER_VIEW_GET_PRIVATE (dv);
 
-	dv->priv->details_hash = g_hash_table_new_full (g_direct_hash,
-                                                        g_direct_equal,
-                                                        NULL,
-							NULL);
+	dv->priv->details_hash = g_hash_table_new_full
+		(g_direct_hash, g_direct_equal, NULL,
+		 (GDestroyNotify)gtk_tree_row_reference_free);
+
 	downloader_view_build_ui (dv);
 
 	g_object_ref (embed_shell);
@@ -220,12 +212,19 @@ format_interval (long interval)
 	}
 }
 
+static GtkTreeRowReference *
+get_row_from_download (DownloaderView *dv, EphyDownload *download)
+{
+	return  g_hash_table_lookup (dv->priv->details_hash, download);
+}
+
 static void
 download_changed_cb (EphyDownload *download, DownloaderView *dv)
 {
-	DownloadDetails *details;
+	GtkTreeRowReference *row_ref;
 	GtkTreePath *path;
 	GtkTreeIter iter;
+	EphyDownloadState state;
 	int percent;
 	long total;
 	long remaining_secs;
@@ -233,17 +232,38 @@ download_changed_cb (EphyDownload *download, DownloaderView *dv)
 	char *size;
 	struct tm;
 
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       download);
-	g_return_if_fail (details);
+	row_ref = get_row_from_download (dv, download);
+	g_return_if_fail (row_ref != NULL);
 
-	percent = ephy_download_get_percent (download);
-	total = ephy_download_get_total_progress (download) / 1024;
+	total =  ephy_download_get_total_progress (download) / 1024;
+
+	/* State special casing */
+	state = ephy_download_get_state (download);
+	switch (state)
+	{
+	case EPHY_DOWNLOAD_FAILED:
+		percent = -2;
+		remaining_secs = 0;	
+		break;
+	case EPHY_DOWNLOAD_COMPLETED:
+		percent = 100;
+		remaining_secs = 0;
+		break;
+	case EPHY_DOWNLOAD_DOWNLOADING:
+	case EPHY_DOWNLOAD_PAUSED:	
+		percent = ephy_download_get_percent (download);
+		remaining_secs = ephy_download_get_remaining_time (download);
+		break;
+	default:
+		percent = 0;
+		remaining_secs = 0;
+		break;
+	}
+
 	size = g_strdup_printf ("%ld kB", total);
-	remaining_secs = ephy_download_get_remaining_time (download);
 	remaining = format_interval (remaining_secs);
 
-	path = gtk_tree_row_reference_get_path (details->ref);
+	path = gtk_tree_row_reference_get_path (row_ref);
 	gtk_tree_model_get_iter (dv->priv->model, &iter, path);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
@@ -261,24 +281,23 @@ void
 downloader_view_add_download (DownloaderView *dv,
 			      EphyDownload *download)
 {
+	GtkTreeRowReference *row_ref;
 	GtkTreeIter iter;
-	DownloadDetails *details;
 	GtkTreeSelection *selection;
 	GtkTreePath *path;
 	char *name;
 
-	details = g_new0 (DownloadDetails, 1);
-	g_hash_table_insert (dv->priv->details_hash,
-			     download,
-			     details);
 
 	gtk_list_store_append (GTK_LIST_STORE (dv->priv->model),
 			       &iter);
 
 	path =  gtk_tree_model_get_path (GTK_TREE_MODEL (dv->priv->model), &iter);
-	details->ref = gtk_tree_row_reference_new
-				(GTK_TREE_MODEL (dv->priv->model),path);
+	row_ref = gtk_tree_row_reference_new (GTK_TREE_MODEL (dv->priv->model), path);
 	gtk_tree_path_free (path);
+
+	g_hash_table_insert (dv->priv->details_hash,
+			     download,
+			     row_ref);
 
 	name = ephy_download_get_name (download);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
@@ -384,8 +403,6 @@ downloader_view_build_ui (DownloaderView *dv)
 
 	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(priv->treeview));
 	gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
-        g_signal_connect (G_OBJECT (selection), "changed",
-                          G_CALLBACK (downloader_treeview_selection_changed_cb), dv);
 
 	priv->model = GTK_TREE_MODEL (liststore);
 
@@ -404,7 +421,7 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 	GtkTreeIter iter;
 	GValue val = {0, };
 	EphyDownload *download;
-	EphyDownloadStatus status;
+	EphyDownloadState state;
 
 	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(dv->priv->treeview));
 
@@ -414,14 +431,13 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 	download = g_value_get_object (&val);
 	g_value_unset (&val);
 
-	/* FIXME */
-	status = 0;
+	state = ephy_download_get_state (download);
 
-	if (status == EPHY_DOWNLOAD_STATUS_DOWNLOADING)
+	if (state == EPHY_DOWNLOAD_DOWNLOADING)
 	{
 		ephy_download_pause (download);
 	}
-	else if (status == EPHY_DOWNLOAD_STATUS_PAUSED)
+	else if (state == EPHY_DOWNLOAD_PAUSED)
 	{
 		ephy_download_resume (download);
 	}
@@ -430,16 +446,14 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 void
 downloader_view_remove_download (DownloaderView *dv, EphyDownload *download)
 {
-	DownloadDetails *details;
+	GtkTreeRowReference *row_ref;
 	GtkTreePath *path = NULL;
 	GtkTreeIter iter;
 
-	details = g_hash_table_lookup (dv->priv->details_hash,
-				       download);
-	g_return_if_fail (details);
+	row_ref = get_row_from_download (dv, download);
+	g_return_if_fail (row_ref);
 
-	path = gtk_tree_row_reference_get_path (details->ref);
-
+	path = gtk_tree_row_reference_get_path (row_ref);
 	gtk_tree_model_get_iter (GTK_TREE_MODEL (dv->priv->model),
 				 &iter, path);
 
@@ -474,12 +488,6 @@ download_dialog_abort_cb (GtkButton *button, DownloaderView *dv)
 	
 	ephy_download_cancel ((EphyDownload*)download);
 	downloader_view_remove_download (dv, download);
-}
-
-static void
-downloader_treeview_selection_changed_cb (GtkTreeSelection *selection,
-					  DownloaderView *dv)
-{
 }
 
 gboolean

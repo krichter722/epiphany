@@ -54,7 +54,8 @@ MozDownload::MozDownload() :
     mGotFirstStateChange(false), mIsNetworkTransfer(false),
     mUserCanceled(false),
     mStatus(NS_OK),
-    mEmbedPersist(nsnull)
+    mEmbedPersist(nsnull),
+    mDownloadState(EPHY_DOWNLOAD_DOWNLOADING)
 {
 }
 
@@ -93,13 +94,6 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 	mDestination = aTarget;
 	mStartTime = startTime;
 	mPercentComplete = 0;
-	mInterval = 400000; // ms
-	mPriorKRate = 0;
-	mRateChanges = 0;
-	mRateChangeLimit = 2;
-	mIsPaused = PR_FALSE;
-	mStartTime = PR_Now();
-	mLastUpdate = mStartTime;
 
 	if (aPersist)
 	{
@@ -176,6 +170,14 @@ MozDownload::GetCurrentProgress(PRInt32 *aCurrentProgress)
     return NS_OK;
 }
 
+NS_IMETHODIMP
+MozDownload::GetState(EphyDownloadState *aDownloadState)
+{
+    NS_ENSURE_ARG_POINTER(aDownloadState);
+    *aDownloadState = mDownloadState;
+    return NS_OK;
+}
+
 /* attribute wstring displayName; */
 NS_IMETHODIMP
 MozDownload::GetDisplayName(PRUnichar * *aDisplayName)
@@ -243,12 +245,6 @@ MozDownload::SetObserver(nsIObserver * aObserver)
     return NS_OK;
 }
 
-void
-MozDownload::SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist)
-{
-	mEmbedPersist = aEmbedPersist;
-}
-
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
 NS_IMETHODIMP 
 MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
@@ -268,6 +264,12 @@ MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
     if ((aStateFlags & STATE_STOP) && (!mIsNetworkTransfer || (aStateFlags & STATE_IS_NETWORK))) {
 	/* Keep us alive */
 	nsCOMPtr<nsIDownload> kungFuDeathGrip(this);
+
+	mDownloadState = NS_SUCCEEDED (aStatus) ? EPHY_DOWNLOAD_COMPLETED : EPHY_DOWNLOAD_FAILED;
+	if (mEphyDownload)
+	{
+		g_signal_emit_by_name (mEphyDownload, "changed");
+	}
 
         if (mWebPersist)
 	{

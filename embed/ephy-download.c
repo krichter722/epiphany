@@ -179,6 +179,13 @@ ephy_download_get_elapsed_time (EphyDownload *download)
 	return klass->get_elapsed_time (download);
 }
 
+EphyDownloadState
+ephy_download_get_state (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_state (download);
+}
+
 void
 ephy_download_cancel (EphyDownload *download)
 {

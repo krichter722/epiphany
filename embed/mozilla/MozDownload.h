@@ -87,13 +87,11 @@ public:
     NS_DECL_NSIDOWNLOAD
     NS_DECL_NSIWEBPROGRESSLISTENER
 
-    virtual void	    SetEmbedPersist (MozillaEmbedPersist *aEmbedPersist);
     virtual void            Cancel();
     virtual void	    Pause();
     virtual void	    Resume();
-    virtual void            GetStatus(nsresult& aStatus)
-                            { aStatus = mStatus; }
 
+    nsresult GetState           (EphyDownloadState *aDownloadState);
     nsresult GetCurrentProgress (PRInt32 *aCurrentProgress);
     nsresult GetTotalProgress   (PRInt32 *aTProgress);
     nsresult GetElapsedTime     (PRInt64 *aTProgress);
@@ -113,21 +111,16 @@ protected:
 
     bool                    mGotFirstStateChange, mIsNetworkTransfer;
     bool                    mUserCanceled;
-    bool 		    mIsPaused;
     nsresult                mStatus;
     
     // These two are mutually exclusive.
     nsCOMPtr<nsIWebBrowserPersist> mWebPersist;
     nsCOMPtr<nsIHelperAppLauncher> mHelperAppLauncher;
-    
-    PRFloat64 mPriorKRate;
-    PRInt32 mRateChanges;
-    PRInt32 mRateChangeLimit;
-    PRInt64 mLastUpdate;
-    PRInt32 mInterval;
+
     EphyDownload   *mEphyDownload;
     DownloaderView *mDownloaderView;
     MozillaEmbedPersist *mEmbedPersist;
+    EphyDownloadState mDownloadState;
 };
 
 #endif // MozDownload_h__

@@ -104,6 +104,19 @@ impl_get_current_progress (EphyDownload *download)
 	return progress;
 }
 
+static EphyDownloadState
+impl_get_state (EphyDownload *download)
+{
+	MozDownload *mozDownload;
+	EphyDownloadState state;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetState (&state);
+
+	return state;
+}
+
 static long
 impl_get_total_progress (EphyDownload *download)
 {
@@ -172,6 +185,7 @@ mozilla_download_class_init (MozillaDownloadClass *klass)
 	download_class->get_percent = impl_get_percent;
 	download_class->get_target = impl_get_target;
 	download_class->get_source = impl_get_source;
+	download_class->get_state = impl_get_state;
 	download_class->cancel = impl_cancel;
 	download_class->pause = impl_pause;
 	download_class->resume = impl_resume;
