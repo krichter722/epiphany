@@ -69,6 +69,7 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 		   nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
     try {
+	mEmbedPersist = nsnull;    
         mSource = aSource;
         mDestination = aTarget;
         mStartTime = startTime;

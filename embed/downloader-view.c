@@ -49,7 +49,7 @@ enum
 	COL_FILENAME,
 	COL_SIZE,
 	COL_REMAINING,
-	COL_PERSIST_OBJECT
+	COL_DOWNLOAD_OBJECT
 };
 
 #define EPHY_DOWNLOADER_VIEW_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_DOWNLOADER_VIEW, DownloaderViewPrivate))
@@ -317,7 +317,7 @@ downloader_view_add_download (DownloaderView *dv,
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
 			    COL_FILENAME, name,
-			    COL_PERSIST_OBJECT, download,
+			    COL_DOWNLOAD_OBJECT, download,
 			    -1);
 	g_free (name);
 
@@ -457,7 +457,7 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 
 	if (!gtk_tree_selection_get_selected (selection, &model, &iter)) return;
 
-	gtk_tree_model_get_value (model, &iter, COL_PERSIST_OBJECT, &val);
+	gtk_tree_model_get_value (model, &iter, COL_DOWNLOAD_OBJECT, &val);
 	download = g_value_get_object (&val);
 	g_value_unset (&val);
 
@@ -481,6 +481,23 @@ download_dialog_pause_cb (GtkButton *button, DownloaderView *dv)
 void
 download_dialog_abort_cb (GtkButton *button, DownloaderView *dv)
 {
+	GValue val = {0, };
+	GtkTreeSelection *selection;
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+	gpointer download;
+
+	selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(dv->priv->treeview));
+	
+	gtk_tree_selection_get_selected (selection, &model, &iter);
+	gtk_tree_model_get_value (model, &iter, COL_DOWNLOAD_OBJECT, &val);
+	
+	download = g_value_get_object (&val);
+	g_value_unset (&val);
+	g_return_if_fail (download != NULL);
+	
+	ephy_download_cancel ((EphyDownload*)download);
+//	downloader_view_remove_download (dv, persist_object);
 }
 
 static void

@@ -1,3 +1,16 @@
+2003-10-15  Xan Lopez  <xan@masilla.org>
+
+	* data/glade/epiphany.glade:
+	* embed/downloader-view.c: (downloader_view_add_download),
+	(download_dialog_pause_cb), (download_dialog_abort_cb):
+	* embed/downloader-view.h:
+	
+	Fix stop button (UI not updated yet)
+	
+	* embed/mozilla/MozDownload.cpp:
+
+	Init mEmbedPersist to nsnull (Marco)
+
 2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* embed/downloader-view.c: (format_interval),

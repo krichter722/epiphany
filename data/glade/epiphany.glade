@@ -391,6 +391,7 @@
 		  <property name="rules_hint">False</property>
 		  <property name="reorderable">False</property>
 		  <property name="enable_search">True</property>
+			<property name="selection_mode">GTK_SELECTION_SINGLE</property>
 		</widget>
 	      </child>
 	    </widget>

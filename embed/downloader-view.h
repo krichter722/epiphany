@@ -56,6 +56,9 @@ DownloaderView *downloader_view_new                   (void);
 void            downloader_view_add_download          (DownloaderView *dv,
 						       EphyDownload *download);
 
+void            downloader_view_remove_download       (DownloaderView *dv,
+						       EphyDownload *download);
+
 G_END_DECLS
 
 #endif
