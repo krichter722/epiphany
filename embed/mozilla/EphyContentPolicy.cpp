@@ -135,7 +135,7 @@ NS_IMETHODIMP EphyContentPolicy::ShouldLoad(PRInt32 contentType,
 
 	/* Allow the load if the protocol is in safe list, or it's about:blank */
 	if (g_slist_find_custom (mSafeProtocols, scheme.get(), (GCompareFunc) strcmp)
-	    || spec.Equals ("about:blank"))
+	    || strcmp (spec.get(), "about:blank") == 0)
 	{
 		*_retval = PR_TRUE;
 	}

@@ -35,11 +35,12 @@
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include <glib/gi18n.h>
 
+#include <nsMemory.h>
 #include <nsIURL.h>
 #include <nsILocalFile.h>
 #include <nsIMIMEInfo.h>
 #include <nsIInterfaceRequestorUtils.h>
-#include "nsCExternalHandlerService.h"
+#include <nsCExternalHandlerService.h>
 
 #include "ephy-prefs.h"
 #include "ephy-embed-single.h"

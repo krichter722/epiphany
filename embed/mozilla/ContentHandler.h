@@ -80,7 +80,11 @@ class GContentHandler : public nsIHelperAppLauncherDialog
 
 	nsEmbedCString mUrl;
 	nsEmbedCString mScheme;
+#if MOZILLA_SNAPSHOT < 18
+	char *mMimeType;
+#else
 	nsEmbedCString mMimeType;
+#endif
 };
 
 #endif
