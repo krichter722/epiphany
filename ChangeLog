@@ -1,3 +1,9 @@
+2004-10-23  Crispin Flowerday  <gnome@flowerday.cx>
+
+	* embed/webcore/webcore-embed.c (impl_get_security_level): 
+
+	Add a stub implementation for get_security_level()
+
 2004-10-23  Christian Persch  <chpe@cvs.gnome.org>
 
 	* src/Makefile.am:

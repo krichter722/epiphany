@@ -424,6 +424,8 @@ impl_get_security_level (EphyEmbed *embed,
                          EmbedSecurityLevel *level,
                          char **description)
 {
+	*level = STATE_IS_UNKNOWN;
+	*description = NULL;
 }
 
 static void
