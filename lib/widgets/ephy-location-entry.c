@@ -272,10 +272,31 @@ completion_func (GtkEntryCompletion *completion,
 	return ret;
 }
 
+static gboolean
+match_selected_cb (GtkEntryCompletion *completion,
+		   GtkTreeModel *model,
+		   GtkTreeIter *iter,
+		   EphyLocationEntry *le)
+{
+	char *item = NULL;
+
+	gtk_tree_model_get (model, iter,
+			    ACTION_COL, &item, -1);
+
+	ephy_location_entry_set_location (le, item);
+	g_signal_emit_by_name (le->priv->entry, "activate");
+
+	g_free (item);
+
+	return TRUE;
+}
+
 static void
 ephy_location_entry_construct_contents (EphyLocationEntry *le)
 {
 	EphyLocationEntryPrivate *p = le->priv;
+	GtkEntryCompletion *completion;
+	GtkCellRenderer *cell;
 
 	LOG ("EphyLocationEntry constructing contents %p", le)
 
@@ -294,6 +315,20 @@ ephy_location_entry_construct_contents (EphyLocationEntry *le)
 
 	p->completion_model = egg_tree_model_union_new
 		(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+
+	completion = gtk_entry_completion_new ();
+	gtk_entry_completion_set_model (completion, le->priv->completion_model);
+	gtk_entry_completion_set_match_func (completion, completion_func, le, NULL);
+	g_signal_connect (completion, "match_selected",
+			  G_CALLBACK (match_selected_cb), le);
+
+	cell = gtk_cell_renderer_text_new ();
+	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion),
+				    cell, TRUE);
+	gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion),
+				       cell, "text", TEXT_COL);
+
+	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
 
 static void
@@ -345,8 +380,6 @@ ephy_location_entry_add_completion (EphyLocationEntry *le,
 				    guint keywords_property)
 {
 	EphyTreeModelNode *node_model;
-	GtkEntryCompletion *completion;
-	GtkCellRenderer *cell;
 	int action_col, text_col, keywords_col;
 
 	node_model = ephy_tree_model_node_new (root, NULL);
@@ -360,18 +393,6 @@ ephy_location_entry_add_completion (EphyLocationEntry *le,
 		(EGG_TREE_MODEL_UNION (le->priv->completion_model),
 		 GTK_TREE_MODEL (node_model), text_col, keywords_col,
 		 action_col);
-
-	completion = gtk_entry_completion_new ();
-	gtk_entry_completion_set_model (completion, le->priv->completion_model);
-	gtk_entry_completion_set_match_func (completion, completion_func, le, NULL);
-
-	cell = gtk_cell_renderer_text_new ();
-	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion),
-				    cell, TRUE);
-	gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion),
-				       cell, "text", TEXT_COL);
-
-	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
 
 void

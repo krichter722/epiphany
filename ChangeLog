@@ -1,3 +1,12 @@
+2003-10-03  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c: (match_selected_cb),
+	(ephy_location_entry_construct_contents),
+	(ephy_location_entry_add_completion):
+
+	Do not create multiple gtk completions, open the
+	url when a match is selected.
+
 2003-10-02  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* lib/egg/Makefile.am:
