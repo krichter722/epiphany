@@ -136,6 +136,22 @@ MozDownload::GetPercentComplete(PRInt32 *aPercentComplete)
     return NS_OK;
 }
 
+NS_IMETHODIMP
+MozDownload::GetTotalProgress(PRInt32 *aTotalProgress)
+{
+    NS_ENSURE_ARG_POINTER(aTotalProgress);
+    *aTotalProgress = mTotalProgress;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+MozDownload::GetCurrentProgress(PRInt32 *aCurrentProgress)
+{
+    NS_ENSURE_ARG_POINTER(aCurrentProgress);
+    *aCurrentProgress = mCurrentProgress;
+    return NS_OK;
+}
+
 /* attribute wstring displayName; */
 NS_IMETHODIMP
 MozDownload::GetDisplayName(PRUnichar * *aDisplayName)
@@ -155,6 +171,14 @@ MozDownload::GetStartTime(PRInt64 *aStartTime)
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     *aStartTime = mStartTime;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+MozDownload::GetElapsedTime(PRInt64 *aElapsedTime)
+{
+    NS_ENSURE_ARG_POINTER(aElapsedTime);
+    *aElapsedTime = PR_Now() - mStartTime;
     return NS_OK;
 }
 
@@ -257,6 +281,9 @@ MozDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest
         mPercentComplete = -1;
     else
         mPercentComplete = (PRInt32)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0 + 0.5);
+
+    mTotalProgress = aMaxTotalProgress;
+    mCurrentProgress = aCurTotalProgress;
 
     g_signal_emit_by_name (mEphyDownload, "changed");
 

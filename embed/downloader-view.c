@@ -29,6 +29,7 @@
 #include "ephy-embed-utils.h"
 #include "ephy-file-helpers.h"
 #include "ephy-embed-shell.h"
+#include "ephy-cell-renderer-progress.h"
 #include "ephy-stock-icons.h"
 
 #include <gtk/gtktreeview.h>
@@ -231,6 +232,26 @@ downloader_view_new (void)
 			(EPHY_TYPE_DOWNLOADER_VIEW, NULL));
 }
 
+static char *
+format_interval (long interval)
+{
+	int secs, hours, mins;                                                                                                                     
+	secs = (int)(interval + .5);
+	hours = secs / 3600;
+	secs -= hours * 3600;
+	mins = secs / 60;
+	secs -= mins * 60;
+
+	if (hours)
+        {
+		return g_strdup_printf (_("%u:%02u.%02u"), hours, mins, secs);
+        }
+        else
+        {
+		return g_strdup_printf (_("%02u.%02u"), mins, secs);
+	}
+}
+
 static void
 download_changed_cb (EphyDownload *download, DownloaderView *dv)
 {
@@ -238,19 +259,34 @@ download_changed_cb (EphyDownload *download, DownloaderView *dv)
 	GtkTreePath *path;
 	GtkTreeIter iter;
 	int percent;
+	long total;
+	long remaining_secs;
+	char *remaining;
+	char *size;
+	struct tm;
 
 	details = g_hash_table_lookup (dv->priv->details_hash,
 				       download);
 	g_return_if_fail (details != NULL);
 
 	percent = ephy_download_get_percent (download);
+	total = ephy_download_get_total_progress (download) / 1024;
+	size = g_strdup_printf ("%ld kB", total);
+	remaining_secs = ephy_download_get_remaining_time (download);
+	remaining = format_interval (remaining_secs);
+
 	path = gtk_tree_row_reference_get_path (details->ref);
 	gtk_tree_model_get_iter (dv->priv->model, &iter, path);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
 			    COL_PERCENT, percent,
+			    COL_SIZE, size,
+			    COL_REMAINING, remaining,
 			    -1);
 	gtk_tree_path_free (path);
+
+	g_free (size);
+	g_free (remaining);
 }
 
 void
@@ -347,18 +383,18 @@ downloader_view_build_ui (DownloaderView *dv)
 	gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(priv->treeview),
 					   TRUE);
 
-	renderer = gtk_cell_renderer_text_new ();
-
+	renderer = ephy_cell_renderer_progress_new ();
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(priv->treeview),
 						     0, _("%"),
 						     renderer,
-						     "text", 0,
+						     "value", 0,
 						     NULL);
 	column = gtk_tree_view_get_column (GTK_TREE_VIEW(priv->treeview), 0);
         gtk_tree_view_column_set_resizable (column, TRUE);
         gtk_tree_view_column_set_reorderable (column, TRUE);
         gtk_tree_view_column_set_sort_column_id (column, COL_PERCENT);
 
+	renderer = gtk_cell_renderer_text_new ();
 	gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW(priv->treeview),
 						     COL_FILENAME, _("Filename"),
 						     renderer,

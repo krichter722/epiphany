@@ -119,6 +119,21 @@ ephy_download_get_name (EphyDownload *download)
 	return result;
 }
 
+long
+ephy_download_get_remaining_time (EphyDownload *download)
+{
+	long elapsed_time, remaining_time;
+	long total, cur;
+
+	total = ephy_download_get_total_progress (download);
+	cur = ephy_download_get_current_progress (download);
+	elapsed_time = ephy_download_get_elapsed_time (download);
+
+	remaining_time = elapsed_time * (total - cur) / cur;
+
+	return remaining_time;
+}
+
 char *
 ephy_download_get_source (EphyDownload *download)
 {
@@ -133,11 +148,32 @@ ephy_download_get_target (EphyDownload *download)
 	return klass->get_target (download);
 }
 
+long
+ephy_download_get_current_progress (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_current_progress (download);
+}
+
+long
+ephy_download_get_total_progress (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_total_progress (download);
+}
+
 int
 ephy_download_get_percent (EphyDownload *download)
 {
 	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
 	return klass->get_percent (download);
+}
+
+long
+ephy_download_get_elapsed_time (EphyDownload *download)
+{
+	EphyDownloadClass *klass = EPHY_DOWNLOAD_GET_CLASS (download);
+	return klass->get_elapsed_time (download);
 }
 
 void

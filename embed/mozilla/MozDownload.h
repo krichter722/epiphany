@@ -94,13 +94,19 @@ public:
     virtual void            GetStatus(nsresult& aStatus)
                             { aStatus = mStatus; }
 
+    nsresult GetCurrentProgress (PRInt32 *aCurrentProgress);
+    nsresult GetTotalProgress   (PRInt32 *aTProgress);
+    nsresult GetElapsedTime     (PRInt64 *aTProgress);
+
 protected:
     nsCOMPtr<nsIURI>        mSource;
     nsCOMPtr<nsILocalFile>  mDestination;
     PRInt64                 mStartTime;
     PRInt64		    mElapsed;
     PRInt32                 mPercentComplete;
-    
+    PRInt32                 mTotalProgress;
+    PRInt32                 mCurrentProgress;
+
     bool                    mGotFirstStateChange, mIsNetworkTransfer;
     bool                    mUserCanceled;
     bool 		    mIsPaused;

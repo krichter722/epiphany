@@ -91,6 +91,32 @@ impl_get_target (EphyDownload *download)
 	return g_strdup (spec.get());
 }
 
+static long
+impl_get_current_progress (EphyDownload *download)
+{
+	MozDownload *mozDownload;
+	PRInt32 progress;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetCurrentProgress (&progress);
+
+	return progress;
+}
+
+static long
+impl_get_total_progress (EphyDownload *download)
+{
+	MozDownload *mozDownload;
+	PRInt32 progress;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetTotalProgress (&progress);
+
+	return progress;
+}
+
 static int
 impl_get_percent (EphyDownload *download)
 {
@@ -104,6 +130,19 @@ impl_get_percent (EphyDownload *download)
 	return percent;
 }
 
+static long
+impl_get_elapsed_time (EphyDownload *download)
+{
+	MozDownload *mozDownload;
+	PRInt64 elapsed;
+
+	mozDownload = MOZILLA_DOWNLOAD (download)->moz_download;
+
+	mozDownload->GetElapsedTime (&elapsed);
+
+	return elapsed / 1000000;
+}
+
 static void 
 impl_cancel (EphyDownload *download)
 {
@@ -113,7 +152,6 @@ impl_cancel (EphyDownload *download)
 static void
 impl_pause (EphyDownload *download)
 {
-
 }
 
 static void
@@ -128,6 +166,9 @@ mozilla_download_class_init (MozillaDownloadClass *klass)
 	
         parent_class = (GObjectClass *) g_type_class_peek_parent (klass);
 
+	download_class->get_elapsed_time = impl_get_elapsed_time;
+	download_class->get_current_progress = impl_get_current_progress;
+	download_class->get_total_progress = impl_get_total_progress;
 	download_class->get_percent = impl_get_percent;
 	download_class->get_target = impl_get_target;
 	download_class->get_source = impl_get_source;

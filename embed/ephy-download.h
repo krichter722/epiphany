@@ -51,33 +51,46 @@ struct EphyDownloadClass
 {
         GObjectClass parent_class;
 
-	char * (* get_source)  (EphyDownload *download);
-	char * (* get_target)  (EphyDownload *download);
-	int    (* get_percent) (EphyDownload *download);
-	void   (* cancel)      (EphyDownload *download);
-	void   (* pause)       (EphyDownload *download);
-	void   (* resume)      (EphyDownload *download);
+	char * (* get_source)           (EphyDownload *download);
+	char * (* get_target)           (EphyDownload *download);
+	int    (* get_percent)          (EphyDownload *download);
+	long   (* get_current_progress) (EphyDownload *download);
+	long   (* get_total_progress)   (EphyDownload *download);
+	long   (* get_elapsed_time)	(EphyDownload *download);
+	void   (* cancel)               (EphyDownload *download);
+	void   (* pause)                (EphyDownload *download);
+	void   (* resume)               (EphyDownload *download);
 
-	void   (* changed)     (EphyDownload *download);
+	void   (* changed)              (EphyDownload *download);
 };
 
-GType           ephy_download_get_type          (void);
+/* Time is expressed in seconds, file sizes in bytes */
 
-EphyDownload   *ephy_download_new               (void);
+GType           ephy_download_get_type             (void);
 
-char	       *ephy_download_get_name		(EphyDownload *download);
+EphyDownload   *ephy_download_new                  (void);
 
-char	       *ephy_download_get_source	(EphyDownload *download);
+char	       *ephy_download_get_name		   (EphyDownload *download);
 
-char           *ephy_download_get_target        (EphyDownload *download);
+char	       *ephy_download_get_source	   (EphyDownload *download);
 
-int             ephy_download_get_percent       (EphyDownload *download);
+char           *ephy_download_get_target           (EphyDownload *download);
 
-void		ephy_download_cancel	      	(EphyDownload *download);
+int             ephy_download_get_percent          (EphyDownload *download);
 
-void		ephy_download_pause		(EphyDownload *download);
+long            ephy_download_get_current_progress (EphyDownload *download);
 
-void		ephy_download_resume		(EphyDownload *download);
+long            ephy_download_get_total_progress   (EphyDownload *download);
+
+long		ephy_download_get_elapsed_time     (EphyDownload *download);
+
+long		ephy_download_get_remaining_time   (EphyDownload *download);
+
+void		ephy_download_cancel	      	   (EphyDownload *download);
+
+void		ephy_download_pause		   (EphyDownload *download);
+
+void		ephy_download_resume		   (EphyDownload *download);
 
 G_END_DECLS
 
