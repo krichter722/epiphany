@@ -2575,7 +2575,7 @@ ephy_window_set_zoom (EphyWindow *window,
 
 	if (zoom != current_zoom)
 	{
-		ephy_embed_set_zoom (embed, zoom, TRUE);
+		ephy_embed_set_zoom (embed, zoom);
 	}
 }
 

@@ -78,7 +78,7 @@ public:
 	nsresult DoCommand (const char *command);
 	nsresult GetCommandState (const char *command, PRBool *enabled);
 
-	nsresult SetZoom (float aTextZoom, PRBool reflow);
+	nsresult SetZoom (float aTextZoom);
 	nsresult GetZoom (float *aTextZoom);
 
 	nsresult Print (nsIPrintSettings *options, PRBool preview);
@@ -126,7 +126,6 @@ private:
 	nsresult GetListener (void);
 	nsresult AttachListeners (void);
 	nsresult DetachListeners (void);
-	nsresult SetZoomOnDocshell (float aZoom, nsIDocShell *DocShell);
 	nsresult GetSHistory (nsISHistory **aSHistory);
 	nsresult GetContentViewer (nsIContentViewer **aViewer);
 	nsresult GetDocumentHasModifiedForms (nsIDOMDocument *aDomDoc, PRUint32 *aNumTextFields, PRBool *aHasTextArea);

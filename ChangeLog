@@ -1,3 +1,23 @@
+2004-06-02  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/ephy-embed.c:
+	* embed/ephy-embed.h:
+	* embed/mozilla/EphyBrowser.cpp:
+	* embed/mozilla/EphyBrowser.h:
+	* embed/mozilla/mozilla-embed.cpp:
+
+	Add a content_change signal emitted when
+	mozilla content viewer is replaced by the one of the
+	loading page. Implementation is a bit hacky but it seem
+	to work fine.
+
+	Remove the zoom api reflow hacks.
+
+	* src/ephy-tab.c:
+	* src/ephy-window.c:
+
+	Restore zoom level on the content_change signal.
+
 2004-06-02  Christian Persch  <chpe@cvs.gnome.org>
 
 	* embed/mozilla/GtkNSSKeyPairDialogs.cpp:

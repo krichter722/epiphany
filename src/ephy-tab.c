@@ -676,6 +676,12 @@ ephy_tab_address_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
 	ephy_tab_set_link_message (tab, NULL);
 	ephy_tab_set_icon_address (tab, NULL);
 	ephy_tab_update_navigation_flags (tab, embed);
+}
+
+static void
+ephy_tab_content_change_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
+{
+	g_print ("ephy_tab_content_change_cb %s\n", address);
 
 	/* restore zoom level */
 	if (address_has_web_scheme (address))
@@ -699,8 +705,10 @@ ephy_tab_address_cb (EphyEmbed *embed, const char *address, EphyTab *tab)
 		current_zoom = ephy_embed_get_zoom (embed);
 		if (zoom != current_zoom)
 		{
+			g_print ("Restore zoom to %d\n", (int)(zoom * 100));
+
 			tab->priv->setting_zoom = TRUE;
-			ephy_embed_set_zoom (embed, zoom, FALSE);
+			ephy_embed_set_zoom (embed, zoom);
 			tab->priv->setting_zoom = FALSE;
 		}
 	}
@@ -1283,6 +1291,9 @@ ephy_tab_init (EphyTab *tab)
 				 tab, 0);
 	g_signal_connect_object (embed, "ge_favicon",
 				 G_CALLBACK (ephy_tab_favicon_cb),
+				 tab, 0);
+	g_signal_connect_object (embed, "ge_content_change",
+				 G_CALLBACK (ephy_tab_content_change_cb),
 				 tab, 0);
 
 	cache = EPHY_FAVICON_CACHE

@@ -59,13 +59,11 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMElement.h"
-#include "nsIBaseWindow.h"
-#include "nsIDeviceContext.h"
+#include "nsIDOMWindow2.h"
 #include "nsEmbedString.h"
 
 #ifdef ALLOW_PRIVATE_API
 #include "nsIMarkupDocumentViewer.h"
-#include "nsIDOMWindowInternal.h"
 #endif
 
 static PRUnichar DOMLinkAdded[] = { 'D', 'O', 'M', 'L', 'i', 'n', 'k',
@@ -372,68 +370,20 @@ nsresult EphyBrowser::GoToHistoryIndex (PRInt16 index)
 	return ContentNav->GotoIndex (index);
 }
 
-nsresult EphyBrowser::SetZoom (float aZoom, PRBool reflow)
+nsresult EphyBrowser::SetZoom (float aZoom)
 {
 	NS_ENSURE_TRUE (mWebBrowser, NS_ERROR_FAILURE);
 
-	if (reflow)
-	{
-		nsCOMPtr<nsIContentViewer> contentViewer;	
-		GetContentViewer (getter_AddRefs(contentViewer));
-		NS_ENSURE_TRUE (contentViewer, NS_ERROR_FAILURE);
+	nsCOMPtr<nsIContentViewer> contentViewer;	
+	GetContentViewer (getter_AddRefs(contentViewer));
+	NS_ENSURE_TRUE (contentViewer, NS_ERROR_FAILURE);
 
-		nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer);
-		NS_ENSURE_TRUE (mdv, NS_ERROR_FAILURE);
+	g_print ("Set zoom on %p\n", contentViewer.get());
 
-		return mdv->SetTextZoom (aZoom);
-	}
-	else
-	{
-		nsCOMPtr<nsIDocShell> DocShell;
-		DocShell = do_GetInterface (mWebBrowser);
-		NS_ENSURE_TRUE (DocShell, NS_ERROR_FAILURE);
+	nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer);
+	NS_ENSURE_TRUE (mdv, NS_ERROR_FAILURE);
 
-		SetZoomOnDocshell (aZoom, DocShell);
-
-		nsCOMPtr<nsIDocShellTreeNode> docShellNode(do_QueryInterface(DocShell));
-		if (docShellNode)
-		{
-			PRInt32 i;
-			PRInt32 n;
-			docShellNode->GetChildCount(&n);
-			for (i=0; i < n; i++) 
-			{
-				nsCOMPtr<nsIDocShellTreeItem> child;
-				docShellNode->GetChildAt(i, getter_AddRefs(child));
-				nsCOMPtr<nsIDocShell> childAsShell(do_QueryInterface(child));
-				if (childAsShell) 
-				{
-					return SetZoomOnDocshell (aZoom, childAsShell);
-				}
-			}
-		}
-	}
-
-	return NS_OK;
-}
-
-nsresult EphyBrowser::SetZoomOnDocshell (float aZoom, nsIDocShell *DocShell)
-{
-	nsresult rv;
-
-	nsCOMPtr<nsIBaseWindow> baseWindow;
-	baseWindow = do_QueryInterface (mWebBrowser);
-	NS_ENSURE_TRUE (baseWindow, NS_ERROR_FAILURE);
-
-	nsIWidget *widget;
-	rv = baseWindow->GetParentWidget (&widget);
-	NS_ENSURE_SUCCESS (rv, rv);
-
-	nsIDeviceContext *deviceContext;
-	deviceContext = widget->GetDeviceContext ();
-	NS_ENSURE_TRUE (deviceContext, NS_ERROR_FAILURE);
-
-	return deviceContext->SetTextZoom (aZoom);
+	return mdv->SetTextZoom (aZoom);
 }
 
 nsresult EphyBrowser::GetContentViewer (nsIContentViewer **aViewer)

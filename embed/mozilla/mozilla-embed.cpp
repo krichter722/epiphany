@@ -81,11 +81,20 @@ static EmbedSecurityLevel mozilla_embed_security_level (MozillaEmbed *membed);
 
 #define MOZILLA_EMBED_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), MOZILLA_TYPE_EMBED, MozillaEmbedPrivate))
 
+typedef enum
+{
+	MOZILLA_EMBED_LOAD_STARTED,
+	MOZILLA_EMBED_LOAD_REDIRECTING,
+	MOZILLA_EMBED_LOAD_LOADING,
+	MOZILLA_EMBED_LOAD_STOPPED
+} MozillaEmbedLoadState;
+
 struct MozillaEmbedPrivate
 {
 	EphyBrowser *browser;
 	nsCOMPtr<nsIRequest> request;
 	gint security_state;
+	MozillaEmbedLoadState load_state;
 };
 
 #define WINDOWWATCHER_CONTRACTID "@mozilla.org/embedcomp/window-watcher;1"
@@ -514,8 +523,7 @@ impl_reload (EphyEmbed *embed,
 
 static void
 impl_set_zoom (EphyEmbed *embed, 
-               float zoom, 
-               gboolean reflow)
+               float zoom) 
 {
 	EphyBrowser *browser;
 	nsresult result;
@@ -525,7 +533,7 @@ impl_set_zoom (EphyEmbed *embed,
 	browser = MOZILLA_EMBED(embed)->priv->browser;
 	g_return_if_fail (browser != NULL);
 
-	result = browser->SetZoom (zoom, reflow);
+	result = browser->SetZoom (zoom);
 
 	if (NS_SUCCEEDED (result))
 	{
@@ -803,13 +811,53 @@ mozilla_embed_location_changed_cb (GtkMozEmbed *embed,
 }
 
 static void
+update_load_state (MozillaEmbed *membed, gint state)
+{
+	MozillaEmbedPrivate *priv = membed->priv;
+
+	if (state & GTK_MOZ_EMBED_FLAG_IS_NETWORK)
+	{
+		if (state & GTK_MOZ_EMBED_FLAG_START)
+		{
+			priv->load_state = MOZILLA_EMBED_LOAD_STARTED;
+		}
+		else if (state & GTK_MOZ_EMBED_FLAG_STOP)
+		{
+			priv->load_state = MOZILLA_EMBED_LOAD_STOPPED;
+		}
+	}
+	else if (state & GTK_MOZ_EMBED_FLAG_START &&
+	         state & GTK_MOZ_EMBED_FLAG_IS_REQUEST)
+	{
+		if (priv->load_state == MOZILLA_EMBED_LOAD_REDIRECTING)
+		{
+			priv->load_state = MOZILLA_EMBED_LOAD_STARTED;
+		}
+		else if (priv->load_state != MOZILLA_EMBED_LOAD_LOADING)
+		{
+			priv->load_state = MOZILLA_EMBED_LOAD_LOADING;
+
+			char *address;
+			address = gtk_moz_embed_get_location (GTK_MOZ_EMBED (membed));
+			g_signal_emit_by_name (membed, "ge_content_change", address);
+			g_free (address);
+		}
+	}
+	else if (state & GTK_MOZ_EMBED_FLAG_REDIRECTING &&
+	         priv->load_state == MOZILLA_EMBED_LOAD_STARTED)
+	{
+		priv->load_state = MOZILLA_EMBED_LOAD_REDIRECTING;
+	}
+}
+
+static void
 mozilla_embed_net_state_all_cb (GtkMozEmbed *embed, const char *aURI,
                                 gint state, guint status, 
 				MozillaEmbed *membed)
 {
 	EmbedState estate = EMBED_STATE_UNKNOWN;
 	int i;
-	
+
 	struct
 	{
 		guint state;
@@ -835,6 +883,8 @@ mozilla_embed_net_state_all_cb (GtkMozEmbed *embed, const char *aURI,
 			estate = (EmbedState) (estate | conversion_map[i].embed_state);	
 		}
 	}
+
+	update_load_state (membed, state);
 	
 	g_signal_emit_by_name (membed, "ge_net_state", aURI, estate);
 }
