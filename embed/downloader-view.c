@@ -73,7 +73,6 @@ typedef struct
 	gboolean is_paused;
 	gboolean can_abort;
 	gboolean can_open;
-	gboolean can_pause;
 	DownloaderViewPrivate *priv;
 } ControlsInfo;
 

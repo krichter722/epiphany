@@ -300,6 +300,15 @@ MozDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest
 			       PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress,
 			       PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress)
 {
+    PRInt64 now = PR_Now ();
+
+    if ((now - mLastUpdate < mInterval) &&
+	 (aMaxTotalProgress != -1) &&
+	 (aCurTotalProgress < aMaxTotalProgress))
+	return NS_OK;
+
+    mLastUpdate = now;
+    
     if (mUserCanceled) {
         if (mHelperAppLauncher)
             mHelperAppLauncher->Cancel();

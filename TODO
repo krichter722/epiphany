@@ -17,7 +17,4 @@ are destroyed at right time.
 - Deal with the case where total size is unknown (we need special rendering
 for progress too I guess)
 - Initialize progress values when starting the download
-- Fix at least the Stop button. Probably we should also remove the download
-from list in that case.
 - Need a way to do downloads without view, for favicons
-- Maybe drop details crap if we get the ok from usability bigs
