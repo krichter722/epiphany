@@ -66,7 +66,8 @@ GtkWidget              *ephy_location_entry_new			(void);
 void			ephy_location_entry_add_completion	(EphyLocationEntry *le,
 								 EphyNode *root,
 								 guint text_property,
-								 guint action_property);
+								 guint action_property,
+								 guint keywords_property);
 
 void			ephy_location_entry_set_location	(EphyLocationEntry *le,
 								 const gchar *new_location);

@@ -427,9 +427,15 @@ ephy_tree_model_node_get_value (GtkTreeModel *tree_model,
 
 		if (col->prop_id >= 0)
 		{
-			ephy_node_get_property (node,
-					        col->prop_id,
-					        value);
+			if (!ephy_node_get_property (node, col->prop_id, value))
+			{
+				/* make sure to return a valid string anyway */
+				g_value_init (value, col->type);
+				if (col->type == G_TYPE_STRING)
+				{
+					g_value_set_string (value, "");
+				}
+			}
 		}
 		else
 		{

@@ -9,6 +9,7 @@ noinst_LTLIBRARIES = libegg.la
 
 EGGSOURCES = \
   eggtreemultidnd.c \
+  eggtreemodelunion.c \
   egg-editable-toolbar.c \
   egg-toolbars-model.c \
   egg-toolbar-editor.c
@@ -19,6 +20,7 @@ libegg_la_SOURCES = \
 
 EGGHEADERS = \
   eggtreemultidnd.h \
+  eggtreemodelunion.h \
   egg-editable-toolbar.h \
   egg-toolbars-model.h \
   egg-toolbar-editor.h

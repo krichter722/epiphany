@@ -149,6 +149,7 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 	if (EPHY_IS_LOCATION_ENTRY (proxy))
 	{
 		EphyHistory *history;
+		EphyBookmarks *bookmarks;
 		EphyNode *node;
 
 		history = ephy_embed_shell_get_global_history
@@ -156,7 +157,15 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 		node = ephy_history_get_pages (history);
 		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
 						    EPHY_NODE_PAGE_PROP_LOCATION,
-						    EPHY_NODE_PAGE_PROP_LOCATION);
+						    EPHY_NODE_PAGE_PROP_LOCATION,
+						    EPHY_NODE_PAGE_PROP_TITLE);
+
+		bookmarks = ephy_shell_get_bookmarks (ephy_shell);
+		node = ephy_bookmarks_get_bookmarks (bookmarks);
+		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
+						    EPHY_NODE_BMK_PROP_TITLE,
+						    EPHY_NODE_BMK_PROP_LOCATION,
+						    EPHY_NODE_BMK_PROP_KEYWORDS);
 
 		sync_address (action, NULL, proxy);
 		g_signal_connect_object (action, "notify::address",
