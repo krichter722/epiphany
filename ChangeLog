@@ -1,5 +1,31 @@
 2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* lib/ephy-node-common.h:
+	* lib/widgets/ephy-location-entry.c:
+	(ephy_location_entry_get_entry):
+	* lib/widgets/ephy-location-entry.h:
+	* src/bookmarks/ephy-bookmark-action.c: (sync_bookmark_properties):
+	* src/bookmarks/ephy-bookmarks-export.c:
+	(ephy_bookmarks_export_rdf):
+	* src/bookmarks/ephy-bookmarks.c: (ephy_bookmarks_init),
+	(update_has_smart_address), (ephy_bookmarks_add),
+	(ephy_bookmarks_set_address), (ephy_bookmarks_unset_keyword),
+	(ephy_bookmarks_get_smart_bookmarks):
+	* src/bookmarks/ephy-bookmarks.h:
+
+	Modify smart bookmarks to use a separate root instead
+	of a property.
+
+	* src/ephy-location-action.c: (remove_completion_actions),
+	(add_completion_actions), (connect_proxy), (init_actions_list),
+	(update_actions_list), (actions_child_removed_cb),
+	(actions_child_added_cb), (actions_child_changed_cb),
+	(ephy_location_action_init), (ephy_location_action_finalize):
+
+	Implement smart bookmarks as location actions.
+
+2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* lib/widgets/ephy-location-entry.c: (add_to_history),
 	(entry_activate_cb), (ephy_location_entry_construct_contents),
 	(ephy_location_entry_init), (save_location_history),

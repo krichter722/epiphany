@@ -39,7 +39,7 @@
 #include <libgnomevfs/gnome-vfs-utils.h>
 
 #define EPHY_BOOKMARKS_XML_ROOT    "ephy_bookmarks"
-#define EPHY_BOOKMARKS_XML_VERSION "1.0"
+#define EPHY_BOOKMARKS_XML_VERSION "1.01"
 #define BOOKMARKS_SAVE_DELAY (3 * 1000)
 #define MAX_FAVORITES_NUM 10
 
@@ -58,6 +58,7 @@ struct EphyBookmarksPrivate
 	EphyNode *keywords;
 	EphyNode *favorites;
 	EphyNode *notcategorized;
+	EphyNode *smartbookmarks;
 	EphyNode *lower_fav;
 	double lower_score;
 };
@@ -646,6 +647,10 @@ ephy_bookmarks_init (EphyBookmarks *eb)
 	g_value_unset (&value);
 	ephy_node_add_child (eb->priv->keywords, eb->priv->notcategorized);
 
+	/* Smart bookmarks */
+	eb->priv->smartbookmarks = ephy_node_new_with_id (db, SMARTBOOKMARKS_NODE_ID);
+	ephy_node_ref (eb->priv->smartbookmarks);
+
 	if (ephy_node_db_load_from_file (eb->priv->db, eb->priv->xml_file,
 					 EPHY_BOOKMARKS_XML_ROOT,
 					 EPHY_BOOKMARKS_XML_VERSION) == FALSE)
@@ -704,21 +709,32 @@ ephy_bookmarks_new ()
 }
 
 static void
-update_has_smart_address (EphyNode *bmk, const char *address)
+update_has_smart_address (EphyBookmarks *bookmarks, EphyNode *bmk, const char *address)
 {
+	EphyNode *smart_bmks;
 	gboolean smart = FALSE;
-	GValue value = { 0, };
+
+	smart_bmks = bookmarks->priv->smartbookmarks;
 
 	if (address)
 	{
 		smart = strstr (address, "%s") != NULL;
 	}
 
-	g_value_init (&value, G_TYPE_BOOLEAN);
-	g_value_set_boolean (&value, smart);
-	ephy_node_set_property (bmk, EPHY_NODE_BMK_PROP_HAS_SMART_ADDRESS,
-			        &value);
-	g_value_unset (&value);
+	if (smart)
+	{
+		if (!ephy_node_has_child (smart_bmks, bmk))
+		{
+			ephy_node_add_child (smart_bmks, bmk);
+		}
+	}
+	else
+	{
+		if (ephy_node_has_child (smart_bmks, bmk))
+		{
+			ephy_node_add_child (smart_bmks, bmk);
+		}
+	}
 }
 
 EphyNode *
@@ -743,7 +759,7 @@ ephy_bookmarks_add (EphyBookmarks *eb,
 			        &value);
 	g_value_unset (&value);
 
-	update_has_smart_address (bm, url);
+	update_has_smart_address (eb, bm, url);
 
 	ephy_node_add_child (eb->priv->bookmarks, bm);
 	ephy_node_add_child (eb->priv->notcategorized, bm);
@@ -767,7 +783,7 @@ ephy_bookmarks_set_address (EphyBookmarks *eb,
 			        &value);
 	g_value_unset (&value);
 
-	update_has_smart_address (bookmark, address);
+	update_has_smart_address (eb, bookmark, address);
 }
 
 EphyNode *
@@ -1160,6 +1176,12 @@ ephy_bookmarks_unset_keyword (EphyBookmarks *eb,
 	g_free (list);
 
 	g_signal_emit (G_OBJECT (eb), ephy_bookmarks_signals[TREE_CHANGED], 0);
+}
+
+EphyNode *
+ephy_bookmarks_get_smart_bookmarks (EphyBookmarks *eb)
+{
+	return eb->priv->smartbookmarks;
 }
 
 EphyNode *

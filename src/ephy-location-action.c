@@ -24,11 +24,16 @@
 #include "ephy-shell.h"
 #include "ephy-debug.h"
 
+#include <gtk/gtkentry.h>
+#include <gtk/gtkentrycompletion.h>
+
 #define EPHY_LOCATION_ACTION_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_LOCATION_ACTION, EphyLocationActionPrivate))
 
 struct _EphyLocationActionPrivate
 {
+	GList *actions;
 	char *address;
+	EphyNode *smart_bmks;
 };
 
 static void ephy_location_action_init       (EphyLocationAction *action);
@@ -142,6 +147,50 @@ sync_address (GtkAction *act, GParamSpec *pspec, GtkWidget *proxy)
 }
 
 static void
+remove_completion_actions (GtkAction *action, GtkWidget *proxy)
+{
+	GtkWidget *entry;
+	GtkEntryCompletion *completion;
+	EphyLocationAction *la = EPHY_LOCATION_ACTION (action);
+	GList *l;
+
+	entry = ephy_location_entry_get_entry (EPHY_LOCATION_ENTRY (proxy));
+	completion = gtk_entry_get_completion (GTK_ENTRY (entry));
+
+	for (l = la->priv->actions; l != NULL; l = l->next)
+	{
+		int index;
+
+		index = g_list_position (la->priv->actions, l);
+		gtk_entry_completion_delete_action (completion, index);
+	}
+}
+
+static void
+add_completion_actions (GtkAction *action, GtkWidget *proxy)
+{
+	GtkWidget *entry;
+	GtkEntryCompletion *completion;
+	EphyLocationAction *la = EPHY_LOCATION_ACTION (action);
+	GList *l;
+
+	entry = ephy_location_entry_get_entry (EPHY_LOCATION_ENTRY (proxy));
+	completion = gtk_entry_get_completion (GTK_ENTRY (entry));
+
+	for (l = la->priv->actions; l != NULL; l = l->next)
+	{
+		EphyNode *bmk = l->data;
+		const char *title;
+		int index;
+
+		index = g_list_position (la->priv->actions, l);
+		title = ephy_node_get_property_string
+	                (bmk, EPHY_NODE_BMK_PROP_TITLE);
+		gtk_entry_completion_insert_action_text (completion, index, (char*)title);
+	}
+}
+
+static void
 connect_proxy (GtkAction *action, GtkWidget *proxy)
 {
 	LOG ("Connect proxy")
@@ -166,6 +215,8 @@ connect_proxy (GtkAction *action, GtkWidget *proxy)
 						    EPHY_NODE_BMK_PROP_TITLE,
 						    EPHY_NODE_BMK_PROP_LOCATION,
 						    EPHY_NODE_BMK_PROP_KEYWORDS);
+
+		add_completion_actions (action, proxy);
 
 		sync_address (action, NULL, proxy);
 		g_signal_connect_object (action, "notify::address",
@@ -287,17 +338,106 @@ ephy_location_action_class_init (EphyLocationActionClass *class)
 }
 
 static void
+init_actions_list (EphyLocationAction *action)
+{
+	GPtrArray *children;
+	int i;
+
+	children = ephy_node_get_children (action->priv->smart_bmks);
+	for (i = 0; i < children->len; i++)
+	{
+		EphyNode *kid;
+
+		kid = g_ptr_array_index (children, i);
+
+		action->priv->actions = g_list_append
+			(action->priv->actions, kid);
+	}
+}
+
+static void
+update_actions_list (EphyLocationAction *la)
+{
+	GSList *l;
+	GtkAction *action = GTK_ACTION (la);
+
+	l = gtk_action_get_proxies (action);
+	for (; l != NULL; l = l->next)
+	{
+		remove_completion_actions (action, GTK_WIDGET (l->data));
+	}
+
+	g_list_free (la->priv->actions);
+	la->priv->actions = NULL;
+	init_actions_list (la);
+
+	l = gtk_action_get_proxies (action);
+	for (; l != NULL; l = l->next)
+	{
+		add_completion_actions (action, l->data);
+	}
+}
+
+static void
+actions_child_removed_cb (EphyNode *node,
+		          EphyNode *child,
+		          guint old_index,
+		          EphyLocationAction *action)
+{
+	update_actions_list (action);
+}
+
+static void
+actions_child_added_cb (EphyNode *node,
+		        EphyNode *child,
+		        EphyLocationAction *action)
+{
+	update_actions_list (action);
+}
+
+static void
+actions_child_changed_cb (EphyNode *node,
+		          EphyNode *child,
+		          EphyLocationAction *action)
+{
+	update_actions_list (action);
+}
+
+static void
 ephy_location_action_init (EphyLocationAction *action)
 {
+	EphyBookmarks *bookmarks;
+
 	action->priv = EPHY_LOCATION_ACTION_GET_PRIVATE (action);
 
 	action->priv->address = g_strdup ("");
+	action->priv->actions = NULL;
+
+	bookmarks = ephy_shell_get_bookmarks (ephy_shell);
+	action->priv->smart_bmks = ephy_bookmarks_get_smart_bookmarks (bookmarks);
+
+	init_actions_list (action);
+
+	ephy_node_signal_connect_object (action->priv->smart_bmks,
+			                 EPHY_NODE_CHILD_ADDED,
+			                 (EphyNodeCallback)actions_child_added_cb,
+			                 G_OBJECT (action));
+	ephy_node_signal_connect_object (action->priv->smart_bmks,
+			                 EPHY_NODE_CHILD_REMOVED,
+			                 (EphyNodeCallback)actions_child_removed_cb,
+			                 G_OBJECT (action));
+	ephy_node_signal_connect_object (action->priv->smart_bmks,
+			                 EPHY_NODE_CHILD_CHANGED,
+			                 (EphyNodeCallback)actions_child_changed_cb,
+			                 G_OBJECT (action));
 }
 
 static void
 ephy_location_action_finalize (GObject *object)
 {
 	EphyLocationAction *action = EPHY_LOCATION_ACTION (object);
+
+	g_list_free (action->priv->actions);
 
 	g_free (action->priv->address);
 }

@@ -594,3 +594,10 @@ ephy_location_entry_clear_history (EphyLocationEntry *le)
 
 	save_location_history (le);
 }
+
+GtkWidget *
+ephy_location_entry_get_entry (EphyLocationEntry *le)
+{
+	return le->priv->entry;
+}
+

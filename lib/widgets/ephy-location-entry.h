@@ -63,6 +63,8 @@ GType			ephy_location_entry_get_type		(void);
 
 GtkWidget              *ephy_location_entry_new			(void);
 
+GtkWidget	       *ephy_location_entry_get_entry		(EphyLocationEntry *le);
+
 void			ephy_location_entry_add_completion	(EphyLocationEntry *le,
 								 EphyNode *root,
 								 guint text_property,
