@@ -26,7 +26,6 @@
 
 static void ephy_completion_model_class_init (EphyCompletionModelClass *klass);
 static void ephy_completion_model_init (EphyCompletionModel *model);
-static void ephy_completion_model_finalize (GObject *object);
 static void ephy_completion_model_tree_model_init (GtkTreeModelIface *iface);
 
 #define EPHY_COMPLETION_MODEL_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_COMPLETION_MODEL, EphyCompletionModelPrivate))
@@ -35,15 +34,6 @@ struct EphyCompletionModelPrivate
 {
 	EphyNode *history;
 	EphyNode *bookmarks;
-};
-
-enum
-{
-	TEXT_COL,
-	ACTION_COL,
-	KEYWORDS_COL,
-	RELEVANCE_COL,
-	N_COL
 };
 
 enum
@@ -100,9 +90,108 @@ ephy_completion_model_class_init (EphyCompletionModelClass *klass)
 
 	parent_class = g_type_class_peek_parent (klass);
 
-	object_class->finalize = ephy_completion_model_finalize;
-
 	g_type_class_add_private (object_class, sizeof (EphyCompletionModelPrivate));
+}
+
+static void
+root_child_removed_cb (EphyNode *node,
+		       EphyNode *child,
+		       guint old_index,
+		       EphyCompletionModel *tree_model)
+{
+	EphyCompletionModel *model = EPHY_COMPLETION_MODEL (tree_model);
+	GtkTreePath *path;
+	int real_index;
+
+	real_index = old_index;
+
+	if (node == model->priv->bookmarks)
+	{
+		real_index += ephy_node_get_n_children (model->priv->history);
+	}
+
+	path = gtk_tree_path_new ();
+	gtk_tree_path_append_index (path, real_index);
+	gtk_tree_model_row_deleted (GTK_TREE_MODEL (model), path);
+	gtk_tree_path_free (path);
+}
+
+static void
+node_iter_from_node (EphyCompletionModel *model,
+		     EphyNode *node,
+		     GtkTreeIter *iter)
+{
+	iter->stamp = 0;
+	iter->user_data = node;
+}
+
+static inline GtkTreePath *
+get_path_real (EphyCompletionModel *model,
+	       EphyNode *node)
+{
+	GtkTreePath *retval;
+	int index;
+
+	retval = gtk_tree_path_new ();
+
+	index = ephy_node_get_child_index (model->priv->bookmarks, node);
+	if (index < 0)
+	{
+		index = ephy_node_get_child_index (model->priv->history, node);
+	}
+
+	g_return_val_if_fail (index >= 0, NULL);
+
+	gtk_tree_path_append_index (retval, index);
+
+	return retval;
+}
+
+static void
+root_child_added_cb (EphyNode *node,
+		     EphyNode *child,
+		     EphyCompletionModel *model)
+{
+	GtkTreePath *path;
+	GtkTreeIter iter;
+
+	node_iter_from_node (model, child, &iter);
+
+	path = get_path_real (model, child);
+	gtk_tree_model_row_inserted (GTK_TREE_MODEL (model), path, &iter);
+	gtk_tree_path_free (path);
+}
+
+static void
+root_child_changed_cb (EphyNode *node,
+		       EphyNode *child,
+		       EphyCompletionModel *model)
+{
+	GtkTreePath *path;
+	GtkTreeIter iter;
+
+	node_iter_from_node (model, node, &iter);
+
+	path = get_path_real (model, child);
+	gtk_tree_model_row_changed (GTK_TREE_MODEL (model), path, &iter);
+	gtk_tree_path_free (path);
+}
+
+static void
+connect_signals (EphyCompletionModel *model, EphyNode *root)
+{
+	ephy_node_signal_connect_object (root,
+			                 EPHY_NODE_CHILD_ADDED,
+			                 (EphyNodeCallback)root_child_added_cb,
+			                 G_OBJECT (model));
+	ephy_node_signal_connect_object (root,
+			                 EPHY_NODE_CHILD_REMOVED,
+			                 (EphyNodeCallback)root_child_removed_cb,
+			                 G_OBJECT (model));
+	ephy_node_signal_connect_object (root,
+			                 EPHY_NODE_CHILD_CHANGED,
+			                 (EphyNodeCallback)root_child_changed_cb,
+			                 G_OBJECT (model));
 }
 
 static void
@@ -116,17 +205,11 @@ ephy_completion_model_init (EphyCompletionModel *model)
 	history = ephy_embed_shell_get_global_history
 		(EPHY_EMBED_SHELL (ephy_shell));
 	model->priv->history = ephy_history_get_pages (history);
+	connect_signals (model, model->priv->history);
 
 	bookmarks = ephy_shell_get_bookmarks (ephy_shell);
 	model->priv->bookmarks = ephy_bookmarks_get_bookmarks (bookmarks);
-}
-
-static void
-ephy_completion_model_finalize (GObject *object)
-{
-	//EphyCompletionModel *model = EPHY_COMPLETION_MODEL (object);
-
-	G_OBJECT_CLASS (parent_class)->finalize (object);
+	connect_signals (model, model->priv->bookmarks);
 }
 
 EphyCompletionModel *
@@ -156,12 +239,12 @@ ephy_completion_model_get_column_type (GtkTreeModel *tree_model,
 
 	switch (index)
 	{
-		case TEXT_COL:
-		case ACTION_COL:
-		case KEYWORDS_COL:
+		case EPHY_COMPLETION_TEXT_COL:
+		case EPHY_COMPLETION_ACTION_COL:
+		case EPHY_COMPLETION_KEYWORDS_COL:
 			type =  G_TYPE_STRING;
 			break;
-		case RELEVANCE_COL:
+		case EPHY_COMPLETION_RELEVANCE_COL:
 			type = G_TYPE_INT;
 			break;
 	}
@@ -178,11 +261,11 @@ init_text_col (GValue *value, EphyNode *node, int group)
 	{
 		case BOOKMARKS_GROUP:
 			text = ephy_node_get_property_string
-				(node, EPHY_NODE_PAGE_PROP_LOCATION);
+				(node, EPHY_NODE_PAGE_PROP_TITLE);
 			break;
 		case HISTORY_GROUP:
 			text = ephy_node_get_property_string
-				(node, EPHY_NODE_BMK_PROP_TITLE);
+				(node, EPHY_NODE_BMK_PROP_LOCATION);
 			break;
 
 		default:
@@ -201,17 +284,60 @@ init_action_col (GValue *value, EphyNode *node, int group)
 	{
 		case BOOKMARKS_GROUP:
 			text = ephy_node_get_property_string
-				(node, EPHY_NODE_PAGE_PROP_LOCATION);
+				(node, EPHY_NODE_BMK_PROP_LOCATION);
 			break;
 		case HISTORY_GROUP:
 			text = ephy_node_get_property_string
-				(node, EPHY_NODE_BMK_PROP_LOCATION);
+				(node, EPHY_NODE_PAGE_PROP_LOCATION);
 			break;
 		default:
 			text = "";
 	}
 	
 	g_value_set_string (value, text);
+}
+
+static void
+init_keywords_col (GValue *value, EphyNode *node, int group)
+{
+	const char *text = NULL;
+
+	switch (group)
+	{
+		case BOOKMARKS_GROUP:
+			text = ephy_node_get_property_string
+				(node, EPHY_NODE_BMK_PROP_KEYWORDS);
+			break;
+	}
+
+	if (text == NULL)
+	{
+		text = "";
+	}
+	
+	g_value_set_string (value, text);
+}
+
+static void
+init_relevance_col (GValue *value, EphyNode *node, int group)
+{
+	int relevance, visits;
+
+	switch (group)
+	{
+		case HISTORY_GROUP:
+			visits = ephy_node_get_property_int
+				(node, EPHY_NODE_PAGE_PROP_VISITS);
+			relevance = visits;
+			break;
+		case BOOKMARKS_GROUP:
+			relevance = 2000;
+			break;
+		default:
+			relevance = 0;
+	}
+	
+	g_value_set_int (value, relevance);
 }
 
 static EphyNode *
@@ -276,21 +402,21 @@ ephy_completion_model_get_value (GtkTreeModel *tree_model,
 
 	switch (column)
 	{
-		case TEXT_COL:
+		case EPHY_COMPLETION_TEXT_COL:
 			g_value_init (value, G_TYPE_STRING);
 			init_text_col (value, node, group);
 			break;
-		case ACTION_COL:
+		case EPHY_COMPLETION_ACTION_COL:
 			g_value_init (value, G_TYPE_STRING);
 			init_action_col (value, node, group);
 			break;
-		case KEYWORDS_COL:
+		case EPHY_COMPLETION_KEYWORDS_COL:
 			g_value_init (value, G_TYPE_STRING);
-			g_value_set_string (value, "");
+			init_keywords_col (value, node, group);
 			break;
-		case RELEVANCE_COL:
+		case EPHY_COMPLETION_RELEVANCE_COL:
 			g_value_init (value, G_TYPE_INT);
-			g_value_set_int (value, 0);
+			init_relevance_col (value, node, group);
 			break;
 	}
 }
@@ -327,28 +453,6 @@ ephy_completion_model_get_iter (GtkTreeModel *tree_model,
 	}
 
 	return TRUE;
-}
-
-static inline GtkTreePath *
-get_path_real (EphyCompletionModel *model,
-	       EphyNode *node)
-{
-	GtkTreePath *retval;
-	int index;
-
-	retval = gtk_tree_path_new ();
-
-	index = ephy_node_get_child_index (model->priv->bookmarks, node);
-	if (index < 0)
-	{
-		index = ephy_node_get_child_index (model->priv->history, node);
-	}
-
-	g_return_val_if_fail (index >= 0, NULL);
-
-	gtk_tree_path_append_index (retval, index);
-
-	return retval;
 }
 
 static GtkTreePath *

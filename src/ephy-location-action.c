@@ -22,6 +22,7 @@
 #include "ephy-location-action.h"
 #include "ephy-location-entry.h"
 #include "ephy-shell.h"
+#include "ephy-completion-model.h"
 #include "ephy-debug.h"
 
 #include <gtk/gtkentry.h>
@@ -216,29 +217,20 @@ add_completion_actions (GtkAction *action, GtkWidget *proxy)
 static void
 connect_proxy (GtkAction *action, GtkWidget *proxy)
 {
-	EphyLocationAction *la = EPHY_LOCATION_ACTION (action);
-
 	LOG ("Connect proxy")
 
 	if (EPHY_IS_LOCATION_ENTRY (proxy))
 	{
-		EphyHistory *history;
-		EphyNode *node;
+		EphyCompletionModel *model;
 		GtkWidget *entry;
 
-		history = ephy_embed_shell_get_global_history
-			(EPHY_EMBED_SHELL (ephy_shell));
-		node = ephy_history_get_pages (history);
-		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
-						    EPHY_NODE_PAGE_PROP_LOCATION,
-						    EPHY_NODE_PAGE_PROP_LOCATION,
-						    EPHY_NODE_PAGE_PROP_TITLE);
-
-		node = ephy_bookmarks_get_bookmarks (la->priv->bookmarks);
-		ephy_location_entry_add_completion (EPHY_LOCATION_ENTRY (proxy), node,
-						    EPHY_NODE_BMK_PROP_TITLE,
-						    EPHY_NODE_BMK_PROP_LOCATION,
-						    EPHY_NODE_BMK_PROP_KEYWORDS);
+		model = ephy_completion_model_new ();
+		ephy_location_entry_set_completion (EPHY_LOCATION_ENTRY (proxy),
+						    GTK_TREE_MODEL (model),
+						    EPHY_COMPLETION_TEXT_COL,
+						    EPHY_COMPLETION_ACTION_COL,
+						    EPHY_COMPLETION_KEYWORDS_COL,
+						    EPHY_COMPLETION_RELEVANCE_COL);
 
 		add_completion_actions (action, proxy);
 

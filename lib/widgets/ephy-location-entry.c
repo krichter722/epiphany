@@ -34,13 +34,13 @@
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkcellrenderertext.h>
 #include <gtk/gtkcelllayout.h>
+#include <gtk/gtktreemodelsort.h>
 #include <string.h>
 
 #define EPHY_LOCATION_ENTRY_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_LOCATION_ENTRY, EphyLocationEntryPrivate))
 
 struct _EphyLocationEntryPrivate
 {
-	GtkTreeModel *completion_model;
 	EphyTreeModelNode *combo_model;
 	GtkWidget *combo;
 	GtkWidget *entry;
@@ -50,13 +50,11 @@ struct _EphyLocationEntryPrivate
 	EphyNodeDb *combo_db;
 	EphyNode *combo_root;
 	char *xml_file;
-};
 
-enum
-{
-	TEXT_COL,
-	KEYWORDS_COL,
-	ACTION_COL
+	guint text_col;
+	guint action_col;
+	guint keywords_col;
+	guint relevance_col;
 };
 
 static char *web_prefixes [] =
@@ -308,11 +306,14 @@ completion_func (GtkEntryCompletion *completion,
 	char *case_normalized_string, *case_normalized_keywords;
 	gboolean ret = FALSE;
 	EphyLocationEntry *le = EPHY_LOCATION_ENTRY (data);
+	GtkTreeModel *model;
 
-	gtk_tree_model_get (le->priv->completion_model, iter,
-			    TEXT_COL, &item, -1);
-	gtk_tree_model_get (le->priv->completion_model, iter,
-			    KEYWORDS_COL, &keywords, -1);
+	model = gtk_entry_completion_get_model (completion);
+
+	gtk_tree_model_get (model, iter,
+			    le->priv->text_col, &item, -1);
+	gtk_tree_model_get (model, iter,
+			    le->priv->keywords_col, &keywords, -1);
 
 	normalized_string = g_utf8_normalize (item, -1, G_NORMALIZE_ALL);
 	case_normalized_string = g_utf8_casefold (normalized_string, -1);
@@ -362,7 +363,7 @@ match_selected_cb (GtkEntryCompletion *completion,
 	char *item = NULL;
 
 	gtk_tree_model_get (model, iter,
-			    ACTION_COL, &item, -1);
+			    le->priv->action_col, &item, -1);
 
 	ephy_location_entry_set_location (le, item);
 	g_signal_emit_by_name (le->priv->entry, "activate");
@@ -376,8 +377,6 @@ static void
 ephy_location_entry_construct_contents (EphyLocationEntry *le)
 {
 	EphyLocationEntryPrivate *p = le->priv;
-	GtkEntryCompletion *completion;
-	GtkCellRenderer *cell;
 	int combo_text_col;
 
 	LOG ("EphyLocationEntry constructing contents %p", le)
@@ -398,23 +397,6 @@ ephy_location_entry_construct_contents (EphyLocationEntry *le)
 			  G_CALLBACK (editable_changed_cb), le);
 	g_signal_connect (p->entry, "activate",
 			  G_CALLBACK (entry_activate_cb), le);
-
-	p->completion_model = egg_tree_model_union_new
-		(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-
-	completion = gtk_entry_completion_new ();
-	gtk_entry_completion_set_model (completion, le->priv->completion_model);
-	gtk_entry_completion_set_match_func (completion, completion_func, le, NULL);
-	g_signal_connect (completion, "match_selected",
-			  G_CALLBACK (match_selected_cb), le);
-
-	cell = gtk_cell_renderer_text_new ();
-	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion),
-				    cell, TRUE);
-	gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion),
-				       cell, "text", TEXT_COL);
-
-	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
 
 static void
@@ -429,7 +411,6 @@ ephy_location_entry_init (EphyLocationEntry *le)
 
 	p->user_changed = TRUE;
 	p->activation_mode = FALSE;
-	p->completion_model = NULL;
 	p->combo_db = ephy_node_db_new ("NodeDB");
 	p->combo_root = ephy_node_new_with_id
 		(p->combo_db, LOCATION_HISTORY_NODE_ID);
@@ -500,27 +481,60 @@ ephy_location_entry_new (void)
 	return GTK_WIDGET (g_object_new (EPHY_TYPE_LOCATION_ENTRY, NULL));
 }
 
-void
-ephy_location_entry_add_completion (EphyLocationEntry *le,
-				    EphyNode *root,
-				    guint text_property,
-				    guint action_property,
-				    guint keywords_property)
+static gint
+sort_func (GtkTreeModel *model,
+	   GtkTreeIter *a,
+	   GtkTreeIter *b,
+	   gpointer data)
 {
-	EphyTreeModelNode *node_model;
-	int action_col, text_col, keywords_col;
+	gint valuea, valueb;
+	EphyLocationEntry *le = EPHY_LOCATION_ENTRY (data);
 
-	node_model = ephy_tree_model_node_new (root, NULL);
-	text_col = ephy_tree_model_node_add_prop_column
-		(node_model, G_TYPE_STRING, text_property);
-	action_col = ephy_tree_model_node_add_prop_column
-		(node_model, G_TYPE_STRING, action_property);
-	keywords_col = ephy_tree_model_node_add_prop_column
-		(node_model, G_TYPE_STRING, keywords_property);
-	egg_tree_model_union_append_with_mapping
-		(EGG_TREE_MODEL_UNION (le->priv->completion_model),
-		 GTK_TREE_MODEL (node_model), text_col, keywords_col,
-		 action_col);
+	gtk_tree_model_get (model, a,
+			    le->priv->relevance_col, &valuea, -1);
+	gtk_tree_model_get (model, b,
+			    le->priv->relevance_col, &valueb, -1);
+
+	return valueb - valuea;
+}
+
+void
+ephy_location_entry_set_completion (EphyLocationEntry *le,
+				    GtkTreeModel *model,
+				    guint text_col,
+				    guint action_col,
+				    guint keywords_col,
+				    guint relevance_col)
+{
+	GtkTreeModel *sort_model;
+	GtkEntryCompletion *completion;
+	GtkCellRenderer *cell;
+
+	le->priv->text_col = text_col;
+	le->priv->action_col = action_col;
+	le->priv->keywords_col = keywords_col;
+	le->priv->relevance_col = relevance_col;
+
+	sort_model = gtk_tree_model_sort_new_with_model (model);
+	g_object_unref (model);
+	gtk_tree_sortable_set_default_sort_func
+		(GTK_TREE_SORTABLE (sort_model),
+		 sort_func, le, NULL);
+
+	completion = gtk_entry_completion_new ();
+	gtk_entry_completion_set_model (completion, sort_model);
+	g_object_unref (sort_model);
+	gtk_entry_completion_set_match_func (completion, completion_func, le, NULL);
+	g_signal_connect (completion, "match_selected",
+			  G_CALLBACK (match_selected_cb), le);
+
+	cell = gtk_cell_renderer_text_new ();
+	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (completion),
+				    cell, TRUE);
+	gtk_cell_layout_add_attribute (GTK_CELL_LAYOUT (completion),
+				       cell, "text", text_col);
+
+	gtk_entry_set_completion (GTK_ENTRY (le->priv->entry), completion);
 }
 
 void

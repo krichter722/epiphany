@@ -26,6 +26,7 @@
 #include "ephy-node.h"
 
 #include <gtk/gtktoolitem.h>
+#include <gtk/gtktreemodel.h>
 
 #define EPHY_TYPE_LOCATION_ENTRY		(ephy_location_entry_get_type())
 #define EPHY_LOCATION_ENTRY(object)		(G_TYPE_CHECK_INSTANCE_CAST((object), EPHY_TYPE_LOCATION_ENTRY,\
@@ -61,11 +62,12 @@ GtkWidget              *ephy_location_entry_new			(void);
 
 GtkWidget	       *ephy_location_entry_get_entry		(EphyLocationEntry *le);
 
-void			ephy_location_entry_add_completion	(EphyLocationEntry *le,
-								 EphyNode *root,
-								 guint text_property,
-								 guint action_property,
-								 guint keywords_property);
+void			ephy_location_entry_set_completion	(EphyLocationEntry *le,
+								 GtkTreeModel *model,
+								 guint text_col,
+								 guint action_col,
+								 guint keywords_col,
+								 guint relevance_col);
 
 void			ephy_location_entry_set_location	(EphyLocationEntry *le,
 								 const gchar *new_location);

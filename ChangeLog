@@ -1,3 +1,25 @@
+2003-10-06  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c: (completion_func),
+	(match_selected_cb), (ephy_location_entry_construct_contents),
+	(ephy_location_entry_init), (sort_func),
+	(ephy_location_entry_set_completion):
+	* lib/widgets/ephy-location-entry.h:
+	* src/Makefile.am:
+	* src/ephy-completion-model.c: (ephy_completion_model_class_init),
+	(root_child_removed_cb), (node_iter_from_node), (get_path_real),
+	(root_child_added_cb), (root_child_changed_cb), (connect_signals),
+	(ephy_completion_model_init),
+	(ephy_completion_model_get_column_type), (init_text_col),
+	(init_action_col), (init_keywords_col), (init_relevance_col),
+	(ephy_completion_model_get_value),
+	(ephy_completion_model_get_iter):
+	* src/ephy-location-action.c: (connect_proxy):
+
+	Implement our own completion model. The big part of the
+	new location entry impl is done. When gtk completion will
+	be fixed I'll be able to merge this on head.
+
 2003-10-05  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* lib/widgets/ephy-location-entry.c:
