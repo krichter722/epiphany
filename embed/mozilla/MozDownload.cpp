@@ -243,6 +243,16 @@ MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
   
     // We will get this even in the event of a cancel,
     if ((aStateFlags & STATE_STOP) && (!mIsNetworkTransfer || (aStateFlags & STATE_IS_NETWORK))) {
+        if (mWebPersist)
+	{
+	    /* Keep us alive */
+	    nsCOMPtr<nsIDownload> kungFuDeathGrip(this);
+
+            mWebPersist->SetProgressListener(nsnull);
+            mWebPersist = nsnull;
+        }
+        mHelperAppLauncher = nsnull;
+
 	if (mEmbedPersist)
 	{
 		if (NS_SUCCEEDED (aStatus))
@@ -254,12 +264,6 @@ MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			mozilla_embed_persist_cancelled (mEmbedPersist);
 		}
 	}
-
-        if (mWebPersist) {
-            mWebPersist->SetProgressListener(nsnull);
-            mWebPersist = nsnull;
-        }
-        mHelperAppLauncher = nsnull;
     }
         
     return NS_OK; 
