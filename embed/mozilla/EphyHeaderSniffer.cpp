@@ -190,9 +190,9 @@ nsresult EphyHeaderSniffer::InitiateDownload(nsISupports* inSourceData, nsILocal
   
   MozDownload *downloader = new MozDownload ();
   // dlListener attaches to its progress dialog here, which gains ownership
-  rv = downloader->Init(inOriginalURI, inDestFile, fileDisplayName.get(), nsnull, timeNow, webPersist);
+  rv = downloader->InitForEmbed (inOriginalURI, inDestFile, fileDisplayName.get(),
+				 nsnull, timeNow, webPersist, mEmbedPersist);
   if (NS_FAILED(rv)) return rv;
-  downloader->SetEmbedPersist (mEmbedPersist);
 
   PRInt32 flags = nsIWebBrowserPersist::PERSIST_FLAGS_NO_CONVERSION | 
                   nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES;

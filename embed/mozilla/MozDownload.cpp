@@ -59,17 +59,30 @@ MozDownload::MozDownload() :
 
 MozDownload::~MozDownload()
 {
+	mEmbedPersist = nsnull;    
 }
 
 NS_IMPL_ISUPPORTS2(MozDownload, nsIDownload, nsIWebProgressListener)
+
+NS_IMETHODIMP
+MozDownload::InitForEmbed (nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
+		           nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist,
+		           MozillaEmbedPersist *aEmbedPersist)
+{
+	mEmbedPersist = aEmbedPersist;
+	return Init (aSource, aTarget, aDisplayName, aMIMEInfo, startTime, aPersist);
+}
 
 /* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
 NS_IMETHODIMP
 MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
 		   nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
+    EmbedPersistFlags flags;
+
+    ephy_embed_persist_get_flags (EPHY_EMBED_PERSIST (mEmbedPersist), &flags);
+
     try {
-	mEmbedPersist = nsnull;    
         mSource = aSource;
         mDestination = aTarget;
         mStartTime = startTime;
@@ -88,12 +101,19 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
             aPersist->SetProgressListener(this);
         }
 
-	DownloaderView *dview;
-	dview = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
-			             (embed_shell));
-	mEphyDownload = mozilla_download_new ();
-	MOZILLA_DOWNLOAD (mEphyDownload)->moz_download = this;
-	downloader_view_add_download (dview, mEphyDownload);
+	if (!(flags & EMBED_PERSIST_NO_VIEW))
+	{ 
+		DownloaderView *dview;
+		dview = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
+				             (embed_shell));
+		mEphyDownload = mozilla_download_new ();
+		MOZILLA_DOWNLOAD (mEphyDownload)->moz_download = this;
+		downloader_view_add_download (dview, mEphyDownload);
+	}
+	else
+	{
+		mEphyDownload = nsnull;
+	}
     }
     catch (...) {
         return NS_ERROR_FAILURE;
@@ -243,11 +263,11 @@ MozDownload::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest,
   
     // We will get this even in the event of a cancel,
     if ((aStateFlags & STATE_STOP) && (!mIsNetworkTransfer || (aStateFlags & STATE_IS_NETWORK))) {
+	/* Keep us alive */
+	nsCOMPtr<nsIDownload> kungFuDeathGrip(this);
+
         if (mWebPersist)
 	{
-	    /* Keep us alive */
-	    nsCOMPtr<nsIDownload> kungFuDeathGrip(this);
-
             mWebPersist->SetProgressListener(nsnull);
             mWebPersist = nsnull;
         }
@@ -290,7 +310,10 @@ MozDownload::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest
     mTotalProgress = aMaxTotalProgress;
     mCurrentProgress = aCurTotalProgress;
 
-    g_signal_emit_by_name (mEphyDownload, "changed");
+    if (mEphyDownload)
+    {
+      g_signal_emit_by_name (mEphyDownload, "changed");
+    }
 
     return NS_OK;
 }

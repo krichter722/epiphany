@@ -1,3 +1,13 @@
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/ephy-embed-persist.h:
+	* embed/ephy-favicon-cache.c: (ephy_favicon_cache_download):
+	* embed/mozilla/EphyHeaderSniffer.cpp:
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+
+	Implement no_view downloads and use for favicons.
+
 2003-10-15  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* embed/mozilla/MozDownload.cpp:

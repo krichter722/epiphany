@@ -97,6 +97,10 @@ public:
     nsresult GetCurrentProgress (PRInt32 *aCurrentProgress);
     nsresult GetTotalProgress   (PRInt32 *aTProgress);
     nsresult GetElapsedTime     (PRInt64 *aTProgress);
+    nsresult InitForEmbed       (nsIURI *aSource, nsILocalFile *aTarget,
+				 const PRUnichar *aDisplayName, nsIMIMEInfo *aMIMEInfo,
+				 PRInt64 startTime, nsIWebBrowserPersist *aPersist,
+				 MozillaEmbedPersist *aEmbedPersist);
 
 protected:
     nsCOMPtr<nsIURI>        mSource;
