@@ -1,3 +1,17 @@
+2003-09-07  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* data/epiphany.schemas.in:
+	* data/glade/prefs-dialog.glade:
+	* embed/ephy-embed-prefs.h:
+	* embed/ephy-embed-single.c:
+	* embed/ephy-embed-single.h:
+	* embed/mozilla/mozilla-embed-single.cpp:
+	* embed/mozilla/mozilla-notifiers.cpp:
+	* src/prefs-dialog.c: (prefs_dialog_finalize), (prefs_dialog_init),
+	(prefs_clear_cache_button_clicked_cb):
+
+	Working on a better fonts implementation using css.
+
 2003-09-06  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* src/bookmarks/ephy-bookmarks-menu.c: (ephy_bookmarks_menu_clean),

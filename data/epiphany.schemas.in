@@ -35,25 +35,6 @@
         </locale>
       </schema>
      <schema>
-        <key>/schemas/apps/epiphany/dialogs/preferences_font_language</key>
-        <applyto>/apps/epiphany/dialogs/preferences_font_language</applyto>
-        <owner>epiphany</owner>
-        <type>string</type>
-        <locale name="C">
-        <default>x-western</default>
-        <short>The currently selected fonts language</short>
-        <long>
-	The currently selected fonts language. Valid values are "ar" (arabic),
-	"x-baltic" (baltic languages), "x-central-euro" (central european languages),
-	"x-cyrillic" (languages written with cyrillic alphabet), "el" (greek),
-	"he" (hebrew), "ja" (japanese), "ko" (korean), "zh-CN" (simplified chinese),
-	"th" (thai), "zh-TW" (traditional chinese), "tr" (turkish), "x-unicode" (other
-	languages), "x-western" (languages written in latin script), "x-tamil" (tamil)
-	and "x-devanagari" (devanagari).
-	</long>
-        </locale>
-     </schema>
-     <schema>
         <key>/schemas/apps/epiphany/web/use_own_colors</key>
         <applyto>/apps/epiphany/web/use_own_colors</applyto>
         <owner>epiphany</owner>
@@ -75,6 +56,52 @@
         <short>Use own fonts</short>
         <long>Use your own fonts instead of the fonts the page
         requests.</long>
+        </locale>
+      </schema>
+      <schema>
+        <key>/schemas/apps/epiphany/web/use_desktop_fonts</key>
+        <applyto>/apps/epiphany/web/use_desktop_fonts</applyto>
+        <owner>epiphany</owner>
+        <type>bool</type>
+        <default>true</default>
+        <locale name="C">
+        <short>Use desktop fonts</short>
+        <long>Use "Desktop Font" and "Terminal Font" for variable and
+        fixed width fonts.</long>
+        </locale>
+      </schema>
+      <schema>
+        <key>/schemas/apps/epiphany/web/fixed_width_font</key>
+        <applyto>/apps/epiphany/web/fixed_width_font</applyto>
+        <owner>epiphany</owner>
+        <type>string</type>
+        <default>Monospace 10</default>
+        <locale name="C">
+        <short>Fixed width font</short>
+        <long>Name of the fixed width font.</long>
+        </locale>
+      </schema>
+      <schema>
+        <key>/schemas/apps/epiphany/web/variable_width_font</key>
+        <applyto>/apps/epiphany/web/variable_width_font</applyto>
+        <owner>epiphany</owner>
+        <type>string</type>
+        <default>Sans 10</default>
+        <locale name="C">
+        <short>Variable width font</short>
+        <long>Name of the variable width font.</long>
+        </locale>
+      </schema>
+      <schema>
+        <key>/schemas/apps/epiphany/web/minimum_font_size</key>
+        <applyto>/apps/epiphany/web/minimum_font_size</applyto>
+        <owner>epiphany</owner>
+        <type>int</type>
+        <default>6</default>
+        <locale name="C">
+        <short>Minimum font size</short>
+        <long>The minum size of fonts, even if specified differently
+              by the web page author.</long>
         </locale>
       </schema>
       <schema>
@@ -170,18 +197,6 @@
 	"x-mac-hebrew", "x-mac-icelandic", "x-mac-roman", "x-mac-romanian",
 	"x-mac-turkish", "x-mac-ukrainian", "x-user-defined", "x-viet-tcvn5712",
 	"x-viet-vps" and "x-windows-949".</long>
-        </locale>
-      </schema>
-     <schema>
-        <key>/schemas/apps/epiphany/web/default_font_type</key>
-        <applyto>/apps/epiphany/web/default_font_type</applyto>
-        <owner>epiphany</owner>
-        <type>string</type>
-        <default>serif</default>
-        <locale name="C">
-        <short>Default font type</short>
-        <long>Default font type.  Possible values are "serif" and "sans-serif".
-	</long>
         </locale>
       </schema>
      <schema>

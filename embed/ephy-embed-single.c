@@ -157,18 +157,6 @@ ephy_embed_single_get_language_groups (EphyEmbedSingle *shell,
 }
 
 gresult
-ephy_embed_single_get_font_list (EphyEmbedSingle *shell,
-				const char *langGroup,
-				const char *fontType,
-				GList **fontList,
-				char **default_font)
-{
-	EphyEmbedSingleClass *klass = EPHY_EMBED_SINGLE_GET_CLASS (shell);
-        return klass->get_font_list (shell, langGroup, fontType, fontList,
-				     default_font);
-}
-
-gresult
 ephy_embed_single_list_cookies (EphyEmbedSingle *shell,
 			       GList **cookies)
 {

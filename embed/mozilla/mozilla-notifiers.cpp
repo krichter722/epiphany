@@ -113,7 +113,6 @@ mozilla_proxy_ignore_notifier (GConfClient *client,
 /* Keeps the list of the notifiers we installed for mozilla prefs */
 /* to be able to remove them when exiting */
 GList *mozilla_notifiers = NULL;
-GList *font_infos = NULL;
 
 enum
 {
@@ -141,7 +140,6 @@ conversion_table [] =
 	{ CONF_NETWORK_SSL_PROXY_PORT, INT_PREF, "network.proxy.ssl_port"},
 	{ CONF_LANGUAGE_DEFAULT_ENCODING, STRING_PREF, "intl.charset.default" },
 	{ CONF_LANGUAGE_AUTODETECT_ENCODING, STRING_PREF, "intl.charset.detector" },
-	{ CONF_RENDERING_DEFAULT_FONT, STRING_PREF, "font.default" },
 
 	{ NULL, 0, NULL }
 };
@@ -247,21 +245,6 @@ mozilla_cache_size_notifier (GConfClient *client,
 }
 
 static void
-mozilla_font_size_notifier (GConfClient *client,
-		            guint cnxn_id,
-		            GConfEntry *entry,
-		            char *pref)
-{
-	char key[255];
-	
-	if (entry->value == NULL) return;
-
-	sprintf (key, "font.%s", pref);
-
-	mozilla_prefs_set_int (key, eel_gconf_get_integer (entry->key));
-}
-
-static void
 mozilla_proxy_mode_notifier (GConfClient *client,
 		             guint cnxn_id,
 		             GConfEntry *entry,
@@ -315,27 +298,6 @@ mozilla_cookies_accept_notifier (GConfClient *client,
 	mozilla_prefs_set_int ("network.cookie.cookieBehavior", mozilla_mode);
 
 	g_free (mode);
-}
-
-static void
-mozilla_font_notifier (GConfClient *client,
-		       guint cnxn_id,
-		       GConfEntry *entry,
-		       char *pref)
-{
-	char key[255];
-	char *name;
-
-	if (entry->value == NULL) return;
-	
-	sprintf (key, "font.name.%s", pref);
-
-	name = eel_gconf_get_string (entry->key);
-	if (name)
-	{
-		mozilla_prefs_set_string (key, name);
-		g_free (name);
-	}
 }
 
 static void
@@ -396,8 +358,6 @@ mozilla_notifiers_init(EphyEmbedSingle *single)
 {
 	GConfClient *client = eel_gconf_client_get_global ();
 	guint i;
-	guint n_fonts_languages;
-	const FontsLanguageInfo *fonts_language;
 
 	for (i = 0; conversion_table[i].gconf_key != NULL; i++)
 	{
@@ -433,66 +393,12 @@ mozilla_notifiers_init(EphyEmbedSingle *single)
 			 custom_notifiers[i].func,
 			 (gpointer)single);
 	}
-
-	/* fonts notifiers */
-	n_fonts_languages = ephy_langs_get_n_font_languages ();
-	fonts_language = ephy_langs_get_font_languages ();
-	for (i = 0; i < n_fonts_languages; i++)
-	{
-		guint k;
-		char *types [] = { "serif", "sans-serif", "cursive", "fantasy", "monospace" };
-		char key[255];
-		char *info;
-		
-		for (k = 0; k < G_N_ELEMENTS (types); k++)
-		{
-			info = g_strconcat (types[k], ".", fonts_language[i].code, NULL);
-			
-			g_snprintf (key, 255, "%s_%s_%s", CONF_RENDERING_FONT, 
-			 	    types[k], 
-                 	 	    fonts_language[i].code);
-			add_notification_and_notify (client, key,
-						     (GConfClientNotifyFunc)mozilla_font_notifier,
-						     info);
-			font_infos = g_list_append (font_infos, info);
-		}
-
-		g_snprintf (key, 255, "%s_%s", CONF_RENDERING_FONT_MIN_SIZE, fonts_language[i].code);
-		info = g_strconcat ("minimum-size", ".", fonts_language[i].code, NULL);
-		add_notification_and_notify (client, key,
-					     (GConfClientNotifyFunc)mozilla_font_size_notifier,
-					     info);
-		font_infos = g_list_append (font_infos, info);
-
-		g_snprintf (key, 255, "%s_%s", CONF_RENDERING_FONT_FIXED_SIZE, fonts_language[i].code);
-		info = g_strconcat ("size.fixed", ".", fonts_language[i].code, NULL);
-		add_notification_and_notify (client, key,
-					     (GConfClientNotifyFunc)mozilla_font_size_notifier,
-					     info);
-		font_infos = g_list_append (font_infos, info);
-
-		g_snprintf (key, 255, "%s_%s", CONF_RENDERING_FONT_VAR_SIZE, fonts_language[i].code);
-		info = g_strconcat ("size.variable", ".", fonts_language[i].code, NULL);
-		add_notification_and_notify (client, key,
-					     (GConfClientNotifyFunc)mozilla_font_size_notifier,
-					     info);
-		font_infos = g_list_append (font_infos, info);		
-	}
 }
 
 void 
 mozilla_notifiers_free (void)
 {
-	GList *l;
-	
 	ephy_notification_remove (&mozilla_notifiers);
-
-	for (l = font_infos; l != NULL; l = l->next)
-	{
-		g_free (l->data);
-	}
-	
-	g_list_free (font_infos);
 }
 
 /**

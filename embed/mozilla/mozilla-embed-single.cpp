@@ -301,7 +301,6 @@ mozilla_embed_single_class_init (MozillaEmbedSingleClass *klass)
 	shell_class->load_proxy_autoconf = impl_load_proxy_autoconf;
 	shell_class->get_encodings = impl_get_encodings;
 	shell_class->get_language_groups = impl_get_language_groups;
-	shell_class->get_font_list = impl_get_font_list;
 	shell_class->list_cookies = impl_list_cookies;
 	shell_class->remove_cookies = impl_remove_cookies;
 	shell_class->list_passwords = impl_list_passwords;
