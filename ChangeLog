@@ -1,5 +1,15 @@
 2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* data/glade/epiphany.glade:
+
+	Remove details
+
+	* embed/downloader-view.c:
+
+	Remove details button leftover
+
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/mozilla/MozDownload.cpp:
 
 	Fix some bugs

@@ -100,7 +100,6 @@ EphyDialogProperty properties [] =
 	{ PROP_OPEN_BUTTON, "open_button", NULL, PT_NORMAL, NULL },
 	{ PROP_PAUSE_BUTTON, "pause_button", NULL, PT_NORMAL, NULL },
 	{ PROP_ABORT_BUTTON, "abort_button", NULL, PT_NORMAL, NULL },
-	{ PROP_DETAILS_BUTTON, "details_togglebutton", CONF_DOWNLOADING_SHOW_DETAILS, PT_NORMAL, NULL },
 
         { -1, NULL, NULL }
 };
