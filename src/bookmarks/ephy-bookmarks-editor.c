@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2003 Marco Pesenti Gritti <mpeseng@tin.it>
+ *  Copyright (C) 2003, 2004 Marco Pesenti Gritti <mpeseng@tin.it>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@
 #include "ephy-gui.h"
 #include "ephy-stock-icons.h"
 #include "ephy-search-entry.h"
-#include "ephy-toolbars-model.h"
+#include "ephy-bookmarksbar-model.h"
 #include "ephy-favicon-cache.h"
 #include "eel-gconf-extensions.h"
 #include "ephy-debug.h"
@@ -141,7 +141,7 @@ struct EphyBookmarksEditorPrivate
 	GtkUIManager *ui_merge;
 	GtkActionGroup *action_group;
 	int priority_col;
-	EphyToolbarsModel *tb_model;
+	EphyBookmarksBarModel *tb_model;
 	GHashTable *props_dialogs;
 
 	GtkTreeViewColumn *title_col;
@@ -353,12 +353,12 @@ cmd_show_in_bookmarks_bar (GtkAction *action,
 
 	if (state)
 	{
-		ephy_toolbars_model_add_bookmark
+		ephy_bookmarksbar_model_add_bookmark
 			(editor->priv->tb_model, topic, id);
 	}
 	else
 	{
-		ephy_toolbars_model_remove_bookmark
+		ephy_bookmarksbar_model_remove_bookmark
 			(editor->priv->tb_model, id);
 	}
 
@@ -981,7 +981,7 @@ ephy_bookmarks_editor_update_menu (EphyBookmarksEditor *editor)
 		gulong id;
 
 		id = ephy_node_get_id (node);
-		show_in_bookmarks_bar = ephy_toolbars_model_has_bookmark
+		show_in_bookmarks_bar = ephy_bookmarksbar_model_has_bookmark
 			(editor->priv->tb_model, id);
 
 		priority = ephy_node_get_property_int
@@ -1001,7 +1001,7 @@ ephy_bookmarks_editor_update_menu (EphyBookmarksEditor *editor)
 		g_return_if_fail (node != NULL);
 
 		id = ephy_node_get_id (node);
-		show_in_bookmarks_bar = ephy_toolbars_model_has_bookmark
+		show_in_bookmarks_bar = ephy_bookmarksbar_model_has_bookmark
 			(editor->priv->tb_model, id);
 
 		g_list_free (selected);
@@ -1653,7 +1653,7 @@ ephy_bookmarks_editor_get_property (GObject *object,
 }
 
 static void
-toolbar_items_changed_cb (EphyToolbarsModel *model,
+toolbar_items_changed_cb (EggToolbarsModel *model,
 			  int toolbar_position,
 			  int position,
 			  EphyBookmarksEditor *editor)
@@ -1668,8 +1668,9 @@ ephy_bookmarks_editor_init (EphyBookmarksEditor *editor)
 
 	editor->priv->props_dialogs = g_hash_table_new (g_direct_hash,
                                                         g_direct_equal);
-	editor->priv->tb_model = EPHY_TOOLBARS_MODEL
-		(ephy_shell_get_toolbars_model (ephy_shell, FALSE));
+	editor->priv->tb_model = EPHY_BOOKMARKSBAR_MODEL
+		(ephy_bookmarks_get_toolbars_model
+			(ephy_shell_get_bookmarks (ephy_shell)));
 
 	g_signal_connect (editor->priv->tb_model, "item_added",
 			  G_CALLBACK (toolbar_items_changed_cb), editor);
