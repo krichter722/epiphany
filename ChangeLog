@@ -1,3 +1,30 @@
+2003-01-18  Marco Pesenti Gritti  <marco@it.gnome.org>
+
+	* data/ui/Makefile.am:
+	* lib/widgets/Makefile.am:
+	* lib/widgets/ephy-arrow-toolbutton.c:
+	(ephy_arrow_toolbutton_get_type),
+	(ephy_arrow_toolbutton_class_init), (button_state_changed_cb),
+	(popup_menu_under_arrow), (menu_deactivated_cb),
+	(arrow_button_press_event_cb), (arrow_key_press_event_cb),
+	(ephy_arrow_toolbutton_init), (ephy_arrow_toolbutton_finalize),
+	(ephy_arrow_toolbutton_get_menu):
+	* lib/widgets/ephy-arrow-toolbutton.h:
+	* src/Makefile.am:
+	* src/ephy-navigation-action.c: (ephy_navigation_action_get_type),
+	(new_history_menu_item), (activate_back_or_forward_menu_item_cb),
+	(activate_up_menu_item_cb), (setup_back_or_forward_menu),
+	(setup_up_menu), (menu_activated_cb), (connect_proxy),
+	(ephy_navigation_action_set_property),
+	(ephy_navigation_action_get_property),
+	(ephy_navigation_action_class_init), (ephy_navigation_action_init):
+	* src/ephy-navigation-action.h:
+	* src/ephy-window.c: (ephy_window_init):
+	* src/toolbar.c: (toolbar_setup_actions), (toolbar_set_window),
+	(toolbar_init):
+
+	Implement back/forward
+
 2003-01-17  Marco Pesenti Gritti  <marco@it.gnome.org>
 
 	* data/ui/Makefile.am:

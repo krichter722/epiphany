@@ -491,17 +491,17 @@ ephy_window_init (EphyWindow *window)
 
 	window->priv->fav_menu = ephy_favorites_menu_new (window);
 
-	window->priv->statusbar = statusbar_new ();
-	gtk_widget_show (window->priv->statusbar);
-	gtk_box_pack_end (GTK_BOX (window->priv->main_vbox),
-			  GTK_WIDGET (window->priv->statusbar),
-			  FALSE, TRUE, 0);
-
 	/* Setup window contents */
 	window->priv->notebook = setup_notebook (window);
-	gtk_box_pack_end (GTK_BOX (window->priv->main_vbox),
-			  GTK_WIDGET (window->priv->notebook),
-			  TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (window->priv->main_vbox),
+			    GTK_WIDGET (window->priv->notebook),
+			    TRUE, TRUE, 0);
+
+	window->priv->statusbar = statusbar_new ();
+	gtk_widget_show (window->priv->statusbar);
+	gtk_box_pack_start (GTK_BOX (window->priv->main_vbox),
+			    GTK_WIDGET (window->priv->statusbar),
+			    FALSE, TRUE, 0);
 
 	g_object_ref (ephy_shell);
 

@@ -27,6 +27,7 @@
 #include "ephy-spinner-action.h"
 #include "ephy-location-action.h"
 #include "ephy-favicon-action.h"
+#include "ephy-navigation-action.h"
 
 static void toolbar_class_init (ToolbarClass *klass);
 static void toolbar_init (Toolbar *t);
@@ -169,26 +170,41 @@ add_widget (EggMenuMerge *merge, GtkWidget *widget, EphyWindow *window)
 }
 
 static void
-toolbar_set_window (Toolbar *t, EphyWindow *window)
-{
-	g_return_if_fail (t->priv->window == NULL);
-
-	t->priv->window = window;
-	t->priv->ui_merge = EGG_MENU_MERGE (window->ui_merge);
-	g_signal_connect (t->priv->ui_merge, "add_widget",
-			  G_CALLBACK (add_widget), t);
-
-	egg_menu_merge_insert_action_group (t->priv->ui_merge,
-					    t->priv->action_group, 1);
-	toolbar_setup_widgets (t);
-}
-
-static void
 toolbar_setup_actions (Toolbar *t)
 {
 	EggAction *action;
 
 	t->priv->action_group = egg_action_group_new ("SpecialToolbarActions");
+
+	action = g_object_new (EPHY_TYPE_NAVIGATION_ACTION,
+			       "name", "NavigationBack",
+			       "label", _("Back"),
+			       "stock_id", GTK_STOCK_GO_BACK,
+			       "window", t->priv->window,
+			       "direction", EPHY_NAVIGATION_DIRECTION_BACK,
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
+
+	action = g_object_new (EPHY_TYPE_NAVIGATION_ACTION,
+			       "name", "NavigationForward",
+			       "label", _("Forward"),
+			       "stock_id", GTK_STOCK_GO_FORWARD,
+			       "window", t->priv->window,
+			       "direction", EPHY_NAVIGATION_DIRECTION_FORWARD,
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
+
+	action = g_object_new (EPHY_TYPE_NAVIGATION_ACTION,
+			       "name", "NavigationUp",
+			       "label", _("Up"),
+			       "window", t->priv->window,
+			       "direction", EPHY_NAVIGATION_DIRECTION_UP,
+			       "stock_id", GTK_STOCK_GO_UP,
+			       NULL);
+	egg_action_group_add_action (t->priv->action_group, action);
+	g_object_unref (action);
 
 	action = g_object_new (EPHY_TYPE_SPINNER_ACTION,
 			       "name", "Spinner",
@@ -210,6 +226,22 @@ toolbar_setup_actions (Toolbar *t)
 }
 
 static void
+toolbar_set_window (Toolbar *t, EphyWindow *window)
+{
+	g_return_if_fail (t->priv->window == NULL);
+
+	t->priv->window = window;
+	t->priv->ui_merge = EGG_MENU_MERGE (window->ui_merge);
+	g_signal_connect (t->priv->ui_merge, "add_widget",
+			  G_CALLBACK (add_widget), t);
+
+	toolbar_setup_actions (t);
+	egg_menu_merge_insert_action_group (t->priv->ui_merge,
+					    t->priv->action_group, 1);
+	toolbar_setup_widgets (t);
+}
+
+static void
 toolbar_init (Toolbar *t)
 {
         t->priv = g_new0 (ToolbarPrivate, 1);
@@ -217,8 +249,6 @@ toolbar_init (Toolbar *t)
 	t->priv->window = NULL;
 	t->priv->ui_merge = NULL;
 	t->priv->visibility = TRUE;
-
-	toolbar_setup_actions (t);
 }
 
 static void
