@@ -477,11 +477,10 @@ static void
 webcore_embed_location_changed_cb (GtkKHTML *kembed,
                                    WebcoreEmbed *embed)
 {
-        char *location;
+        const char *location;
 
         location = gtk_khtml_get_location (kembed);
         g_signal_emit_by_name (embed, "ge_location", location);
-        g_free (location);
 }
 
 static void
