@@ -44,8 +44,51 @@ MozGlobalHistory::~MozGlobalHistory ()
 /* void addURI (in nsIURI aURI, in boolean aRedirect, in boolean aToplevel); */
 NS_IMETHODIMP MozGlobalHistory::AddURI(nsIURI *aURI, PRBool aRedirect, PRBool aToplevel)
 {
+	nsresult rv;
+	NS_ENSURE_ARG_POINTER(aURI);
+
+	PRBool isJavascript;
+	rv = aURI->SchemeIs("javascript", &isJavascript);
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	if (isJavascript || aRedirect || !aTopLevel)
+	{
+		return NS_OK;
+	}
+
+	// filter out unwanted URIs such as chrome: etc
+	// The model is really if we don't know differently then add which basically
+	// means we are suppose to try all the things we know not to allow in and
+	// then if we don't bail go on and allow it in.  But here lets compare
+	// against the most common case we know to allow in and go on and say yes
+	// to it.
+
+	PRBool isHTTP = PR_FALSE;
+	PRBool isHTTPS = PR_FALSE;
+
+	rv = aURI->SchemeIs("http", &isHTTP);
+	rv |= aURI->SchemeIs("https", &isHTTPS);
+	NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+
+	if (!isHTTP && !isHTTPS)
+	{
+		PRBool isAbout, isViewSource, isChrome, isData;
+
+		rv = aURI->SchemeIs("about", &isAbout);
+		rv |= aURI->SchemeIs("view-source", &isViewSource);
+		rv |= aURI->SchemeIs("chrome", &isChrome);
+		rv |= aURI->SchemeIs("data", &isData);
+		NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
+
+		if (isAbout || isViewSource || isChrome || isData)
+		{
+		      return NS_OK;
+		}
+	}
+
 	nsEmbedCString spec;
-	aURI->GetSpec(spec);
+	rv = aURI->GetSpec(spec);
+	NS_ENSURE_SUCCESS(rv, rv);
 
 	ephy_history_add_page (mGlobalHistory, spec.get());
 	
