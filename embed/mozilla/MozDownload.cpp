@@ -53,13 +53,13 @@
 MozDownload::MozDownload() :
     mGotFirstStateChange(false), mIsNetworkTransfer(false),
     mUserCanceled(false),
-    mStatus(NS_OK)
+    mStatus(NS_OK),
+    mEmbedPersist(nsnull)
 {
 }
 
 MozDownload::~MozDownload()
 {
-	mEmbedPersist = nsnull;    
 }
 
 NS_IMPL_ISUPPORTS2(MozDownload, nsIDownload, nsIWebProgressListener)
@@ -78,15 +78,21 @@ NS_IMETHODIMP
 MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName,
 		   nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
-    EmbedPersistFlags flags;
+	PRBool addToView = PR_TRUE;
 
-    ephy_embed_persist_get_flags (EPHY_EMBED_PERSIST (mEmbedPersist), &flags);
+	if (mEmbedPersist)
+	{
+		EmbedPersistFlags flags;
 
-    try {
-        mSource = aSource;
-        mDestination = aTarget;
-        mStartTime = startTime;
-        mPercentComplete = 0;
+		ephy_embed_persist_get_flags (EPHY_EMBED_PERSIST (mEmbedPersist), &flags);
+
+		addToView = !(flags & EMBED_PERSIST_NO_VIEW);
+	}
+
+	mSource = aSource;
+	mDestination = aTarget;
+	mStartTime = startTime;
+	mPercentComplete = 0;
 	mInterval = 400000; // ms
 	mPriorKRate = 0;
 	mRateChanges = 0;
@@ -94,14 +100,14 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 	mIsPaused = PR_FALSE;
 	mStartTime = PR_Now();
 	mLastUpdate = mStartTime;
-        if (aPersist) {
-            mWebPersist = aPersist;
-            // We have to break this circular ref when the download is done -
-            // until nsIWebBrowserPersist supports weak refs - bug #163889.
-            aPersist->SetProgressListener(this);
+
+	if (aPersist)
+	{
+		mWebPersist = aPersist;
+		aPersist->SetProgressListener(this);
         }
 
-	if (!(flags & EMBED_PERSIST_NO_VIEW))
+	if (addToView)
 	{ 
 		DownloaderView *dview;
 		dview = EPHY_DOWNLOADER_VIEW (ephy_embed_shell_get_downloader_view
@@ -114,11 +120,8 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 	{
 		mEphyDownload = nsnull;
 	}
-    }
-    catch (...) {
-        return NS_ERROR_FAILURE;
-    }
-    return NS_OK;
+
+	return NS_OK;
 }
 
 /* readonly attribute nsIURI source; */

@@ -1,5 +1,11 @@
 2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/MozDownload.cpp:
+
+	Fix some bugs
+
+2003-10-16  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/ephy-embed-persist.h:
 	* embed/ephy-favicon-cache.c: (ephy_favicon_cache_download):
 	* embed/mozilla/EphyHeaderSniffer.cpp:
