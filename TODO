@@ -1,2 +1,16 @@
 - Check that filtering is not done more than one time on bookmarks dialogs init
 - change font size pref name or convert if possible
+
+Downloader:
+
+- Fixup column sizing. Ideally filename should get all available space, the
+others column can get the minimum (for progress we can just fixup requisition
+in the renderer to something sane)
+- Fix crash on download finish, both on context menu and click downloads
+- Probably use cur from total instead of just total in the size field
+- Deal with the case where total size is unknown (we need special rendering
+for progress too I guess)
+- Initialize progress values when starting the download
+- Fix at least the Stop button. Probably we should also remove the download
+from list in that case.
+- Maybe drop details crap if we get the ok from usability bigs
