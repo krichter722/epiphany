@@ -25,6 +25,7 @@ INCLUDES = \
 	-I$(MOZILLA_INCLUDE_ROOT)/webbrwsr		\
 	-I$(MOZILLA_INCLUDE_ROOT)/widget		\
 	-I$(MOZILLA_INCLUDE_ROOT)/windowwatcher		\
+	-I$(MOZILLA_INCLUDE_ROOT)/xmlextras		\
 	$(EPIPHANY_DEPENDENCY_CFLAGS) 			\
 	-DSHARE_DIR=\"$(pkgdatadir)\"   		\
 	-DALLOW_PRIVATE_API				\

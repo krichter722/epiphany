@@ -36,13 +36,9 @@
 #include <nsCWebBrowserPersist.h>
 #include <nsIHistoryEntry.h>
 #include <nsISHEntry.h>
-
-#ifdef ALLOW_PRIVATE_STRINGS
-#include <nsString.h>
-#include <nsNetUtil.h>
-#include <nsIDocumentEncoder.h>
-#include <nsIDocument.h>
-#endif
+#include <nsIDOMSerializer.h>
+#include <nsIIOService.h>
+#include <nsNetCID.h>
 
 static void
 mozilla_embed_persist_class_init (MozillaEmbedPersistClass *klass);
@@ -176,12 +172,12 @@ impl_save (EphyEmbedPersist *persist)
 	if (tmp_filename == NULL) return FALSE;
 
 	nsCOMPtr<nsILocalFile> tmpFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID);
-	tmpFile->InitWithNativePath (nsDependentCString (tmp_filename));
+	tmpFile->InitWithNativePath (nsEmbedCString (tmp_filename));
 	g_free (tmp_filename);
 
 	/* Get the uri to save to */
 	nsCOMPtr<nsIURI> inURI;
-	nsCAutoString sURI;
+	nsEmbedCString sURI;
 	if (uri)
 	{
 		sURI.Assign (uri);
@@ -191,8 +187,12 @@ impl_save (EphyEmbedPersist *persist)
 		rv = browser->GetDocumentUrl (sURI);
 		NS_ENSURE_SUCCESS (rv, FALSE);
 	}
-      	NS_NewURI(getter_AddRefs(inURI), sURI);
-	if (!inURI) return FALSE;
+
+	nsCOMPtr<nsIIOService> io = do_GetService (NS_IOSERVICE_CONTRACTID, &rv);
+	NS_ENSURE_SUCCESS (rv, FALSE);
+
+	rv = io->NewURI (sURI, nsnull, nsnull, getter_AddRefs(inURI));
+	NS_ENSURE_SUCCESS (rv, FALSE);
 
 	/* Get post data */
 	nsCOMPtr<nsIInputStream> postData;
@@ -262,7 +262,7 @@ impl_save (EphyEmbedPersist *persist)
 	{
 		/* Filename to save to */
 		nsCOMPtr<nsILocalFile> destFile;
-		NS_NewNativeLocalFile (nsDependentCString(filename),
+		NS_NewNativeLocalFile (nsEmbedCString(filename),
 				       PR_TRUE, getter_AddRefs(destFile));
 	        NS_ENSURE_TRUE (destFile, FALSE);
 
@@ -309,19 +309,20 @@ impl_to_string (EphyEmbedPersist *persist)
 	}
 	if (NS_FAILED(rv) || !DOMDocument) return NULL;
 
-	nsCOMPtr<nsIDocument> doc = do_QueryInterface(DOMDocument);
-	if(!doc) return NULL;
+	nsCOMPtr<nsIDOMNode> node = do_QueryInterface(DOMDocument);
+	if (!node) return NULL;
 
-	nsCOMPtr<nsIDocumentEncoder> encoder = do_CreateInstance(NS_DOC_ENCODER_CONTRACTID_BASE "text/html");
-	NS_ENSURE_SUCCESS(rv, NULL);
+	nsCOMPtr<nsIDOMSerializer> serializer;
+	serializer = do_CreateInstance(NS_XMLSERIALIZER_CONTRACTID, &rv);
+	NS_ENSURE_SUCCESS (rv, FALSE);
 
-	rv = encoder->Init(doc, NS_LITERAL_STRING("text/html"), nsIDocumentEncoder::OutputAbsoluteLinks);
-	NS_ENSURE_SUCCESS(rv, NULL);
+	nsEmbedString outString;
+	serializer->SerializeToString(node, outString);
 
-	nsAutoString aOutputString;
-	encoder->EncodeToString(aOutputString);
+	nsEmbedCString cOutString;
+	NS_UTF16ToCString (outString, NS_CSTRING_ENCODING_UTF8, cOutString);
 
-	return g_strdup (NS_ConvertUTF16toUTF8(aOutputString).get());
+	return g_strdup (cOutString.get());
 }
 
 static GObject *
