@@ -232,7 +232,7 @@ downloader_view_new (void)
 }
 
 static void
-download_changed_cb (DownloaderView *dv, EphyDownload *download)
+download_changed_cb (EphyDownload *download, DownloaderView *dv)
 {
 	DownloadDetails *details;
 	GtkTreePath *path;
@@ -245,11 +245,11 @@ download_changed_cb (DownloaderView *dv, EphyDownload *download)
 
 	percent = ephy_download_get_percent (download);
 	path = gtk_tree_row_reference_get_path (details->ref);
+	gtk_tree_model_get_iter (dv->priv->model, &iter, path);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
 			    COL_PERCENT, percent,
 			    -1);
-
 	gtk_tree_path_free (path);
 }
 
@@ -280,7 +280,7 @@ downloader_view_add_download (DownloaderView *dv,
 	name = ephy_download_get_name (download);
 	gtk_list_store_set (GTK_LIST_STORE (dv->priv->model),
 			    &iter,
-			    COL_PERCENT, name,
+			    COL_FILENAME, name,
 			    COL_PERSIST_OBJECT, download,
 			    -1);
 	g_free (name);

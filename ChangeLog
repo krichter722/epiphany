@@ -1,6 +1,13 @@
 2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* embed/downloader-view.c: (download_changed_cb),
+	(downloader_view_add_download):
+
+	Fix percent/filenamee
+
+2003-10-14  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* embed/downloader-view.c: (download_changed_cb),
 	(downloader_view_add_download), (downloader_view_build_ui),
 	(downloader_treeview_selection_changed_cb):
 	* embed/ephy-download.c: (ephy_download_class_init),
