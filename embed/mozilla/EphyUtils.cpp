@@ -20,11 +20,10 @@
 #include "EphyUtils.h"
 
 #include <nsIServiceManager.h>
-#include <nsIIOService.h>
 #include <nsEmbedString.h>
 
-static nsresult
-GetIOService (nsIIOService **ioService)
+nsresult
+EphyUtils::GetIOService (nsIIOService **ioService)
 {
 	nsresult rv;
 
@@ -51,7 +50,7 @@ nsresult EphyUtils::NewURI (nsIURI **result, const nsACString &spec)
 	nsresult rv;
 
 	nsCOMPtr<nsIIOService> ioService;
-	rv = GetIOService (getter_AddRefs (ioService));
+	rv = EphyUtils::GetIOService (getter_AddRefs (ioService));
 	NS_ENSURE_SUCCESS (rv, rv);
 
 	rv = ioService->NewURI (spec, nsnull, nsnull, result);

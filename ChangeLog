@@ -1,5 +1,17 @@
 2004-05-31  Marco Pesenti Gritti  <marco@gnome.org>
 
+	* embed/mozilla/EphyUtils.cpp:
+	* embed/mozilla/EphyUtils.h:
+
+	Add a way to get IOService.
+
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/mozilla-embed-single.cpp:
+
+	Port to embed strings
+
+2004-05-31  Marco Pesenti Gritti  <marco@gnome.org>
+
 	* embed/mozilla/EphySingle.cpp:
 	* embed/mozilla/mozilla-embed.cpp:
 

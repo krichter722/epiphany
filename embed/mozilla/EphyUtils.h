@@ -20,13 +20,16 @@
 #ifndef EPHY_UTILS_H
 #define EPHY_UTILS_H
 
+#include <nsIIOService.h>
 #include <nsIURI.h>
 
 namespace EphyUtils
 {
-	nsresult NewURI (nsIURI **result, const nsAString &spec);
+	nsresult GetIOService (nsIIOService **ioService);
 
-	nsresult NewURI (nsIURI **result, const nsACString &spec);
+	nsresult NewURI       (nsIURI **result, const nsAString &spec);
+
+	nsresult NewURI       (nsIURI **result, const nsACString &spec);
 }
 
 #endif

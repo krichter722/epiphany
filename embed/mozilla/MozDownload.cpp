@@ -45,21 +45,19 @@
 #include "config.h"
 #endif
 
-#include "MozDownload.h"
 #include "mozilla-download.h"
 #include "eel-gconf-extensions.h"
 #include "ephy-prefs.h"
 #include "ephy-file-helpers.h"
 #include "ephy-debug.h"
+#include "MozDownload.h"
+#include "EphyUtils.h"
 
 #include <libgnomevfs/gnome-vfs-utils.h>
 #include <glib/gi18n.h>
 
 #include <nsIFileURL.h>
-
-#ifdef ALLOW_PRIVATE_STRINGS
-#include "nsNetUtil.h"
-#endif
+#include <nsEmbedString.h>
 
 const char* const persistContractID = "@mozilla.org/embedding/browser/nsWebBrowserPersist;1";
 
@@ -336,29 +334,36 @@ MozDownload::OnStateChange (nsIWebProgress *aWebProgress, nsIRequest *aRequest,
 			PRUnichar *description;
 			mMIMEInfo->GetApplicationDescription (&description);
 
+			nsEmbedCString cDesc;
+			NS_UTF16ToCString (nsEmbedString(description),
+					   NS_CSTRING_ENCODING_UTF8, cDesc);
+
 			/* HACK we use the application description to decide
 			   if we have to open the saved file */
-			if ((strcmp (NS_ConvertUTF16toUTF8 (description).get(), "gnome-default") == 0) &&
+			if (strcmp (cDesc.get(), "gnome-default") == 0 &&
 			    helperApp)
 #else
-			nsCAutoString mimeType;
+			nsEmbedCString mimeType;
 			rv = mMIMEInfo->GetMIMEType (mimeType);
 			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
 
 			helperApp = gnome_vfs_mime_get_default_application (mimeType.get()); 
 
-			nsAutoString description;
+			nsEmbedString description;
 			mMIMEInfo->GetApplicationDescription (description);
+
+			nsEmbedCString cDesc;
+			NS_UTF16ToCString (description, NS_CSTRING_ENCODING_UTF8, cDesc);
 
 			/* HACK we use the application description to decide
 			   if we have to open the saved file */
-			if ((strcmp (NS_ConvertUCS2toUTF8 (description).get(), "gnome-default") == 0) &&
+			if ((strcmp (cDesc.get(), "gnome-default") == 0) &&
 			    helperApp)
 #endif
 			{
 				GList *params = NULL;
 				char *param;
-				nsCAutoString aDest;
+				nsEmbedCString aDest;
 
 				mDestination->GetSpec (aDest);
 
@@ -501,11 +506,15 @@ nsresult InitiateMozillaDownload (nsIDOMDocument *domDocument, nsIURI *sourceURI
   
 	PRInt64 timeNow = PR_Now();
   
-	nsAutoString fileDisplayName;
+	nsEmbedString fileDisplayName;
 	inDestFile->GetLeafName(fileDisplayName);
 
+	nsCOMPtr<nsIIOService> ioService;
+	rv = EphyUtils::GetIOService (getter_AddRefs (ioService));
+	NS_ENSURE_SUCCESS (rv, rv);
+
 	nsCOMPtr<nsIURI> destURI;
-	NS_NewFileURI (getter_AddRefs(destURI), inDestFile);
+	ioService->NewFileURI (inDestFile, getter_AddRefs(destURI));
 
 	MozDownload *downloader = new MozDownload ();
 	/* dlListener attaches to its progress dialog here, which gains ownership */
@@ -540,24 +549,22 @@ nsresult InitiateMozillaDownload (nsIDOMDocument *domDocument, nsIURI *sourceURI
 		 * will create the directory as needed.
 		 */
 
-		filesFolder = do_CreateInstance("@mozilla.org/file/local;1");
-		nsAutoString unicodePath;
-		inDestFile->GetPath(unicodePath);
-		filesFolder->InitWithPath(unicodePath);
-      
-		nsAutoString leafName;
-		filesFolder->GetLeafName(leafName);
-		nsAutoString nameMinusExt(leafName);
-		PRInt32 index = nameMinusExt.RFind(".");
-		if (index >= 0)
-		{
-			nameMinusExt.Left(nameMinusExt, index);
-		}
+		nsEmbedCString cPath;
+		inDestFile->GetNativePath (cPath);
 
-		nameMinusExt += NS_LITERAL_STRING (" ");
-		nameMinusExt += NS_ConvertUTF8toUTF16 (_("Files"));
- 
-		filesFolder->SetLeafName(nameMinusExt);
+		GString *path = g_string_new (cPath.get());
+		char *dot_pos = strchr (path->str, '.');
+		if (dot_pos)
+		{
+			g_string_truncate (path, dot_pos - path->str);
+		}
+		g_string_append (path, " ");
+		g_string_append (path, _("Files"));
+      
+		filesFolder = do_CreateInstance ("@mozilla.org/file/local;1");
+		filesFolder->InitWithNativePath (nsEmbedCString(path->str));
+
+		g_string_free (path, TRUE);
 
 		rv = webPersist->SaveDocument (domDocument, inDestFile, filesFolder,
 					       contentType, encodingFlags, 80);
@@ -651,7 +658,7 @@ nsresult BuildDownloadPath (const char *defaultFileName, nsILocalFile **_retval)
 	}
 
 	nsCOMPtr <nsILocalFile> destFile (do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-	destFile->InitWithNativePath (nsDependentCString (path));
+	destFile->InitWithNativePath (nsEmbedCString (path));
 	g_free (path);
 
 	NS_IF_ADDREF (*_retval = destFile);
