@@ -1,5 +1,12 @@
 2003-10-16  Xan Lopez  <xan@masilla.org>
 
+	* embed/mozilla/MozDownload.cpp:
+	* embed/mozilla/MozDownload.h:
+
+	Unbreak for real.
+
+2003-10-16  Xan Lopez  <xan@masilla.org>
+
 	* TODO:
 	* embed/downloader-view.c:
 	* embed/mozilla/MozDownload.cpp:

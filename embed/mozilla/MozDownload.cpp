@@ -94,6 +94,8 @@ MozDownload::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisp
 	mDestination = aTarget;
 	mStartTime = startTime;
 	mPercentComplete = 0;
+	mInterval = 4000; // in ms
+	mLastUpdate = mStartTime;
 
 	if (aPersist)
 	{

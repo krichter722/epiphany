@@ -103,8 +103,10 @@ public:
 protected:
     nsCOMPtr<nsIURI>        mSource;
     nsCOMPtr<nsILocalFile>  mDestination;
+    PRInt64		    mLastUpdate;
     PRInt64                 mStartTime;
     PRInt64		    mElapsed;
+    PRInt32		    mInterval;
     PRInt32                 mPercentComplete;
     PRInt32                 mTotalProgress;
     PRInt32                 mCurrentProgress;
