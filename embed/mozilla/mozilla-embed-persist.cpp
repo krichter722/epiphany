@@ -29,6 +29,7 @@
 #include "EphyBrowser.h"
 #include "EphyHeaderSniffer.h"
 #include "MozDownload.h"
+#include "EphyUtils.h"
 
 #include <stddef.h>
 
@@ -188,10 +189,7 @@ impl_save (EphyEmbedPersist *persist)
 		NS_ENSURE_SUCCESS (rv, FALSE);
 	}
 
-	nsCOMPtr<nsIIOService> io = do_GetService (NS_IOSERVICE_CONTRACTID, &rv);
-	NS_ENSURE_SUCCESS (rv, FALSE);
-
-	rv = io->NewURI (sURI, nsnull, nsnull, getter_AddRefs(inURI));
+	rv = EphyUtils::NewURI (getter_AddRefs(inURI), sURI);
 	NS_ENSURE_SUCCESS (rv, FALSE);
 
 	/* Get post data */

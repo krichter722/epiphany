@@ -24,6 +24,7 @@
 #endif
 
 #include "EventContext.h"
+#include "EphyUtils.h"
 
 #include <gdk/gdkkeysyms.h>
 
@@ -760,7 +761,7 @@ nsresult EventContext::GetTargetDocument (nsIDOMDocument **domDoc)
 nsresult EventContext::CheckLinkScheme (const nsAString &link)
 {
 	nsCOMPtr<nsIURI> uri;
-	NS_NewURI (getter_AddRefs (uri), link);
+	EphyUtils::NewURI (getter_AddRefs (uri), link);
 	if (!uri) return NS_ERROR_FAILURE;
 
 	nsresult rv;

@@ -32,6 +32,7 @@
 #include "MozillaPrivate.h"
 #include "EphyBrowser.h"
 #include "EventContext.h"
+#include "EphyUtils.h"
 
 #include <gtkmozembed.h>
 #include <nsIURI.h>
@@ -351,7 +352,7 @@ mozilla_embed_get_uri_parent (const char *aUri)
         nsresult rv;
 
         nsCOMPtr<nsIURI> uri;
-        rv = NS_NewURI (getter_AddRefs(uri), aUri);
+        rv = EphyUtils::NewURI (getter_AddRefs(uri), nsCAutoString(aUri));
         if (NS_FAILED(rv) || !uri) return NULL;
 
         nsCOMPtr<nsIURL> url = do_QueryInterface(uri, &rv);

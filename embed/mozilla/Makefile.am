@@ -52,6 +52,8 @@ libephymozillaembed_la_SOURCES = 	\
 	EphyBrowser.h	                \
 	EphySingle.cpp			\
 	EphySingle.h			\
+	EphyUtils.cpp			\
+	EphyUtils.h			\
 	EventContext.cpp                \
 	EventContext.h                  \
 	FilePicker.cpp			\
