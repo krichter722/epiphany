@@ -50,12 +50,6 @@ impl_resume (DownloaderView *view, gpointer);
 
 #define MOZILLA_EMBED_PERSIST_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), MOZILLA_TYPE_EMBED_PERSIST, MozillaDownloaderViewPrivate))
 
-struct MozillaDownloaderViewPrivate
-{
-	nsCOMPtr<nsIWebBrowserPersist> mPersist;
-//	GProgressListener *mProgress;
-};
-
 static GObjectClass *parent_class = NULL;
 
 GType
@@ -87,6 +81,22 @@ mozilla_downloader_view_get_type (void)
         return mozilla_downloader_view_type;
 }
 
+static void 
+impl_cancel (DownloaderView *view, gpointer persist_object)
+{
+	EphyDownload *download = (EphyDownload*)persist_object;
+	download->Cancel();
+}
+
+static void
+impl_pause (DownloaderView *view, gpointer persist_object)
+{
+}
+
+static void
+impl_resume (DownloaderView *view, gpointer persist_object)
+{
+}
 static void
 mozilla_downloader_view_class_init (MozillaDownloaderViewClass *klass)
 {
@@ -100,16 +110,11 @@ mozilla_downloader_view_class_init (MozillaDownloaderViewClass *klass)
 	view_class->cancel_download = impl_cancel;
 	view_class->pause_download = impl_pause;
 	view_class->resume_download = impl_resume;
-
-	g_type_class_add_private (object_class, sizeof(MozillaDownloaderViewPrivate));
 }
 
 static void
 mozilla_downloader_view_init (MozillaDownloaderView *view)
 {
-//        view->priv = MOZILLA_DOWNLOADER_VIEW_GET_PRIVATE (view);
-
-//     	view->priv->mPersist = do_CreateInstance (NS_WEBBROWSERPERSIST_CONTRACTID);
 }
 
 static void
@@ -117,13 +122,15 @@ mozilla_downloader_view_finalize (GObject *object)
 {
         MozillaDownloaderView *view = MOZILLA_DOWNLOADER_VIEW (object);
 
-//	view->priv->mPersist->SetProgressListener (nsnull);
-//	view->priv->mPersist = nsnull;
-
         G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
-void
+MozillaDownloaderView*
+mozilla_downloader_view_new (void)
+{
+	return MOZILLA_DOWNLOADER_VIEW (g_object_new (MOZILLA_TYPE_DOWNLOADER_VIEW, NULL));
+}
+/*void
 mozilla_downloader_view_completed (MozillaDownloaderView *view)
 {
 	g_signal_emit_by_name (view, "completed");
@@ -134,28 +141,5 @@ void
 mozilla_downloader_view_cancelled (MozillaDownloaderView *view)
 {
 	g_object_unref (view);
-}
+}*/
 
-static void 
-impl_cancel (DownloaderView *view, gpointer persist_object)
-{
-/*	nsCOMPtr<nsIWebBrowserPersist> bview =
-	MOZILLA_EMBED_PERSIST (view)->priv->mPersist;
-	if (!bview) return G_FAILED;
-
-	bview->CancelSave ();
-
-	g_object_unref (view);
-
-	return G_OK;*/
-}
-
-static void
-impl_pause (DownloaderView *view, gpointer persist_object)
-{
-}
-
-static void
-impl_resume (DownloaderView *view, gpointer persist_object)
-{
-}

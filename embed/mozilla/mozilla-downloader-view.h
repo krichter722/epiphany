@@ -28,7 +28,7 @@ G_BEGIN_DECLS
 
 #define MOZILLA_TYPE_DOWNLOADER_VIEW		(mozilla_downloader_view_get_type ())
 #define MOZILLA_DOWNLOADER_VIEW(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), MOZILLA_TYPE_DOWNLOADER_VIEW, MozillaDownloaderView))
-#define MOZILLA_DOWNLOADER_VIEW_CLASS(k)		(G_TYPE_CHECK_CLASS_CAST((k), MOZILLA_TYPE_DOWNLOADER_VIEW, MozillaDownloaderViewClass))
+#define MOZILLA_DOWNLOADER_VIEW_CLASS(k)	(G_TYPE_CHECK_CLASS_CAST((k), MOZILLA_TYPE_DOWNLOADER_VIEW, MozillaDownloaderViewClass))
 #define MOZILLA_IS_DOWNLOADER_VIEW(o)		(G_TYPE_CHECK_INSTANCE_TYPE ((o), MOZILLA_TYPE_DOWNLOADER_VIEW))
 #define MOZILLA_IS_DOWNLOADER_VIEW_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), MOZILLA_TYPE_DOWNLOADER_VIEW))
 #define MOZILLA_DOWNLOADER_VIEW_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), MOZILLA_TYPE_DOWNLOADER_VIEW, MozillaDownloaderViewClass))
@@ -40,23 +40,20 @@ typedef struct MozillaDownloaderViewPrivate MozillaDownloaderViewPrivate;
 struct MozillaDownloaderView
 {
         DownloaderView parent;
-        MozillaDownloaderViewPrivate *priv;
+//        MozillaDownloaderViewPrivate *priv;
 };
 
 struct MozillaDownloaderViewClass
 {
         DownloaderViewClass parent_class;
-
-	void (*cancel_download)    (DownloaderView *dv, gpointer persist_object);
-	void (*pause_download)     (DownloaderView *dv, gpointer persist_object);
-	void (*resume_download)    (DownloaderView *dv, gpointer persist_object);
 };
 
 GType               mozilla_downloader_view_get_type   (void);
+MozillaDownloaderView*	mozilla_downloader_view_new (void);
 
-void		    mozilla_downloader_view_completed  (MozillaDownloaderView *persist);
+/*void		    mozilla_downloader_view_completed  (MozillaDownloaderView *persist);
 
-void		    mozilla_downloader_view_cancelled  (MozillaDownloaderView *persist);
+void		    mozilla_downloader_view_cancelled  (MozillaDownloaderView *persist);*/
 
 G_END_DECLS
 
