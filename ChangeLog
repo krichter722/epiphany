@@ -1,3 +1,15 @@
+2003-10-07  Marco Pesenti Gritti  <marco@gnome.org>
+
+	* src/ephy-completion-model.c: (node_iter_from_node),
+	(ephy_completion_model_init), (ephy_completion_model_get_value),
+	(ephy_completion_model_get_iter), (ephy_completion_model_get_path),
+	(ephy_completion_model_iter_next),
+	(ephy_completion_model_iter_children),
+	(ephy_completion_model_iter_n_children),
+	(ephy_completion_model_iter_nth_child):
+
+	Add stamp.
+
 2003-10-06  Marco Pesenti Gritti  <marco@gnome.org>
 
 	* lib/widgets/ephy-location-entry.c: (completion_func),

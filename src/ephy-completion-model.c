@@ -34,6 +34,7 @@ struct EphyCompletionModelPrivate
 {
 	EphyNode *history;
 	EphyNode *bookmarks;
+	int stamp;
 };
 
 enum
@@ -121,7 +122,7 @@ node_iter_from_node (EphyCompletionModel *model,
 		     EphyNode *node,
 		     GtkTreeIter *iter)
 {
-	iter->stamp = 0;
+	iter->stamp = model->priv->stamp;
 	iter->user_data = node;
 }
 
@@ -201,6 +202,7 @@ ephy_completion_model_init (EphyCompletionModel *model)
 	EphyHistory *history;
 
 	model->priv = EPHY_COMPLETION_MODEL_GET_PRIVATE (model);
+	model->priv->stamp = g_random_int ();
 
 	history = ephy_embed_shell_get_global_history
 		(EPHY_EMBED_SHELL (ephy_shell));
@@ -396,6 +398,7 @@ ephy_completion_model_get_value (GtkTreeModel *tree_model,
 
 	g_return_if_fail (EPHY_IS_COMPLETION_MODEL (tree_model));
 	g_return_if_fail (iter != NULL);
+	g_return_if_fail (iter->stamp == model->priv->stamp);
 
 	node = iter->user_data;
 	group = get_node_group (model, node);
@@ -429,8 +432,8 @@ ephy_completion_model_get_flags (GtkTreeModel *tree_model)
 
 static gboolean
 ephy_completion_model_get_iter (GtkTreeModel *tree_model,
-			       GtkTreeIter *iter,
-			       GtkTreePath *path)
+			        GtkTreeIter *iter,
+			        GtkTreePath *path)
 {
 	EphyCompletionModel *model = EPHY_COMPLETION_MODEL (tree_model);
 	EphyNode *root;
@@ -441,7 +444,7 @@ ephy_completion_model_get_iter (GtkTreeModel *tree_model,
 
 	i = gtk_tree_path_get_indices (path)[0];
 
-	iter->stamp = 0;
+	iter->stamp = model->priv->stamp;
 
 	root = get_index_root (model, &i);
 	iter->user_data = ephy_node_get_nth_child (root, i);
@@ -465,6 +468,7 @@ ephy_completion_model_get_path (GtkTreeModel *tree_model,
 	g_return_val_if_fail (EPHY_IS_COMPLETION_MODEL (tree_model), NULL);
 	g_return_val_if_fail (iter != NULL, NULL);
 	g_return_val_if_fail (iter->user_data != NULL, NULL);
+	g_return_val_if_fail (iter->stamp == model->priv->stamp, NULL);
 
 	node = iter->user_data;
 
@@ -483,6 +487,7 @@ ephy_completion_model_iter_next (GtkTreeModel *tree_model,
 
 	g_return_val_if_fail (iter != NULL, FALSE);
 	g_return_val_if_fail (iter->user_data != NULL, FALSE);
+	g_return_val_if_fail (iter->stamp == model->priv->stamp, FALSE);
 
 	node = iter->user_data;
 
@@ -511,7 +516,7 @@ ephy_completion_model_iter_children (GtkTreeModel *tree_model,
 	if (parent != NULL)
 		return FALSE;
 
-	iter->stamp = 0;
+	iter->stamp = model->priv->stamp;
 	iter->user_data = model->priv->history;
 
 	return TRUE;
@@ -538,6 +543,8 @@ ephy_completion_model_iter_n_children (GtkTreeModel *tree_model,
 		       ephy_node_get_n_children (model->priv->bookmarks);
 	}
 
+	g_return_val_if_fail (model->priv->stamp == iter->stamp, -1);
+
 	return 0;
 }
 
@@ -560,7 +567,7 @@ ephy_completion_model_iter_nth_child (GtkTreeModel *tree_model,
 
 	if (node != NULL)
 	{
-		iter->stamp = 0;
+		iter->stamp = model->priv->stamp;
 		iter->user_data = node;
 		return TRUE;
 	}
