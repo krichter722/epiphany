@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -23,6 +23,7 @@
 #ifndef EPHY_ADBLOCK_H
 #define EPHY_ADBLOCK_H
 
+#include "ephy-embed.h"
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -64,9 +65,10 @@ struct _EphyAdBlockIface
 	GTypeInterface base_iface;
 
 	gboolean	(* should_load)	(EphyAdBlock *adblock,
+					 EphyEmbed *embed,
 				         const char *url,
 				         AdUriCheckType check_type);
-	
+
 	void		(* edit_rule)	(EphyAdBlock *adblock,
 				         const char *url,
 				         gboolean allowed);
@@ -75,6 +77,7 @@ struct _EphyAdBlockIface
 GType		ephy_adblock_get_type		(void);
 
 gboolean	ephy_adblock_should_load 	(EphyAdBlock *adblock,
+						 EphyEmbed *embed,
 				    	 	 const char *url,
 				    	 	 AdUriCheckType check_type);
 

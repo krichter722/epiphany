@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -110,6 +110,8 @@ ephy_net_monitor_check_network (EphyNetMonitor *monitor)
 	EphyNetMonitorPrivate *priv = monitor->priv;
 	DBusMessage *message;
 	DBusPendingCall* reply;
+
+	if (priv->bus == NULL) return;
 
 	LOG ("EphyNetMonitor checking network");
 
@@ -248,13 +250,16 @@ ephy_net_monitor_startup (EphyNetMonitor *monitor)
 
 	ephy_net_monitor_attach_to_dbus (monitor);
 
-	/* DBUS may disconnect us at any time. So listen carefully to it */
-	g_signal_connect (dbus, "connected",  
-			  G_CALLBACK (connect_to_system_bus_cb), monitor);
-	g_signal_connect (dbus, "disconnected",  
-			  G_CALLBACK (disconnect_from_system_bus_cb), monitor);
+	if (monitor->priv->bus != NULL)
+       	{
+		/* DBUS may disconnect us at any time. So listen carefully to it */
+		g_signal_connect (dbus, "connected",  
+				  G_CALLBACK (connect_to_system_bus_cb), monitor);
+		g_signal_connect (dbus, "disconnected",  
+				  G_CALLBACK (disconnect_from_system_bus_cb), monitor);
 
-	ephy_net_monitor_check_network (monitor);
+		ephy_net_monitor_check_network (monitor);
+	}
 }
 
 static void

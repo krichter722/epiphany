@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -55,6 +55,7 @@
 #include "EphyContentPolicy.h"
 #include "EphyPromptService.h"
 #include "EphySidebar.h"
+#include "GeckoCookiePromptService.h"
 #include "GeckoPrintService.h"
 #include "GeckoPrintSession.h"
 #include "GlobalHistory.h"
@@ -81,6 +82,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(EphyContentPolicy)
 NS_GENERIC_FACTORY_CONSTRUCTOR(EphyPromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(EphySidebar)
 NS_GENERIC_FACTORY_CONSTRUCTOR(GContentHandler)
+NS_GENERIC_FACTORY_CONSTRUCTOR(GeckoCookiePromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(GeckoPrintService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(GeckoPrintSession)
 NS_GENERIC_FACTORY_CONSTRUCTOR(MozDownload)
@@ -267,8 +269,14 @@ static const nsModuleComponentInfo sAppComps[] = {
 		GECKO_SPELL_CHECK_ENGINE_IID,
 		GECKO_SPELL_CHECK_ENGINE_CONTRACTID,
 		GeckoSpellCheckEngineConstructor
-	}
+	},
 #endif /* ENABLE_SPELLCHECK */
+        {
+                EPHY_COOKIEPROMPTSERVICE_CLASSNAME,
+                EPHY_COOKIEPROMPTSERVICE_CID,
+                EPHY_COOKIEPROMPTSERVICE_CONTRACTID,
+                GeckoCookiePromptServiceConstructor
+        }
 };
 
 gboolean

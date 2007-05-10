@@ -13,9 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
-# 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
-AC_INIT([GNOME Web Browser],[2.17.92],[http://bugzilla.gnome.org/enter_bug.cgi?product=epiphany],[epiphany])
+AC_INIT([GNOME Web Browser],[2.19.0],[http://bugzilla.gnome.org/enter_bug.cgi?product=epiphany],[epiphany])
 
 GNOME_COMMON_INIT
 
@@ -25,11 +25,11 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([configure.ac])
 
-EPIPHANY_MAJOR=2.17
-EPIPHANY_API_VERSION=2.17
+EPIPHANY_MAJOR=2.19
+EPIPHANY_API_VERSION=2.19
 
 # This should stay at the major version of the latest stable releases
-EPIPHANY_UA_VERSION=2.16
+EPIPHANY_UA_VERSION=2.18
 
 AC_SUBST([EPIPHANY_MAJOR])
 AC_SUBST([EPIPHANY_API_VERSION])

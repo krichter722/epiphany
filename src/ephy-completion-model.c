@@ -1,3 +1,4 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /* 
  *  Copyright © 2002 Jorn Baayen <jorn@nl.linux.org>
  *
@@ -13,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -444,6 +445,29 @@ init_relevance_col (GValue *value, EphyNode *node, int group)
 }
 
 static void
+init_url_col (GValue *value, EphyNode *node, int group)
+{
+        const char *url = NULL;
+
+	if (group == BOOKMARKS_GROUP)
+	{
+	        url = ephy_node_get_property_string
+		  (node, EPHY_NODE_BMK_PROP_LOCATION);
+	}
+	else if (group == HISTORY_GROUP)
+	{
+	        url = ephy_node_get_property_string
+		  (node, EPHY_NODE_PAGE_PROP_LOCATION);
+	}
+	else
+	{
+	        url = "";
+	}
+	
+	g_value_set_string (value, url);
+}
+
+static void
 ephy_completion_model_get_value (GtkTreeModel *tree_model,
 			         GtkTreeIter *iter,
 			         int column,
@@ -494,6 +518,10 @@ ephy_completion_model_get_value (GtkTreeModel *tree_model,
 			g_value_init (value, G_TYPE_INT);
 			init_relevance_col (value, node, group);
 			break;
+                case EPHY_COMPLETION_URL_COL:
+                        g_value_init (value, G_TYPE_STRING);
+                        init_url_col (value, node, group);
+                        break;
 	}
 }
 

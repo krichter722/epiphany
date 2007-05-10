@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *  $Id$
  */
@@ -257,6 +257,14 @@ entry_key_press_event_cb (GtkEntry *entry,
 	{
 		handled = ephy_embed_find_activate_link (get_find (toolbar), event->state);
 	}
+	else if ((event->state & mask) == GDK_SHIFT_MASK &&
+		 (event->keyval == GDK_Return ||
+		  event->keyval == GDK_KP_Enter ||
+		  event->keyval == GDK_ISO_Enter))
+	{
+		handled = TRUE;
+		g_signal_emit (toolbar, signals[PREVIOUS], 0);
+	}
 
 	return handled;
 }
@@ -361,7 +369,7 @@ ephy_find_toolbar_init (EphyFindToolbar *toolbar)
 
 	item = gtk_tool_item_new ();
 	gtk_container_add (GTK_CONTAINER (item), alignment);
-	//gtk_tool_item_set_expand (item, TRUE);
+	/* gtk_tool_item_set_expand (item, TRUE); */
 	gtk_toolbar_insert (GTK_TOOLBAR (toolbar), item, -1);
 	gtk_widget_show_all (GTK_WIDGET (item));
 

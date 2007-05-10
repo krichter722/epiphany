@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -1513,6 +1513,10 @@ GtkNSSDialogs::GetPassword(nsIInterfaceRequestor *aCtx,
 				 flags);
 	EphyPasswordDialog *password_dialog = EPHY_PASSWORD_DIALOG (dialog);
 
+	/* Translators: A "token" is something that enables the user to authenticate himself or
+         * prove his credentials. This can be either a hardware device (e.g. a smart-card), or
+         * a data file (e.g. a cryptographic certificate).
+         */
 	char *message = g_markup_printf_escaped (_("Please enter the password for the “%s” token"),
 						 NS_ConvertUTF16toUTF8 (aTokenName).get ());
 	gtk_message_dialog_set_markup (GTK_MESSAGE_DIALOG (dialog),

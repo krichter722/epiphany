@@ -30,13 +30,11 @@ NOINST_H_FILES = \
 	ephy-zoom.h
 
 TYPES_H_FILES = \
-	ephy-adblock.h				\
 	ephy-node.h				\
 	ephy-password-dialog.h			\
 	ephy-state.h
 
 INST_H_FILES = \
-	ephy-adblock.h				\
 	ephy-dialog.h				\
 	ephy-loader.h				\
 	ephy-node.h				\
@@ -45,7 +43,6 @@ INST_H_FILES = \
 
 libephymisc_la_SOURCES = \
 	eel-gconf-extensions.c			\
-	ephy-adblock.c				\
 	ephy-debug.c				\
 	ephy-dialog.c				\
 	ephy-dnd.c				\
@@ -128,10 +125,10 @@ stamp-ephy-marshal.h: ephy-marshal.list
 	$(GLIB_GENMARSHAL) --prefix=ephy_marshal $(srcdir)/ephy-marshal.list --header > ephy-marshal.h \
 	&& echo timestamp > $(@F)
 
-ephy-lib-type-builtins.c: stamp-ephy-lib-type-builtins.c
+ephy-lib-type-builtins.c: stamp-ephy-lib-type-builtins.c Makefile
 	@true
-stamp-ephy-lib-type-builtins.c: $(TYPES_H_FILES)
-	( cd $(srcdir) && $(GLIB_MKENUMS) \
+stamp-ephy-lib-type-builtins.c: Makefile $(TYPES_H_FILES)
+	$(GLIB_MKENUMS) \
 		--fhead "#include \"ephy-lib-type-builtins.h\"\n\n" \
 		--fprod "\n/* enumerations from \"@filename@\" */" \
 		--fprod "\n#include \"@filename@\"" \
@@ -143,15 +140,15 @@ stamp-ephy-lib-type-builtins.c: $(TYPES_H_FILES)
 		--vtail "      { 0, NULL, NULL }\n    };\n\n" \
 		--vtail "    type = g_@type@_register_static (\"@EnumName@\", _@enum_name@_values);\n  }\n\n" \
 		--vtail "  return type;\n}\n\n" \
-		$(^F) ) > xgen-$(@F) \
+		$(filter-out $<,$^) > xgen-$(@F) \
 	&& ( cmp -s xgen-$(@F) $(@F:stamp-%=%) || cp xgen-$(@F) $(@F:stamp-%=%) ) \
 	&& rm -f xgen-$(@F) \
 	&& echo timestamp > $(@F)
 
-ephy-lib-type-builtins.h: stamp-ephy-lib-type-builtins.h
+ephy-lib-type-builtins.h: stamp-ephy-lib-type-builtins.h Makefile
 	@true
-stamp-ephy-lib-type-builtins.h: $(TYPES_H_FILES)
-	( cd $(srcdir) && $(GLIB_MKENUMS) \
+stamp-ephy-lib-type-builtins.h: Makefile $(TYPES_H_FILES)
+	$(GLIB_MKENUMS) \
 		--fhead "#ifndef EPHY_LIB_TYPE_BUILTINS_H\n" \
 		--fhead "#define EPHY_LIB_TYPE_BUILTINS_H 1\n\n" \
 		--fhead "#include <glib-object.h>\n\n" \
@@ -161,7 +158,7 @@ stamp-ephy-lib-type-builtins.h: $(TYPES_H_FILES)
 		--fprod "\n/* --- @filename@ --- */" \
 		--eprod "#define EPHY_TYPE_@ENUMSHORT@ @enum_name@_get_type()\n" \
 		--eprod "GType @enum_name@_get_type (void);\n" \
-		$(^F) ) > xgen-$(@F) \
+		$(filter-out $<,$^) > xgen-$(@F) \
 	&& ( cmp -s xgen-$(@F) $(@F:stamp-%=%) || cp xgen-$(@F) $(@F:stamp-%=%) ) \
 	&& rm -f xgen-$(@F) \
 	&& echo timestamp > $(@F)

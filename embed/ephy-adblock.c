@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -48,13 +48,15 @@ ephy_adblock_get_type (void)
 
 gboolean
 ephy_adblock_should_load (EphyAdBlock *adblock,
+			  EphyEmbed *embed,
 			  const char *url,
 			  AdUriCheckType check_type)
 {
 	EphyAdBlockIface *iface = EPHY_ADBLOCK_GET_IFACE (adblock);
+	
 	if (iface->should_load)
 	{
-		return iface->should_load (adblock, url, check_type);
+		return iface->should_load (adblock, embed, url, check_type);
 	}
 
 	return TRUE;

@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -98,11 +98,161 @@ ephy_file_tmp_dir (void)
 	return tmp_dir;
 }
 
+/* Copied from xdg-user-dir-lookup.c */
+
+static char *
+xdg_user_dir_lookup (const char *type)
+{
+  FILE *file;
+  char *home_dir, *config_home, *config_file;
+  char buffer[512];
+  char *user_dir;
+  char *p, *d;
+  int len;
+  int relative;
+  
+  home_dir = getenv ("HOME");
+
+  if (home_dir == NULL)
+    return strdup ("/tmp");
+
+  config_home = getenv ("XDG_CONFIG_HOME");
+  if (config_home == NULL || config_home[0] == 0)
+    {
+      config_file = malloc (strlen (home_dir) + strlen ("/.config/user-dirs.dirs") + 1);
+      strcpy (config_file, home_dir);
+      strcat (config_file, "/.config/user-dirs.dirs");
+    }
+  else
+    {
+      config_file = malloc (strlen (config_home) + strlen ("/user-dirs.dirs") + 1);
+      strcpy (config_file, config_home);
+      strcat (config_file, "/user-dirs.dirs");
+    }
+
+  file = fopen (config_file, "r");
+  free (config_file);
+  if (file == NULL)
+    goto error;
+
+  user_dir = NULL;
+  while (fgets (buffer, sizeof (buffer), file))
+    {
+      /* Remove newline at end */
+      len = strlen (buffer);
+      if (len > 0 && buffer[len-1] == '\n')
+	buffer[len-1] = 0;
+      
+      p = buffer;
+      while (*p == ' ' || *p == '\t')
+	p++;
+      
+      if (strncmp (p, "XDG_", 4) != 0)
+	continue;
+      p += 4;
+      if (strncmp (p, type, strlen (type)) != 0)
+	continue;
+      p += strlen (type);
+      if (strncmp (p, "_DIR", 4) != 0)
+	continue;
+      p += 4;
+
+      while (*p == ' ' || *p == '\t')
+	p++;
+
+      if (*p != '=')
+	continue;
+      p++;
+      
+      while (*p == ' ' || *p == '\t')
+	p++;
+
+      if (*p != '"')
+	continue;
+      p++;
+      
+      relative = 0;
+      if (strncmp (p, "$HOME/", 6) == 0)
+	{
+	  p += 6;
+	  relative = 1;
+	}
+      else if (*p != '/')
+	continue;
+      
+      if (relative)
+	{
+	  user_dir = malloc (strlen (home_dir) + 1 + strlen (p) + 1);
+	  strcpy (user_dir, home_dir);
+	  strcat (user_dir, "/");
+	}
+      else
+	{
+	  user_dir = malloc (strlen (p) + 1);
+	  *user_dir = 0;
+	}
+      
+      d = user_dir + strlen (user_dir);
+      while (*p && *p != '"')
+	{
+	  if ((*p == '\\') && (*(p+1) != 0))
+	    p++;
+	  *d++ = *p++;
+	}
+      *d = 0;
+    }  
+  fclose (file);
+
+  if (user_dir)
+    return user_dir;
+
+ error:
+  /* Special case desktop for historical compatibility */
+  if (strcmp (type, "DESKTOP") == 0)
+    {
+      user_dir = malloc (strlen (home_dir) + strlen ("/Desktop") + 1);
+      strcpy (user_dir, home_dir);
+      strcat (user_dir, "/Desktop");
+      return user_dir;
+    }
+  else
+    return strdup (home_dir);
+}
+
+static char *
+ephy_file_downloads_dir_from_xdg (void)
+{
+	const char *home_dir;
+	char *downloads_dir;
+
+	/* We use getenv to exactly match the default output
+	 * from xdg_user_dir_lookup, otherwise we might have a
+	 * mismatch in the string comparison below */
+	home_dir = getenv ("HOME");
+	downloads_dir = xdg_user_dir_lookup ("DOWNLOAD");
+
+	/* No home directory, it will use /tmp then */
+	if (home_dir == NULL)
+		return downloads_dir;
+	/* If the dir lookup fellback on the home dir,
+	 * we don't want it, we have our own fall back code */
+	if (strcmp (downloads_dir, home_dir) == 0) {
+		g_free (downloads_dir);
+		return NULL;
+	}
+
+	return downloads_dir;
+}
+
 char *
 ephy_file_downloads_dir (void)
 {
 	const char *translated_folder;
 	char *desktop_dir, *converted, *downloads_dir;
+
+	downloads_dir = ephy_file_downloads_dir_from_xdg ();
+	if (downloads_dir != NULL)
+		return downloads_dir;
 
 	/* The name of the default downloads folder */
 	translated_folder = _("Downloads");
@@ -1019,19 +1169,33 @@ gboolean
 ephy_file_browse_to (const char *parameter,
 		     guint32 user_time)
 {
-	GnomeVFSURI *uri, *parent_uri;
+	GnomeVFSURI *uri, *parent_uri, *desktop;
+	char *desktop_dir;
 	gboolean ret;
 
 	uri = gnome_vfs_uri_new (parameter);
 	parent_uri = gnome_vfs_uri_get_parent (uri);
 
-	/* TODO find a way to make nautilus scroll to the actual file */
-	ret = ephy_file_launch_handler ("x-directory/normal", 
-					gnome_vfs_uri_get_path (parent_uri), 
-					user_time);
+	desktop_dir = ephy_file_desktop_dir ();
+	desktop = gnome_vfs_uri_new (desktop_dir);
 	
+	/* Don't do anything if destination is the desktop */
+	if (gnome_vfs_uri_equal (desktop, parent_uri))
+	{
+		ret = FALSE;
+	}
+	else
+	{
+		/* TODO find a way to make nautilus scroll to the actual file */
+		ret = ephy_file_launch_handler ("x-directory/normal", 
+						gnome_vfs_uri_get_path (parent_uri), 
+						user_time);
+	}
+	
+	g_free (desktop_dir);
 	gnome_vfs_uri_unref (uri);
 	gnome_vfs_uri_unref (parent_uri);
+	gnome_vfs_uri_unref (desktop);
 
 	return ret;
 }

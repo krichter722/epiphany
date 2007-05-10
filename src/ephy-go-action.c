@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -79,6 +79,15 @@ create_tool_item (GtkAction *action)
 }
 
 static void
+button_clicked_cb (GtkWidget *widget,
+		   GdkEventButton *event,
+		   gpointer user_data)
+{
+	if (event->button == 1 || event->button == 2)
+		gtk_action_activate (GTK_ACTION (user_data));
+}
+
+static void
 connect_proxy (GtkAction *action,
 	       GtkWidget *proxy)
 {      
@@ -86,9 +95,9 @@ connect_proxy (GtkAction *action,
 
 	if (GTK_IS_TOOL_ITEM (proxy))
 	{
-		g_signal_connect_object (GTK_BIN (proxy)->child, "clicked",
-					 G_CALLBACK (gtk_action_activate), action,
-					 G_CONNECT_SWAPPED);
+		g_signal_connect (GTK_BIN (proxy)->child, "button-press-event",
+					 G_CALLBACK (button_clicked_cb), action
+					);
 	}
 }
 

@@ -13,7 +13,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -66,7 +66,6 @@ static const PRUnichar kKeyPress[] = { 'k', 'e', 'y', 'p', 'r', 'e', 's', 's', '
 EphyFind::EphyFind ()
 : mCurrentEmbed(nsnull)
 , mAttention(PR_FALSE)
-, mHasFocus(PR_FALSE) /* FIXME!! */
 {
   LOG ("EphyFind ctor [%p]", this);
 }
@@ -188,11 +187,7 @@ EphyFind::Find (const char *aSearchString,
 
   nsresult rv;
   PRUint16 found = nsITypeAheadFind::FIND_NOTFOUND;
-#ifdef HAVE_GECKO_1_9
-  rv = mFinder->Find (uSearchString, aLinksOnly, mHasFocus, &found);
-#else
   rv = mFinder->Find (uSearchString, aLinksOnly, &found);
-#endif
 
   return (EphyEmbedFindResult) found;
 }
@@ -208,7 +203,7 @@ EphyFind::FindAgain (PRBool aForward,
   nsresult rv;
   PRUint16 found = nsITypeAheadFind::FIND_NOTFOUND;
 #ifdef HAVE_GECKO_1_9
-  rv = mFinder->FindAgain (!aForward, aLinksOnly, mHasFocus, &found);
+  rv = mFinder->FindAgain (!aForward, aLinksOnly, &found);
 #else
   if (aForward) {
     rv = mFinder->FindNext (&found);

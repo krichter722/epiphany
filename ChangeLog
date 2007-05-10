@@ -1,3 +1,214 @@
+2007-05-08  Felix Riemann  <friemann@svn.gnome.org>
+
+	* lib/egg/egg-toolbar-editor.c: (event_box_realize_cb),
+	(editor_create_item_from_name):
+	Support using named icons in the toolbareditor and attach them to the
+	mouse pointer while dragging them to the toolbar. (bug #436684)
+
+2007-05-04  Diego Escalante Urrelo <diegoe@gnome.org>
+
+	* src/ephy-find-toolbar.c:
+
+	Make Shift+Return find previous when searching. 
+	Patch by Robin Stocker.
+
+	Fixes #412033
+
+2007-05-01  Xan Lopez  <xan@gnome.org>
+
+	* lib/widgets/ephy-location-entry.c:
+	* lib/widgets/ephy-location-entry.h:
+	* src/ephy-completion-model.c:
+	* src/ephy-completion-model.h:
+	* src/ephy-location-action.c:
+
+	Copy the items on the completion list as the user moves through
+	them. The original input can be restored pressing Esc. The tentative
+	completion can be made definitive pressing Left or Right.
+
+	Fixes #409291, #102528
+	
+2007-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+	* src/popup-commands.c:
+	* lib/ephy-file-helpers.c:
+	Avoid opening nautilus if downloads are done to Desktop. This re-fixes
+	bug #383698.
+
+2007-04-24  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+	* embed/ephy-embed-dialog.c:
+	Fix some strict-aliasing warnings.
+
+2007-04-23  Bastien Nocera  <hadess@hadess.net>
+
+	* lib/ephy-file-helpers.c: (xdg_user_dir_lookup),
+	(ephy_file_downloads_dir_from_xdg), (ephy_file_downloads_dir):
+	Use xdg-user-dirs to get a better default Downloads directory
+	(Closes: #415342)
+
+2007-04-20  Bastien Nocera  <hadess@hadess.net>
+
+	* data/mime-types-permissions.xml: Add "application/x-quicktimeplayer"
+	and "application/x-quicktime-media-link" to the safe mime-types
+	(Closes: #431665)
+
+2007-04-16  Diego Escalante Urrelo  <diegoe@gnome.org>
+
+	* src/ephy-go-action.c:
+
+	Middle clicking the Go button should open the location bar address
+	content in a new tab. Bug #362591.
+
+2007-04-09  Christian Persch  <chpe@gnome.org>
+
+	* data/glade/print.glade:
+	* embed/mozilla/EphyBrowser.cpp:
+	* embed/mozilla/GeckoPrintService.cpp:
+	* embed/mozilla/GeckoPrintService.h:
+
+	Fix printing of frames.
+
+2007-04-02  Diego Escalante Urrelo <diegoe@gnome.org>
+
+	* src/bookmarks/ephy-topic-action.c:
+
+	Allow the user to select a different bookmark topic on the toolbar by
+	just moving the mouse. Old behaviour forced the user to click each
+	topic button to activate the menu, now only the first click is
+	required. Bug #363848. Patch by John Millikin.
+
+2007-03-29  Christian Persch  <chpe@gnome.org>
+
+	* lib/ephy-password-dialog.c: (ephy_password_dialog_constructor):
+
+	#if 0 some currently unused code. Bug #423907.
+
+2007-03-25  Christian Persch  <chpe@gnome.org>
+
+	* src/ephy-statusbar.c: (create_statusbar_progress):
+
+	Make progressbar taller. Bug #421060.
+
+2007-03-16  Bastien Nocera  <hadess@hadess.net>
+
+	* embed/mozilla/Makefile.am:
+	* embed/mozilla/mozilla-embed-single.cpp:
+	Fix Epiphany not finding some Gecko plugins when
+	running in a multilib environment (Closes: #407419)
+
+2007-03-12  Christian Persch  <chpe@gnome.org>
+
+	* embed/mozilla/GtkNSSDialogs.cpp:
+
+	Add translator's comment for 'token'.
+
+2007-03-12  Christian Persch  <chpe@gnome.org>
+
+	* embed/mozilla/GeckoCookiePromptService.cpp:
+	* embed/mozilla/GeckoCookiePromptService.h:
+	* embed/mozilla/Makefile.am:
+	* embed/mozilla/MozRegisterComponents.cpp:
+
+	Implement nsICookiePromptService. Bug #337826.
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	* configure.ac:
+
+	Bump version to 2.19.0, and set API version to 2.19.
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	* *:
+
+	Correct FSF address. Bug #409075, patch by John Millikin.
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	* configure.ac:
+
+	Post-release version bump.
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	=== Release 2.18.0 ===
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	* configure.ac:
+
+	Set version to 2.18.0.
+
+2007-03-11  Christian Persch  <chpe@gnome.org>
+
+	* embed/Makefile.am:
+	* lib/Makefile.am:
+	* lib/egg/Makefile.am:
+	* src/Makefile.am:
+	* src/bookmarks/Makefile.am:
+
+	Regenerate the type builtins when the Makefile changes. Should fix bug
+	#416994; no code freeze break since it's only fixing a build problem.
+
+2007-03-07  Christian Kirbach  <Christian.Kirbach@googlemail.com>
+
+	* data/bme.desktop.in.in:
+	* data/epiphany.desktop.in.in:
+
+	"Application" is not a valid category in the freedesktop specification.
+
+2007-03-04  Christian Persch  <chpe@svn.gnome.org>
+
+	* src/ephy-net-monitor.c: (ephy_net_monitor_check_network),
+	(ephy_net_monitor_startup):
+
+	Don't crash when we cannot access the system bus. Bug #404514, patch
+	by Jan de Groot.
+
+2007-03-03  Christian Persch  <chpe@svn.gnome.org>
+
+	* embed/Makefile.am:
+	* lib/Makefile.am:
+	* lib/egg/Makefile.am:
+	* src/Makefile.am:
+	* src/bookmarks/Makefile.am: Make sure the type builtins are
+	regenerated when the Makefile changes.
+
+2007-03-03  Benjamin Berg  <benjamin@sipsolutions.net>
+
+	* embed/Makefile.am:
+	* embed/ephy-adblock-manager.c: (ephy_adblock_manager_should_load):
+	* embed/ephy-adblock-manager.h:
+	* embed/ephy-adblock.c: (ephy_adblock_should_load):
+	* embed/ephy-adblock.h:
+	* embed/mozilla/EphyContentPolicy.cpp:
+	* lib/Makefile.am:
+	* lib/ephy-adblock.c:
+	* lib/ephy-adblock.h:
+
+	Move ephy-adblock.* to embed. Change the API to pass EphyEmbed to
+	should_load. This is needed to fix bug #348331.
+
+2007-03-02  Christian Persch  <chpe@svn.gnome.org>
+
+	* data/mime-types-permissions.xml:
+
+	Add .bz2.
+
+2007-02-26  Christian Persch  <chpe@svn.gnome.org>
+
+	=== Release 2.17.92 ==
+
+	* configure.ac:
+
+2007-02-23  Christian Persch  <chpe@svn.gnome.org>
+
+	* embed/mozilla/EphyFind.cpp:
+	* embed/mozilla/EphyFind.h:
+
+	What's this? Another mozilla API change!
+
 2007-02-12  Christian Persch  <chpe@svn.gnome.org>
 
 	* configure.ac:

@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  *  $Id$
  */
@@ -60,7 +60,7 @@ static GQuark startup_error_quark = 0;
 static gboolean open_in_new_tab = FALSE;
 static gboolean open_in_new_window = FALSE;
 static gboolean open_as_bookmarks_editor = FALSE;
-//static gboolean reload_plugins = FALSE;
+/*static gboolean reload_plugins = FALSE;*/
 
 static char *session_filename = NULL;
 static char *bookmark_url = NULL;
@@ -228,7 +228,7 @@ unref_proxy_reply_cb (DBusGProxy *proxy,
 	if (error != NULL)
 	{
 		g_warning ("An error occured while calling remote method: %s", error->message);
-		g_error_free (error);// FIXME???
+		g_error_free (error);/* FIXME??? */
 	}
 
 	g_object_unref (proxy);

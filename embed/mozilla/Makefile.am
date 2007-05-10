@@ -35,6 +35,8 @@ libephymozillaembed_la_SOURCES = 	\
 	EphyUtils.h			\
 	EventContext.cpp                \
 	EventContext.h                  \
+	GeckoCookiePromptService.cpp	\
+	GeckoCookiePromptService.h	\
 	GeckoFormSigningDialog.cpp	\
 	GeckoFormSigningDialog.h	\
 	GeckoPrintService.cpp		\
@@ -142,6 +144,7 @@ libephymozillaembed_la_CPPFLAGS = \
 	-DPLUGINDIR=\"$(libdir)/epiphany/$(EPIPHANY_MAJOR)/plugins\"		\
 	-DMOZILLA_HOME=\"$(MOZILLA_HOME)\"	\
 	-DMOZILLA_PREFIX=\"$(MOZILLA_PREFIX)\"	\
+	-DMOZILLA_NATIVE_PLUGINSDIR=\"$(libdir)/mozilla/plugins\"		\
 	-DUA_VERSION=\"$(EPIPHANY_UA_VERSION)\"	\
 	-DALLOW_PRIVATE_API			\
 	$(AM_CPPFLAGS)
