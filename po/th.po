@@ -9,14 +9,14 @@ msgstr ""
 "Project-Id-Version: epiphany.th\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=epiphany\n"
-"POT-Creation-Date: 2007-01-29 20:37+0700\n"
-"PO-Revision-Date: 2007-01-29 20:41+0700\n"
+"POT-Creation-Date: 2007-05-23 09:13+0700\n"
+"PO-Revision-Date: 2007-05-23 09:16+0700\n"
 "Last-Translator: Theppitak Karoonboonyanan <thep@linux.thai.net>\n"
 "Language-Team: Thai <L10n@opentle.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: data/bme.desktop.in.in.h:1
 msgid "Browse and organize your bookmarks"
@@ -230,25 +230,29 @@ msgid "Enable JavaScript"
 msgstr "ใช้จาวาสคริปต์"
 
 #: data/epiphany.schemas.in.h:16
+msgid "Enable smooth scrolling"
+msgstr "ใช้การเลื่อนจอแบบลื่น"
+
+#: data/epiphany.schemas.in.h:17
 msgid "History pages time range"
 msgstr "ช่วงเวลาของการเก็บประวัติ"
 
-#: data/epiphany.schemas.in.h:17
+#: data/epiphany.schemas.in.h:18
 msgid "Home page"
 msgstr "หน้าแรก"
 
-#: data/epiphany.schemas.in.h:18
+#: data/epiphany.schemas.in.h:19
 msgid ""
 "How to present animated images. Possible values are \"normal\", \"once\" and "
 "\"disabled\"."
 msgstr ""
 "จะแสดงภาพเคลื่อนไหวอย่างไร ค่าที่เป็นไปได้คือ \"normal\", \"once\" และ \"disabled\""
 
-#: data/epiphany.schemas.in.h:19
+#: data/epiphany.schemas.in.h:20
 msgid "How to print frames"
 msgstr "การพิมพ์เฟรม"
 
-#: data/epiphany.schemas.in.h:20
+#: data/epiphany.schemas.in.h:21
 msgid ""
 "How to print pages containing frames. Allowed values are \"normal\", "
 "\"separately\" and \"selected\"."
@@ -256,54 +260,54 @@ msgstr ""
 "จะพิมพ์หน้าเว็บที่มีเฟรมอย่างไร ค่าที่เป็นไปได้คือ \"normal\" (ปกติ), \"separately"
 "\" (แยกเฟรม) และ \"selected\" (เฉพาะเฟรมที่เลือก)"
 
-#: data/epiphany.schemas.in.h:21
+#: data/epiphany.schemas.in.h:22
 msgid "ISO-8859-1"
 msgstr "TIS-620"
 
-#: data/epiphany.schemas.in.h:22
+#: data/epiphany.schemas.in.h:23
 msgid "Image animation mode"
 msgstr "โหมดของภาพเคลื่อนไหว"
 
-#: data/epiphany.schemas.in.h:23
+#: data/epiphany.schemas.in.h:24
 msgid "Languages"
 msgstr "ภาษา"
 
-#: data/epiphany.schemas.in.h:24
+#: data/epiphany.schemas.in.h:25
 msgid "Lists the active extensions."
 msgstr "รายการส่วนขยายที่เปิดใช้อยู่"
 
-#: data/epiphany.schemas.in.h:25
+#: data/epiphany.schemas.in.h:26
 msgid ""
 "Middle click to open the web page pointed to by the currently selected text"
 msgstr "ให้การคลิกเมาส์ปุ่มกลางเปิดเว็บตามที่อยู่ในข้อความที่เลือกอยู่"
 
-#: data/epiphany.schemas.in.h:26
+#: data/epiphany.schemas.in.h:27
 msgid ""
 "Middle clicking on the main view pane will open the web page pointed to by "
 "the currently selected text."
 msgstr "ให้การคลิกเมาส์ในช่องทำงานหลักเปิดเว็บตามที่อยู่ในข้อความที่เลือกอยู่"
 
-#: data/epiphany.schemas.in.h:27
+#: data/epiphany.schemas.in.h:28
 msgid "Minimum font size"
 msgstr "ขนาดอย่างต่ำของแบบอักษร"
 
-#: data/epiphany.schemas.in.h:28
+#: data/epiphany.schemas.in.h:29
 msgid "Preferred languages, two letter codes."
 msgstr "ภาษาที่เลือก (รหัสอักษรสองตัว)"
 
-#: data/epiphany.schemas.in.h:29
+#: data/epiphany.schemas.in.h:30
 msgid "Remember passwords"
 msgstr "จำรหัสผ่าน"
 
-#: data/epiphany.schemas.in.h:30
+#: data/epiphany.schemas.in.h:31
 msgid "Show bookmarks bar by default"
 msgstr "แสดงแถบที่คั่นหน้าโดยปริยาย"
 
-#: data/epiphany.schemas.in.h:31
+#: data/epiphany.schemas.in.h:32
 msgid "Show statusbar by default"
 msgstr "แสดงแถบสถานะโดยปริยาย"
 
-#: data/epiphany.schemas.in.h:32
+#: data/epiphany.schemas.in.h:33
 msgid ""
 "Show the history pages visited \"ever\", \"last_two_days\", \"last_three_days"
 "\", \"today\"."
@@ -311,38 +315,38 @@ msgstr ""
 "ช่วงเวลาของการแสดงประวัติการเข้าเว็บ \"ever\", \"last_two_days\", "
 "\"last_three_days\" หรือ \"today\""
 
-#: data/epiphany.schemas.in.h:33
+#: data/epiphany.schemas.in.h:34
 msgid "Show the tab bar also when there is only one tab open."
 msgstr "แสดงแถบแท็บเมื่อเปิดเพียงแท็บเดียว"
 
-#: data/epiphany.schemas.in.h:34
+#: data/epiphany.schemas.in.h:35
 msgid "Show toolbars by default"
 msgstr "แสดงแถบเครื่องมือโดยปริยาย"
 
-#: data/epiphany.schemas.in.h:35
+#: data/epiphany.schemas.in.h:36
 msgid "Size of disk cache"
 msgstr "เนื้อที่ของแคชบนดิสก์"
 
-#: data/epiphany.schemas.in.h:36
+#: data/epiphany.schemas.in.h:37
 msgid "Size of disk cache, in MB."
 msgstr "เนื้อที่ของแคชบนดิสก์ เป็น MB"
 
-#: data/epiphany.schemas.in.h:37
+#: data/epiphany.schemas.in.h:38
 msgid "The bookmark information shown in the editor view"
 msgstr "ข้อมูลของที่คั่นหน้าที่แสดงในหน้าต่างแก้ไข"
 
-#: data/epiphany.schemas.in.h:38
+#: data/epiphany.schemas.in.h:39
 msgid ""
 "The bookmark information shown in the editor view. Valid values in the list "
 "are \"address\" and \"title\"."
 msgstr ""
 "ข้อมูลของที่คั่นหน้าที่จะแสดงในหน้าต่างแก้ไข ค่าที่ใช้ได้ในรายการคือ \"address\" และ \"title\""
 
-#: data/epiphany.schemas.in.h:39
+#: data/epiphany.schemas.in.h:40
 msgid "The currently selected fonts language"
 msgstr "ภาษาที่เลือกแบบอักษรให้อยู่ในขณะนี้"
 
-#: data/epiphany.schemas.in.h:40
+#: data/epiphany.schemas.in.h:41
 msgid ""
 "The currently selected fonts language. Valid values are \"ar\" (arabic), \"x-"
 "baltic\" (baltic languages), \"x-central-euro\" (central european "
@@ -360,15 +364,15 @@ msgstr ""
 "\" (ตุรกี), \"x-unicode\" (ภาษาอื่นๆ), \"x-western\" (ภาษาที่เขียนด้วยอักขระละติน), "
 "\"x-tamil\" (ทมิฬ) และ \"x-devanagari\" (เทวนาครี)"
 
-#: data/epiphany.schemas.in.h:41
+#: data/epiphany.schemas.in.h:42
 msgid "The downloads folder"
 msgstr "โฟลเดอร์เก็บแฟ้มดาวน์โหลด"
 
-#: data/epiphany.schemas.in.h:42
+#: data/epiphany.schemas.in.h:43
 msgid "The encoding autodetector. Empty string means autodetect is off"
 msgstr "ตัวตรวจจับรหัสอักขระอัตโนมัติ กำหนดเป็นสตริงว่างหมายถึงไม่ใช้"
 
-#: data/epiphany.schemas.in.h:43
+#: data/epiphany.schemas.in.h:44
 msgid ""
 "The encoding autodetector. Valid entries are \"\" (autodetectors off), "
 "\"cjk_parallel_state_machine\" (autodetect east asian encodings), "
@@ -390,18 +394,18 @@ msgstr ""
 "\"zhtw_parallel_state_machine\" (ตรวจหารหัสอักขระจีนดั้งเดิม) และ "
 "\"universal_charset_detector\" (ตรวจหารหัสอักขระทั่วไป)."
 
-#: data/epiphany.schemas.in.h:44
+#: data/epiphany.schemas.in.h:45
 msgid "The page information shown in the history view"
 msgstr "ข้อมูลของหน้าเว็บที่แสดงในรายการประวัติ"
 
-#: data/epiphany.schemas.in.h:45
+#: data/epiphany.schemas.in.h:46
 msgid ""
 "The page information shown in the history view. Valid values in the list are "
 "\"address\", \"title\"."
 msgstr ""
 "ข้อมูลของหน้าเว็บที่จะแสดงในรายการประวัติ ค่าที่ใช้ได้ในรายการคือ \"address\" และ \"title\""
 
-#: data/epiphany.schemas.in.h:46
+#: data/epiphany.schemas.in.h:47
 msgid ""
 "The path of the folder where to download files to; or \"Downloads\" to use "
 "the default downloads folder, or \"Desktop\" to use the desktop folder."
@@ -409,11 +413,11 @@ msgstr ""
 "พาธของโฟลเดอร์ที่จะเก็บแฟ้มดาวน์โหลด หรือใช้ค่า \"Downloads\" "
 "เพื่อใช้โฟลเดอร์ดาวน์โหลดปริยาย หรือ \"Desktop\" เพื่อเก็บลงบนพื้นโต๊ะ"
 
-#: data/epiphany.schemas.in.h:47
+#: data/epiphany.schemas.in.h:48
 msgid "Toolbar style"
 msgstr "รูปแบบแถบเครื่องมือ"
 
-#: data/epiphany.schemas.in.h:48
+#: data/epiphany.schemas.in.h:49
 msgid ""
 "Toolbar style. Allowed values are \"\" (use GNOME default style), \"both"
 "\" (text and icons), \"both-horiz\" (text besides icons), \"icons\", and "
@@ -422,23 +426,23 @@ msgstr ""
 "รูปแบบแถบเครื่องมือ ค่าที่ใช้ได้คือ \"\" (ใช้รูปแบบปกติของ GNOME), \"both"
 "\" (ข้อความและรูป), \"both-horiz\" (ข้อความข้างรูป), \"icons\", และ \"text"
 
-#: data/epiphany.schemas.in.h:49
+#: data/epiphany.schemas.in.h:50
 msgid "Use own colors"
 msgstr "ใช้สีที่กำหนด"
 
-#: data/epiphany.schemas.in.h:50
+#: data/epiphany.schemas.in.h:51
 msgid "Use own fonts"
 msgstr "ใช้แบบอักษรที่กำหนด"
 
-#: data/epiphany.schemas.in.h:51
+#: data/epiphany.schemas.in.h:52
 msgid "Use your own colors instead of the colors the page requests."
 msgstr "ใช้สีที่คุณกำหนดเอง แทนสีที่กำหนดในหน้าเว็บ"
 
-#: data/epiphany.schemas.in.h:52
+#: data/epiphany.schemas.in.h:53
 msgid "Use your own fonts instead of the fonts the page requests."
 msgstr "ใช้แบบอักษรที่คุณกำหนดเอง แทนแบบอักษรที่หน้าเว็บกำหนด"
 
-#: data/epiphany.schemas.in.h:53
+#: data/epiphany.schemas.in.h:54
 msgid ""
 "When files cannot be opened by the browser they are automatically downloaded "
 "to the download folder and opened with the appropriate application."
@@ -446,42 +450,42 @@ msgstr ""
 "เมื่อเบราว์เซอร์ไม่สามารถเปิดแฟ้มได้ จะดาวน์โหลดแฟ้มดังกล่าวมายังโฟลเดอร์ดาวน์โหลดโดยอัตโนมัติ "
 "แล้วเปิดด้วยโปรแกรมที่เหมาะสม"
 
-#: data/epiphany.schemas.in.h:54
+#: data/epiphany.schemas.in.h:55
 msgid ""
 "Where to accept cookies from. Possible values are \"anywhere\", \"current "
 "site\" and \"nowhere\"."
 msgstr ""
 "จะรับคุกกี้จากแหล่งไหน ค่าที่เป็นไปได้คือ \"anywhere\", \"current site\" และ \"nowhere\""
 
-#: data/epiphany.schemas.in.h:55
+#: data/epiphany.schemas.in.h:56
 msgid "Whether to print the background color"
 msgstr "กำหนดว่าจะพิมพ์สีพื้นหลังหรือไม่"
 
-#: data/epiphany.schemas.in.h:56
+#: data/epiphany.schemas.in.h:57
 msgid "Whether to print the background images"
 msgstr "กำหนดว่าจะพิมพ์ภาพพื้นหลังหรือไม่"
 
-#: data/epiphany.schemas.in.h:57
+#: data/epiphany.schemas.in.h:58
 msgid "Whether to print the date in the footer"
 msgstr "กำหนดว่าจะพิมพ์วันที่ที่ท้ายกระดาษหรือไม่"
 
-#: data/epiphany.schemas.in.h:58
+#: data/epiphany.schemas.in.h:59
 msgid "Whether to print the page address in the header"
 msgstr "กำหนดว่าจะพิมพ์ที่อยู่ของเว็บที่หัวกระดาษหรือไม่"
 
-#: data/epiphany.schemas.in.h:59
+#: data/epiphany.schemas.in.h:60
 msgid "Whether to print the page numbers (x of total) in the footer"
 msgstr "กำหนดว่าจะพิมพ์หมายเลขหน้า (x จากทั้งหมด) ที่ท้ายกระดาษหรือไม่"
 
-#: data/epiphany.schemas.in.h:60
+#: data/epiphany.schemas.in.h:61
 msgid "Whether to print the page title in the header"
 msgstr "กำหนดว่าจะพิมพ์หัวเรื่องเว็บที่หัวกระดาษหรือไม่"
 
-#: data/epiphany.schemas.in.h:61
+#: data/epiphany.schemas.in.h:62
 msgid "Whether to store and prefill passwords in web sites."
 msgstr "กำหนดว่าจะเก็บรหัสผ่านและนำมาเติมในช่องรหัสผ่านในเว็บต่างๆ หรือไม่"
 
-#: data/epiphany.schemas.in.h:62
+#: data/epiphany.schemas.in.h:63
 msgid "x-western"
 msgstr "th"
 
@@ -568,7 +572,7 @@ msgid "Cookies"
 msgstr "คุกกี้"
 
 #. The name of the default downloads folder
-#: data/glade/epiphany.glade.h:4 lib/ephy-file-helpers.c:108
+#: data/glade/epiphany.glade.h:4 lib/ephy-file-helpers.c:258
 msgid "Downloads"
 msgstr "ดาวน์โหลด"
 
@@ -589,7 +593,7 @@ msgid "Use the encoding specified by the document"
 msgstr "ใช้รหัสอักขระที่ระบุในเอกสาร"
 
 #: data/glade/epiphany.glade.h:9
-msgid "_Show password"
+msgid "_Show passwords"
 msgstr "แ_สดงรหัสผ่าน"
 
 #: data/glade/form-signing-dialog.glade.h:1
@@ -611,7 +615,7 @@ msgstr "ใ_บรับรอง:"
 #: data/glade/form-signing-dialog.glade.h:4
 #: embed/mozilla/EphyPromptService.cpp:808
 #: embed/mozilla/EphyPromptService.cpp:835
-#: lib/ephy-password-dialog.c:427 lib/ephy-password-dialog.c:443
+#: lib/ephy-password-dialog.c:429 lib/ephy-password-dialog.c:445
 msgid "_Password:"
 msgstr "_รหัสผ่าน:"
 
@@ -676,7 +680,7 @@ msgstr "เลือก_ภาษา:"
 #. * Select All, Input Methods and Insert Unicode control character.)
 #.
 #: data/glade/prefs-dialog.glade.h:14
-#: lib/widgets/ephy-location-entry.c:641 src/ephy-history-window.c:266
+#: lib/widgets/ephy-location-entry.c:643 src/ephy-history-window.c:266
 msgid "Cl_ear"
 msgstr "_ล้าง"
 
@@ -704,7 +708,7 @@ msgstr "แบบอักษรและรูปลักษณ์"
 msgid "For l_anguage:"
 msgstr "สำหรับ_ภาษา:"
 
-#: data/glade/prefs-dialog.glade.h:22 src/prefs-dialog.c:1309
+#: data/glade/prefs-dialog.glade.h:22 src/prefs-dialog.c:1308
 msgid "Language"
 msgstr "ภาษา"
 
@@ -1623,7 +1627,7 @@ msgstr "ไม่สามารถแสดงเนื้อหาเว็บ
 msgid "The page uses an unsupported or invalid form of compression."
 msgstr "หน้าเว็บนี้ใช้รูปแบบการบีบอัดที่ไม่ถูกต้องหรือไม่สนับสนุน"
 
-#: embed/mozilla/EphyAboutModule.cpp:538
+#: embed/mozilla/EphyAboutModule.cpp:539
 #, c-format
 msgid ""
 "The page “%s” in this tab was not fully loaded yet when the web browser "
@@ -1634,13 +1638,13 @@ msgstr ""
 
 #. Translators: The text before the "|" is context to help you decide on
 #. * the correct translation. You MUST OMIT it in the translated string.
-#: embed/mozilla/EphyAboutModule.cpp:665
+#: embed/mozilla/EphyAboutModule.cpp:666
 msgid "You may find an old version:|in the Google Cache"
 msgstr "ในแคชของ Google"
 
 #. Translators: The text before the "|" is context to help you decide on
 #. * the correct translation. You MUST OMIT it in the translated string.
-#: embed/mozilla/EphyAboutModule.cpp:673
+#: embed/mozilla/EphyAboutModule.cpp:674
 msgid "You may find an old version:|in the Internet Archive"
 msgstr "ในกรุอินเทอร์เน็ต"
 
@@ -1659,7 +1663,7 @@ msgid "Don't Save"
 msgstr "ไ_ม่บันทึก"
 
 #: embed/mozilla/EphyPromptService.cpp:807
-#: lib/ephy-password-dialog.c:399
+#: lib/ephy-password-dialog.c:401
 msgid "_Username:"
 msgstr "_ชื่อผู้ใช้:"
 
@@ -1688,6 +1692,47 @@ msgstr "แฟ้ม XML"
 msgid "XUL files"
 msgstr "แฟ้ม XUL"
 
+#: embed/mozilla/GeckoCookiePromptService.cpp:93
+#, c-format
+msgid "Accept cookie from %s?"
+msgstr "ยอมรับคุกกี้จาก %s หรือไม่?"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:100
+msgid "Accept Cookie?"
+msgstr "ยอมรับคุกกี้หรือไม่?"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:105
+msgid "The site wants to modify an existing cookie."
+msgstr "เว็บไซต์ต้องการแก้ไขคุกกี้เดิมที่มีอยู่"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:109
+msgid "The site wants to set a cookie."
+msgstr "เว็บไซต์ต้องการกำหนดคุกกี้"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:113
+msgid "The site wants to set a second cookie."
+msgstr "เว็บไซต์ต้องการกำหนดคุกกี้ชิ้นที่สอง"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:116
+#, c-format
+msgid "You already have %d cookie from this site."
+msgid_plural "You already have %d cookies from this site."
+msgstr[0] "คุณมีคุกกี้ %d ชิ้นสำหรับเว็บไซต์อยู่แล้ว"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:130
+msgid "Apply this _decision to all cookies from this site"
+msgstr "เ_ลือกคำตอบนี้สำหรับคุกกี้ทุกชิ้นจากเว็บไซต์นี้"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:138
+#: embed/mozilla/GtkNSSDialogs.cpp:1678
+msgid "_Reject"
+msgstr "_ปฏิเสธ"
+
+#: embed/mozilla/GeckoCookiePromptService.cpp:140
+#: embed/mozilla/GtkNSSDialogs.cpp:271
+msgid "_Accept"
+msgstr "_ยอมรับ"
+
 #: embed/mozilla/GeckoFormSigningDialog.cpp:108
 #, c-format
 msgid "The web site “%s” requests that you sign the following text:"
@@ -1697,15 +1742,15 @@ msgstr "เว็บไซต์ “%s” ร้องขอให้คุณ�
 msgid "_Sign text"
 msgstr "เซ็_นกำกับข้อความ"
 
-#: embed/mozilla/GeckoPrintService.cpp:178
+#: embed/mozilla/GeckoPrintService.cpp:197
 msgid "Options"
 msgstr "ตัวเลือก"
 
-#: embed/mozilla/GeckoPrintService.cpp:431
+#: embed/mozilla/GeckoPrintService.cpp:461
 msgid "Print this page?"
 msgstr "พิมพ์หน้านี้หรือไม่?"
 
-#: embed/mozilla/GeckoPrintService.cpp:439
+#: embed/mozilla/GeckoPrintService.cpp:469
 msgid "Preparing to print"
 msgstr "กำลังเตรียมพิมพ์"
 
@@ -1754,10 +1799,6 @@ msgstr "_รายละเอียดใบรับรอง"
 #: embed/mozilla/GtkNSSDialogs.cpp:625
 msgid "_View Certificate"
 msgstr "_ดูใบรับรอง"
-
-#: embed/mozilla/GtkNSSDialogs.cpp:271
-msgid "_Accept"
-msgstr "_ยอมรับ"
 
 #: embed/mozilla/GtkNSSDialogs.cpp:404
 #, c-format
@@ -1972,24 +2013,28 @@ msgstr "เปลี่ยนรหัสผ่านสำหรับโทเ
 msgid "Get Token Password"
 msgstr "อ่านรหัสผ่านของโทเค็น"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1516
+#. Translators: A "token" is something that enables the user to authenticate himself or
+#. * prove his credentials. This can be either a hardware device (e.g. a smart-card), or
+#. * a data file (e.g. a cryptographic certificate).
+#.
+#: embed/mozilla/GtkNSSDialogs.cpp:1520
 #, c-format
 msgid "Please enter the password for the “%s” token"
 msgstr "กรุณาป้อนรหัสผ่านสำหรับโทเค็น “%s”"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1582
+#: embed/mozilla/GtkNSSDialogs.cpp:1586
 msgid "Please select a token:"
 msgstr "กรุณาเลือกโทเค็น:"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1601
+#: embed/mozilla/GtkNSSDialogs.cpp:1605
 msgid "_Select"
 msgstr "เ_ลือก"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1654
+#: embed/mozilla/GtkNSSDialogs.cpp:1658
 msgid "Escrow the secret key?"
 msgstr "จะฝากกุญแจลับหรือไม่?"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1663
+#: embed/mozilla/GtkNSSDialogs.cpp:1667
 #, c-format
 msgid ""
 "The certificate authority “%s” requests that you give it a copy of the newly "
@@ -2007,11 +2052,7 @@ msgstr ""
 "\n"
 "ขอแนะนำอย่างยิ่งว่าอย่าอนุญาต"
 
-#: embed/mozilla/GtkNSSDialogs.cpp:1674
-msgid "_Reject"
-msgstr "_ปฏิเสธ"
-
-#: embed/mozilla/GtkNSSDialogs.cpp:1677
+#: embed/mozilla/GtkNSSDialogs.cpp:1681
 msgid "_Allow"
 msgstr "_อนุญาต"
 
@@ -2091,7 +2132,7 @@ msgstr ""
 "ถึงแม้หน้านี้จะถูกโหลดผ่านการเชื่อมต่อนิรภัย แต่ข้อมูลที่คุณป้อนจะถูกส่งผ่านการเชื่อมต่อที่ไม่นิรภัย "
 "และสามารถถูกบุคคลที่สามดักได้อย่างง่ายดาย"
 
-#: embed/mozilla/MozDownload.cpp:629
+#: embed/mozilla/MozDownload.cpp:643
 msgid "Files"
 msgstr "แฟ้ม"
 
@@ -2154,7 +2195,7 @@ msgstr "_ลบแถบเครื่องมือ"
 msgid "Remove the selected toolbar"
 msgstr "ลบแถบเครื่องมือที่เลือก"
 
-#: lib/egg/egg-toolbar-editor.c:439
+#: lib/egg/egg-toolbar-editor.c:446
 msgid "Separator"
 msgstr "เส้นแบ่ง"
 
@@ -2162,17 +2203,17 @@ msgstr "เส้นแบ่ง"
 msgid "All supported types"
 msgstr "ทุกชนิดที่สนับสนุน"
 
-#: lib/ephy-file-helpers.c:302
+#: lib/ephy-file-helpers.c:452
 #, c-format
 msgid "Could not create a temporary directory in “%s”."
 msgstr "ไม่สามารถสร้างไดเรกทอรีชั่วคราวใน “%s”"
 
-#: lib/ephy-file-helpers.c:378
+#: lib/ephy-file-helpers.c:528
 #, c-format
 msgid "The file “%s” exists. Please move it out of the way."
 msgstr "มีแฟ้ม “%s” อยู่แล้ว กรุณาย้ายตำแหน่ง"
 
-#: lib/ephy-file-helpers.c:389
+#: lib/ephy-file-helpers.c:539
 #, c-format
 msgid "Failed to create directory “%s”."
 msgstr "ไม่สามารถสร้างไดเรกทอรี “%s”"
@@ -2366,31 +2407,31 @@ msgstr "ตะวันตก"
 msgid "select fonts for|Other Scripts"
 msgstr "ภาษาอื่น"
 
-#: lib/ephy-password-dialog.c:413
+#: lib/ephy-password-dialog.c:415
 msgid "_Domain:"
 msgstr "โ_ดเมน:"
 
-#: lib/ephy-password-dialog.c:442
+#: lib/ephy-password-dialog.c:444
 msgid "_New password:"
 msgstr "_ตั้งรหัสผ่าน:"
 
-#: lib/ephy-password-dialog.c:452
+#: lib/ephy-password-dialog.c:454
 msgid "Con_firm password:"
 msgstr "_ยืนยันรหัสผ่าน:"
 
-#: lib/ephy-password-dialog.c:478
+#: lib/ephy-password-dialog.c:482
 msgid "Password quality:"
 msgstr "คุณภาพรหัสผ่าน:"
 
-#: lib/ephy-password-dialog.c:494
+#: lib/ephy-password-dialog.c:499
 msgid "Do not remember this password"
 msgstr "ไม่ต้องจำรหัสผ่านนี้"
 
-#: lib/ephy-password-dialog.c:498
+#: lib/ephy-password-dialog.c:503
 msgid "_Remember password for this session"
 msgstr "_จำรหัสผ่านสำหรับใช้ในวาระนี้"
 
-#: lib/ephy-password-dialog.c:502
+#: lib/ephy-password-dialog.c:507
 msgid "Save password in _keyring"
 msgstr "เก็บรหัสผ่านเข้าใน_พวงกุญแจ"
 
@@ -2408,7 +2449,7 @@ msgstr "ที่คั่นหน้า"
 
 #: lib/ephy-stock-icons.c:57 src/bookmarks/ephy-bookmarks-editor.c:917
 #: src/bookmarks/ephy-bookmarks-editor.c:1765
-#: src/bookmarks/ephy-topic-action.c:411 src/ephy-window.c:1341
+#: src/bookmarks/ephy-topic-action.c:455 src/ephy-window.c:1341
 msgid "Bookmarks"
 msgstr "ที่คั่นหน้า"
 
@@ -2456,7 +2497,7 @@ msgstr "300%"
 msgid "400%"
 msgstr "400%"
 
-#: lib/widgets/ephy-location-entry.c:908
+#: lib/widgets/ephy-location-entry.c:910
 msgid "Drag and drop this icon to create a link to this page"
 msgstr "ลากไอคอนนี้ไปปล่อยเพื่อสร้างลิงก์มายังหน้านี้"
 
@@ -3039,19 +3080,19 @@ msgstr "หาลิงก์:"
 msgid "Find:"
 msgstr "หา:"
 
-#: src/ephy-find-toolbar.c:370
+#: src/ephy-find-toolbar.c:378
 msgid "Find Previous"
 msgstr "หาก่อนหน้า"
 
-#: src/ephy-find-toolbar.c:373
+#: src/ephy-find-toolbar.c:381
 msgid "Find previous occurrence of the search string"
 msgstr "หาข้อความเดิมถอยหลัง"
 
-#: src/ephy-find-toolbar.c:380
+#: src/ephy-find-toolbar.c:388
 msgid "Find Next"
 msgstr "หาต่อ"
 
-#: src/ephy-find-toolbar.c:383
+#: src/ephy-find-toolbar.c:391
 msgid "Find next occurrence of the search string"
 msgstr "หาข้อความเดิมต่อไป"
 
@@ -4032,15 +4073,15 @@ msgstr "ชื่อผู้ใช้"
 msgid "User Password"
 msgstr "รหัสผ่าน"
 
-#: src/popup-commands.c:272
+#: src/popup-commands.c:256
 msgid "Download Link"
 msgstr "ดาวน์โหลดลิงก์"
 
-#: src/popup-commands.c:280
+#: src/popup-commands.c:264
 msgid "Save Link As"
 msgstr "บันทึกลิงก์เป็น"
 
-#: src/popup-commands.c:287
+#: src/popup-commands.c:271
 msgid "Save Image As"
 msgstr "บันทึกภาพเป็น"
 
@@ -4084,7 +4125,7 @@ msgstr "ปิด"
 msgid "Close print preview"
 msgstr "ปิดหน้าต่างตัวอย่างก่อนพิมพ์"
 
-#: src/prefs-dialog.c:416
+#: src/prefs-dialog.c:415
 msgid "Default"
 msgstr "ค่าปริยาย"
 
@@ -4096,7 +4137,7 @@ msgstr "ค่าปริยาย"
 #.
 #. Translators: The text before the "|" is context to help you decide on
 #. * the correct translation. You MUST OMIT it in the translated string.
-#: src/prefs-dialog.c:997 src/prefs-dialog.c:1005
+#: src/prefs-dialog.c:996 src/prefs-dialog.c:1004
 #, c-format
 msgid "language|%s (%s)"
 msgstr "%s (%s)"
@@ -4106,18 +4147,18 @@ msgstr "%s (%s)"
 #. * Translators: this refers to a user-define language code
 #. * (one which isn't in our built-in list).
 #.
-#: src/prefs-dialog.c:1016
+#: src/prefs-dialog.c:1015
 #, c-format
 msgid "language|User defined (%s)"
 msgstr "กำหนดเอง (%s)"
 
-#: src/prefs-dialog.c:1038
+#: src/prefs-dialog.c:1037
 #, c-format
 msgid "System language (%s)"
 msgid_plural "System languages (%s)"
 msgstr[0] "ภาษาของระบบ (%s)"
 
-#: src/prefs-dialog.c:1430
+#: src/prefs-dialog.c:1429
 msgid "Select a Directory"
 msgstr "เลือกไดเรกทอรี"
 
@@ -4378,9 +4419,6 @@ msgstr "เว็บไซต์ของเว็บเบราว์เซอ
 
 #~ msgid "Bookmark exists"
 #~ msgstr "ที่คั่นหน้ามีอยู่แล้ว"
-
-#~ msgid "You already have a bookmark titled “%s” for this page."
-#~ msgstr "คุณมีที่คั่นหน้าชื่อ “%s” สำหรับหน้านี้อยู่แล้ว"
 
 #~ msgid "_Create New"
 #~ msgstr "_สร้างใหม่"

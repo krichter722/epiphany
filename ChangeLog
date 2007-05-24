@@ -1,3 +1,68 @@
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* data/glade/epiphany.glade:
+
+	Make "Show Passwords" plural. Bug #437798.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* data/epiphany.schemas.in:
+	* embed/ephy-embed-prefs.h:
+	* embed/mozilla/mozilla-notifiers.cpp:
+
+	Add pref for smooth scroll, bug #162489.
+	Use GSlice to allocate the prefs notifier data.
+	Check the pref type.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* embed/mozilla/GeckoCookiePromptService.cpp:
+
+	Just use ngettext here, no need for dngettext.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* embed/ephy-cookie-manager.h:
+	* embed/mozilla/EphySingle.cpp:
+
+	Store http-only flag too.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* lib/egg/eggtreemultidnd.c:
+
+	Include config.h.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* src/ephy-statusbar.c:
+
+	Make this comment accurate.
+
+2007-05-19  Christian Persch  <chpe@gnome.org>
+
+	* src/prefs-dialog.c: (prefs_dialog_show_help):
+
+	Make this string static.
+
+2007-05-13  Christian Persch  <chpe@gnome.org>
+
+	* configure.ac:
+
+	Post-release version bump.
+
+2007-05-13  Christian Persch  <chpe@gnome.org>
+
+	=== Release 2.19.2 ==
+
+	* configure.ac:
+
+	Update for 2.19.2.
+
+	* po/POTFILES.skip:
+
+	Try to fix distcheck with stupid intltool.
+
 2007-05-08  Felix Riemann  <friemann@svn.gnome.org>
 
 	* lib/egg/egg-toolbar-editor.c: (event_box_realize_cb),
