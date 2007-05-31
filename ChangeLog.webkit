@@ -1,5 +1,10 @@
 2007-05-31  Xabier Rodríguez Calvar  <xrcalvar@svn.gnome.org>
 
+	Merged the changes done in the trunk between the versions 7045
+and 7060 (actual).
+
+2007-05-31  Xabier Rodríguez Calvar  <xrcalvar@svn.gnome.org>
+
 	* embed/webkit: I have copied the embed/mozilla subdirectory and
 	renamed the MozillaEmbed, MozillaEmbedPersist and
 	MozillaEmbedSingle classes to WebkitEmbed, WebkitEmbedSingle and
