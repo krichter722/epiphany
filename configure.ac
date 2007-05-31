@@ -668,6 +668,7 @@ lib/egg/Makefile
 lib/widgets/Makefile
 embed/Makefile
 embed/mozilla/Makefile
+embed/webkit/Makefile
 src/Makefile
 src/bookmarks/Makefile
 help/Makefile

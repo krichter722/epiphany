@@ -1,4 +1,4 @@
-SUBDIRS = mozilla
+SUBDIRS = mozilla webkit
 
 noinst_LTLIBRARIES = libephyembed.la libephyembedfactory.la
 
