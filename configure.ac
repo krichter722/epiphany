@@ -178,21 +178,15 @@ AC_SUBST([GECKO_PREFIX])
 AC_SUBST([GECKO_EXTRA_LIBS])
 AC_SUBST([GECKO_GLUE_LIBS])
 
-if test "$gecko_cv_gecko_version_int" -lt "1008000"; then
+if test "$gecko_cv_gecko" != "xulrunner"; then
+  AC_MSG_ERROR([Need XULrunner to build epiphany])
+fi
+
+if test "$gecko_cv_gecko_version_int" -lt "1009000"; then
 	AC_MSG_ERROR([Gecko version $gecko_cv_gecko_version is not supported!])
 fi
 
-if test "$gecko_cv_gecko_flavour" != "toolkit"; then
-	AC_MSG_ERROR(["$gecko_cv_gecko_flavour" flavoured geckos aren't tasty enough!])
-fi
-
-case "$gecko_cv_gecko" in
-xulrunner) min_version=1.8 ;;
-*firefox) min_version=1.5 ;;
-*) AC_MSG_ERROR([Unsupported gecko "$gecko_cv_gecko"]) ;;
-esac
-
-AM_CONDITIONAL([HAVE_XULRUNNER],[test "$gecko_cv_gecko" = "xulrunner"])
+AM_CONDITIONAL([HAVE_XULRUNNER],[true])
 
 # Added $gecko_cv_gecko-js for debian xulrunner brokenness
 PKG_CHECK_MODULES([GECKO],[${gecko_cv_gecko}-xpcom >= $min_version ${gecko_cv_gecko}-js $gecko_cv_extra_pkg_dependencies])
