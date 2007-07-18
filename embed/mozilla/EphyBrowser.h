@@ -24,7 +24,6 @@
 #include "ephy-embed.h"
 #include <gtk/gtkwidget.h>
 
-#include <gtkmozembed.h>
 #include <nsCOMPtr.h>
 #include <nsIDOMContextMenuListener.h>
 #include <nsIDOMDocument.h>
@@ -45,6 +44,8 @@
 #ifdef HAVE_MOZILLA_PSM
 #include <nsISecureBrowserUI.h>
 #endif
+
+#include "gecko-embed.h"
 
 class EphyBrowser;
 
@@ -136,7 +137,7 @@ public:
 	EphyBrowser();
 	~EphyBrowser();
 
-	nsresult Init (GtkMozEmbed *mozembed);
+	nsresult Init (GeckoEmbed *mozembed);
 	nsresult Destroy (void);
 
 	nsresult DoCommand (const char *command);

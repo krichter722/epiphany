@@ -25,8 +25,6 @@
 
 #include <nsStringAPI.h>
 
-#include <gtkmozembed.h>
-#include <gtkmozembed_internal.h>
 #include <nsComponentManagerUtils.h>
 #include <nsCOMPtr.h>
 #include <nsIDocShell.h>
@@ -53,6 +51,8 @@
 #include <nsIDocShellTreeItem.h>
 #include <nsISimpleEnumerator.h>
 #endif
+
+#include "gecko-embed-private.h"
 
 #include "ephy-debug.h"
 
@@ -87,8 +87,8 @@ EphyFind::SetEmbed (EphyEmbed *aEmbed)
   mWebBrowser = nsnull;
 
   rv = NS_ERROR_FAILURE;
-  gtk_moz_embed_get_nsIWebBrowser (GTK_MOZ_EMBED (aEmbed),
-				   getter_AddRefs (mWebBrowser));
+  gecko_embed_get_nsIWebBrowser (GECKO_EMBED (aEmbed),
+				 getter_AddRefs (mWebBrowser));
   NS_ENSURE_TRUE (mWebBrowser, rv);
 
   nsCOMPtr<nsIDocShell> docShell (do_GetInterface (mWebBrowser, &rv));

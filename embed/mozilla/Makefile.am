@@ -139,6 +139,8 @@ libephymozillaembed_la_CPPFLAGS = \
 	-I$(top_srcdir)/lib	    		\
 	-I$(top_srcdir)/embed	    		\
 	-I$(top_srcdir)		    		\
+	-I$(top_srcdir)/embed/gecko/src		\
+	-I$(top_builddir)/embed/gecko/src	\
 	$(addprefix -I$(GECKO_INCLUDE_ROOT)/,$(mozilla_include_subdirs))	\
 	-DSHARE_DIR=\"$(pkgdatadir)\"   	\
 	-DPLUGINDIR=\"$(libdir)/epiphany/$(EPIPHANY_MAJOR)/plugins\"		\

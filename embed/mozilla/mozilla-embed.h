@@ -24,7 +24,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include <gtkmozembed.h>
+#include "gecko-embed.h"
+#include "gecko-embed-types.h"
 
 #include "ephy-embed.h"
 
@@ -37,22 +38,18 @@ G_BEGIN_DECLS
 #define MOZILLA_IS_EMBED_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), MOZILLA_TYPE_EMBED))
 #define MOZILLA_EMBED_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), MOZILLA_TYPE_EMBED, MozillaEmbedClass))
 
-typedef struct MozillaEmbedClass	MozillaEmbedClass;
 typedef struct MozillaEmbed		MozillaEmbed;
 typedef struct MozillaEmbedPrivate	MozillaEmbedPrivate;
 
 struct MozillaEmbed
 {
-        GtkMozEmbed parent;
+        GeckoEmbed parent_instance;
 
 	/*< private >*/
         MozillaEmbedPrivate *priv;
 };
 
-struct MozillaEmbedClass
-{
-        GtkMozEmbedClass parent_class;
-};
+typedef GeckoEmbedClass MozillaEmbedClass;
 
 GType	         mozilla_embed_get_type         (void);
 
@@ -60,9 +57,9 @@ GType	         mozilla_embed_get_type         (void);
 
 gpointer        _mozilla_embed_get_ephy_browser (MozillaEmbed *embed);
 
-GtkMozEmbed    *_mozilla_embed_new_xul_dialog   (void);
+GeckoEmbed     *_mozilla_embed_new_xul_dialog   (void);
 
-EphyEmbedChrome _mozilla_embed_translate_chrome	(GtkMozEmbedChromeFlags flags);
+EphyEmbedChrome _mozilla_embed_translate_chrome	(GeckoEmbedChromeFlags flags);
 
 G_END_DECLS
 

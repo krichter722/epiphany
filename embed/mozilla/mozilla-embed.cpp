@@ -24,7 +24,6 @@
 
 #include <nsStringAPI.h>
 
-#include <gtkmozembed.h>
 #include <nsIDOMKeyEvent.h>
 #include <nsIDOMMouseEvent.h>
 #include <nsIRequest.h>
@@ -36,6 +35,9 @@
 #include "EphyBrowser.h"
 #include "EphyUtils.h"
 #include "EventContext.h"
+
+#include "gecko-dom-event.h"
+#include "gecko-dom-event-internal.h"
 
 #include "ephy-command-manager.h"
 #include "ephy-debug.h"
@@ -52,27 +54,27 @@ static void	mozilla_embed_destroy		(GtkObject *object);
 static void	mozilla_embed_finalize		(GObject *object);
 static void	ephy_embed_iface_init		(EphyEmbedIface *iface);
 
-static void mozilla_embed_location_changed_cb	(GtkMozEmbed *embed,
+static void mozilla_embed_location_changed_cb	(GeckoEmbed *embed,
 						 MozillaEmbed *membed);
-static void mozilla_embed_net_state_all_cb	(GtkMozEmbed *embed,
+static void mozilla_embed_net_state_all_cb	(GeckoEmbed *embed,
 						 const char *aURI,
 						 gint state,
 						 guint status,
 						 MozillaEmbed *membed);
-static gboolean mozilla_embed_dom_mouse_click_cb(GtkMozEmbed *embed,
-						 gpointer dom_event,
+static gboolean mozilla_embed_dom_mouse_click_cb(GeckoEmbed *embed,
+                                                 GeckoDOMEvent *dom_event,
 						 MozillaEmbed *membed);
-static gboolean mozilla_embed_dom_mouse_down_cb	(GtkMozEmbed *embed,
-						 gpointer dom_event, 
+static gboolean mozilla_embed_dom_mouse_down_cb	(GeckoEmbed *embed,
+                                                 GeckoDOMEvent *dom_event,
 						 MozillaEmbed *membed);
-static gboolean mozilla_embed_dom_key_press_cb	(GtkMozEmbed *embed,
-						 gpointer dom_event, 
+static gboolean mozilla_embed_dom_key_press_cb	(GeckoEmbed *embed,
+                                                 GeckoDOMEvent *dom_event,
 						 MozillaEmbed *membed);
-static void mozilla_embed_new_window_cb		(GtkMozEmbed *embed, 
-						 GtkMozEmbed **newEmbed,
+static void mozilla_embed_new_window_cb		(GeckoEmbed *embed,
+						 GeckoEmbed **newEmbed,
 						 guint chrome_mask,
 						 MozillaEmbed *membed);
-static void mozilla_embed_security_change_cb	(GtkMozEmbed *embed, 
+static void mozilla_embed_security_change_cb	(GeckoEmbed *embed,
 						 gpointer request,
 						 PRUint32 state,
 						 MozillaEmbed *membed);
@@ -161,7 +163,7 @@ mozilla_embed_get_type (void)
         		NULL
      		 };
 	
-                type = g_type_register_static (GTK_TYPE_MOZ_EMBED,
+                type = g_type_register_static (GECKO_TYPE_EMBED,
 					       "MozillaEmbed",
 					       &our_info, 
 					       (GTypeFlags)0);
@@ -210,7 +212,7 @@ mozilla_embed_realize (GtkWidget *widget)
 
 	/* Initialise our helper class */
 	nsresult rv;
-	rv = mpriv->browser->Init (GTK_MOZ_EMBED (widget));
+	rv = mpriv->browser->Init (GECKO_EMBED (widget));
 	if (NS_FAILED (rv))
 	{
 		g_warning ("EphyBrowser initialization failed for %p\n", widget);
@@ -321,7 +323,7 @@ static void
 impl_load_url (EphyEmbed *embed, 
                const char *url)
 {
-        gtk_moz_embed_load_url (GTK_MOZ_EMBED(embed), url);
+  gecko_embed_load_url (GECKO_EMBED (embed), url);
 }
 
 static char * impl_get_location (EphyEmbed *embed, gboolean toplevel);
@@ -364,19 +366,19 @@ impl_load (EphyEmbed *embed,
 static void
 impl_stop_load (EphyEmbed *embed)
 {
-	gtk_moz_embed_stop_load (GTK_MOZ_EMBED(embed));	
+	gecko_embed_stop_load (GECKO_EMBED(embed));
 }
 
 static gboolean
 impl_can_go_back (EphyEmbed *embed)
 {
-	return gtk_moz_embed_can_go_back (GTK_MOZ_EMBED(embed));
+	return gecko_embed_can_go_back (GECKO_EMBED(embed));
 }
 
 static gboolean
 impl_can_go_forward (EphyEmbed *embed)
 {
-	return gtk_moz_embed_can_go_forward (GTK_MOZ_EMBED(embed));
+	return gecko_embed_can_go_forward (GECKO_EMBED(embed));
 }
 
 static gboolean
@@ -468,13 +470,13 @@ impl_get_go_up_list (EphyEmbed *embed)
 static void
 impl_go_back (EphyEmbed *embed)
 {
-	gtk_moz_embed_go_back (GTK_MOZ_EMBED(embed));
+	gecko_embed_go_back (GECKO_EMBED(embed));
 }
 		
 static void
 impl_go_forward (EphyEmbed *embed)
 {
-	gtk_moz_embed_go_forward (GTK_MOZ_EMBED(embed));
+	gecko_embed_go_forward (GECKO_EMBED(embed));
 }
 
 static void
@@ -499,19 +501,19 @@ impl_go_up (EphyEmbed *embed)
 static char *
 impl_get_title (EphyEmbed *embed)
 {
-	return gtk_moz_embed_get_title (GTK_MOZ_EMBED (embed));
+	return gecko_embed_get_title (GECKO_EMBED (embed));
 }
 
 static char *
 impl_get_link_message (EphyEmbed *embed)
 {
-	return gtk_moz_embed_get_link_message (GTK_MOZ_EMBED (embed));
+	return gecko_embed_get_link_message (GECKO_EMBED (embed));
 }
 
 static char *
 impl_get_js_status (EphyEmbed *embed)
 {
-	return gtk_moz_embed_get_js_status (GTK_MOZ_EMBED (embed));
+	return gecko_embed_get_js_status (GECKO_EMBED (embed));
 }
 
 static char *
@@ -553,14 +555,14 @@ static void
 impl_reload (EphyEmbed *embed, 
              gboolean force)
 {
-	guint32 mflags = GTK_MOZ_EMBED_FLAG_RELOADNORMAL;
+	guint32 mflags = GECKO_EMBED_FLAG_RELOADNORMAL;
 
 	if (force)
 	{
-		mflags = GTK_MOZ_EMBED_FLAG_RELOADBYPASSPROXYANDCACHE;
+		mflags = GECKO_EMBED_FLAG_RELOADBYPASSPROXYANDCACHE;
 	}
 
-	gtk_moz_embed_reload (GTK_MOZ_EMBED(embed), mflags);
+	gecko_embed_reload (GECKO_EMBED(embed), mflags);
 }
 
 static void
@@ -798,8 +800,8 @@ impl_set_encoding (EphyEmbed *embed,
 		if (NS_FAILED (rv)) return;
 	}
 
-	gtk_moz_embed_reload (GTK_MOZ_EMBED (embed),
-			      GTK_MOZ_EMBED_FLAG_RELOADCHARSETCHANGE);
+	gecko_embed_reload (GECKO_EMBED (embed),
+			    GECKO_EMBED_FLAG_RELOADCHARSETCHANGE);
 }
 
 static char *
@@ -849,13 +851,13 @@ impl_has_modified_forms (EphyEmbed *embed)
 }
 
 static void
-mozilla_embed_location_changed_cb (GtkMozEmbed *embed, 
+mozilla_embed_location_changed_cb (GeckoEmbed *embed,
 				   MozillaEmbed *membed)
 {
 	char *location;
 
-	location = gtk_moz_embed_get_location (embed);
-	g_signal_emit_by_name (membed, "ge_location", location);
+	location = gecko_embed_get_location (embed);
+	g_signal_emit_by_name (membed, "ge-location", location);
 	g_free (location);
 }
 
@@ -864,37 +866,37 @@ update_load_state (MozillaEmbed *membed, gint state)
 {
 	MozillaEmbedPrivate *priv = membed->priv;
 
-	if (state & GTK_MOZ_EMBED_FLAG_IS_DOCUMENT &&
-	    state & (GTK_MOZ_EMBED_FLAG_START | GTK_MOZ_EMBED_FLAG_STOP))
+	if (state & GECKO_EMBED_FLAG_IS_DOCUMENT &&
+	    state & (GECKO_EMBED_FLAG_START | GECKO_EMBED_FLAG_STOP))
 	{
 		g_signal_emit_by_name (membed, "ge-document-type",
 				       priv->browser->GetDocumentType ());
 	}
 
-	if (state & GTK_MOZ_EMBED_FLAG_RESTORING &&
+	if (state & GECKO_EMBED_FLAG_RESTORING &&
 	    priv->load_state == MOZILLA_EMBED_LOAD_STARTED)
 	{
 		priv->load_state = MOZILLA_EMBED_LOAD_LOADING;
 
 		char *address;
-		address = gtk_moz_embed_get_location (GTK_MOZ_EMBED (membed));
+		address = gecko_embed_get_location (GECKO_EMBED (membed));
 		g_signal_emit_by_name (membed, "ge-content-change", address);
 		g_free (address);
 	}
 
-	if (state & GTK_MOZ_EMBED_FLAG_IS_NETWORK)
+	if (state & GECKO_EMBED_FLAG_IS_NETWORK)
 	{
-		if (state & GTK_MOZ_EMBED_FLAG_START)
+		if (state & GECKO_EMBED_FLAG_START)
 		{
 			priv->load_state = MOZILLA_EMBED_LOAD_STARTED;
 		}
-		else if (state & GTK_MOZ_EMBED_FLAG_STOP)
+		else if (state & GECKO_EMBED_FLAG_STOP)
 		{
 			priv->load_state = MOZILLA_EMBED_LOAD_STOPPED;
 		}
 	}
-	else if (state & GTK_MOZ_EMBED_FLAG_START &&
-	         state & GTK_MOZ_EMBED_FLAG_IS_REQUEST)
+	else if (state & GECKO_EMBED_FLAG_START &&
+	         state & GECKO_EMBED_FLAG_IS_REQUEST)
 	{
 		if (priv->load_state == MOZILLA_EMBED_LOAD_REDIRECTING)
 		{
@@ -905,12 +907,12 @@ update_load_state (MozillaEmbed *membed, gint state)
 			priv->load_state = MOZILLA_EMBED_LOAD_LOADING;
 
 			char *address;
-			address = gtk_moz_embed_get_location (GTK_MOZ_EMBED (membed));
+			address = gecko_embed_get_location (GECKO_EMBED (membed));
 			g_signal_emit_by_name (membed, "ge_content_change", address);
 			g_free (address);
 		}
 	}
-	else if (state & GTK_MOZ_EMBED_FLAG_REDIRECTING &&
+	else if (state & GECKO_EMBED_FLAG_REDIRECTING &&
 	         priv->load_state == MOZILLA_EMBED_LOAD_STARTED)
 	{
 		priv->load_state = MOZILLA_EMBED_LOAD_REDIRECTING;
@@ -918,7 +920,7 @@ update_load_state (MozillaEmbed *membed, gint state)
 }
 
 static void
-mozilla_embed_net_state_all_cb (GtkMozEmbed *embed, const char *aURI,
+mozilla_embed_net_state_all_cb (GeckoEmbed *embed, const char *aURI,
                                 gint state, guint status, 
 				MozillaEmbed *membed)
 {
@@ -932,15 +934,15 @@ mozilla_embed_net_state_all_cb (GtkMozEmbed *embed, const char *aURI,
 	}
 	conversion_map [] =
 	{
-		{ GTK_MOZ_EMBED_FLAG_START, EPHY_EMBED_STATE_START },
-		{ GTK_MOZ_EMBED_FLAG_STOP, EPHY_EMBED_STATE_STOP },
-		{ GTK_MOZ_EMBED_FLAG_REDIRECTING, EPHY_EMBED_STATE_REDIRECTING },
-		{ GTK_MOZ_EMBED_FLAG_TRANSFERRING, EPHY_EMBED_STATE_TRANSFERRING },
-		{ GTK_MOZ_EMBED_FLAG_NEGOTIATING, EPHY_EMBED_STATE_NEGOTIATING },
-		{ GTK_MOZ_EMBED_FLAG_IS_REQUEST, EPHY_EMBED_STATE_IS_REQUEST },
-		{ GTK_MOZ_EMBED_FLAG_IS_DOCUMENT, EPHY_EMBED_STATE_IS_DOCUMENT },
-		{ GTK_MOZ_EMBED_FLAG_IS_NETWORK, EPHY_EMBED_STATE_IS_NETWORK },
-		{ GTK_MOZ_EMBED_FLAG_RESTORING, EPHY_EMBED_STATE_RESTORING },
+		{ GECKO_EMBED_FLAG_START, EPHY_EMBED_STATE_START },
+		{ GECKO_EMBED_FLAG_STOP, EPHY_EMBED_STATE_STOP },
+		{ GECKO_EMBED_FLAG_REDIRECTING, EPHY_EMBED_STATE_REDIRECTING },
+		{ GECKO_EMBED_FLAG_TRANSFERRING, EPHY_EMBED_STATE_TRANSFERRING },
+		{ GECKO_EMBED_FLAG_NEGOTIATING, EPHY_EMBED_STATE_NEGOTIATING },
+		{ GECKO_EMBED_FLAG_IS_REQUEST, EPHY_EMBED_STATE_IS_REQUEST },
+		{ GECKO_EMBED_FLAG_IS_DOCUMENT, EPHY_EMBED_STATE_IS_DOCUMENT },
+		{ GECKO_EMBED_FLAG_IS_NETWORK, EPHY_EMBED_STATE_IS_NETWORK },
+		{ GECKO_EMBED_FLAG_RESTORING, EPHY_EMBED_STATE_RESTORING },
 		{ 0, EPHY_EMBED_STATE_UNKNOWN }
 	};
 
@@ -959,7 +961,7 @@ mozilla_embed_net_state_all_cb (GtkMozEmbed *embed, const char *aURI,
 
 static gboolean
 mozilla_embed_emit_mouse_signal (MozillaEmbed *embed,
-				 gpointer dom_event, 
+				 GeckoDOMEvent *dom_event,
 				 const char *signal_name)
 {
 	MozillaEmbedPrivate *mpriv = embed->priv;
@@ -970,7 +972,8 @@ mozilla_embed_emit_mouse_signal (MozillaEmbed *embed,
 
 	if (dom_event == NULL) return FALSE;
 
-	nsCOMPtr<nsIDOMMouseEvent> ev = static_cast<nsIDOMMouseEvent*>(dom_event);
+        nsCOMPtr<nsIDOMEvent> domEvent (gecko_dom_event_get_I (dom_event));
+	nsCOMPtr<nsIDOMMouseEvent> ev (do_QueryInterface (domEvent));
 	NS_ENSURE_TRUE (ev, FALSE);
 	nsCOMPtr<nsIDOMEvent> dev = do_QueryInterface (ev);
 	NS_ENSURE_TRUE (dev, FALSE);
@@ -1002,8 +1005,8 @@ mozilla_embed_emit_mouse_signal (MozillaEmbed *embed,
 }
 
 static gboolean
-mozilla_embed_dom_mouse_click_cb (GtkMozEmbed *embed,
-				  gpointer dom_event, 
+mozilla_embed_dom_mouse_click_cb (GeckoEmbed *embed,
+				  GeckoDOMEvent *dom_event,
 				  MozillaEmbed *membed)
 {
 	return mozilla_embed_emit_mouse_signal (membed, dom_event,
@@ -1011,7 +1014,8 @@ mozilla_embed_dom_mouse_click_cb (GtkMozEmbed *embed,
 }
 
 static gboolean
-mozilla_embed_dom_mouse_down_cb (GtkMozEmbed *embed, gpointer dom_event, 
+mozilla_embed_dom_mouse_down_cb (GeckoEmbed *embed,
+			         GeckoDOMEvent *dom_event,
 				 MozillaEmbed *membed)
 {
 	return mozilla_embed_emit_mouse_signal (membed, dom_event,
@@ -1019,15 +1023,16 @@ mozilla_embed_dom_mouse_down_cb (GtkMozEmbed *embed, gpointer dom_event,
 }
 
 static gint
-mozilla_embed_dom_key_press_cb (GtkMozEmbed *embed,
-				gpointer dom_event, 
+mozilla_embed_dom_key_press_cb (GeckoEmbed *embed,
+				GeckoDOMEvent *dom_event,
 				MozillaEmbed *membed)
 {
 	gint retval = FALSE;
 
 	if (dom_event == NULL) return FALSE;
 
-	nsCOMPtr<nsIDOMKeyEvent> ev = static_cast<nsIDOMKeyEvent*>(dom_event);
+        nsCOMPtr<nsIDOMEvent> domEvent (gecko_dom_event_get_I (dom_event));
+	nsCOMPtr<nsIDOMKeyEvent> ev (do_QueryInterface (domEvent));
 	NS_ENSURE_TRUE (ev, FALSE);
 
 	if (!EventContext::CheckKeyPress (ev)) return FALSE;
@@ -1045,7 +1050,7 @@ mozilla_embed_dom_key_press_cb (GtkMozEmbed *embed,
 }
 
 EphyEmbedChrome
-_mozilla_embed_translate_chrome (GtkMozEmbedChromeFlags flags)
+_mozilla_embed_translate_chrome (GeckoEmbedChromeFlags flags)
 {
 	static const struct
 	{
@@ -1054,10 +1059,10 @@ _mozilla_embed_translate_chrome (GtkMozEmbedChromeFlags flags)
 	}
 	conversion_map [] =
 	{
-		{ GTK_MOZ_EMBED_FLAG_MENUBARON, EPHY_EMBED_CHROME_MENUBAR },
-		{ GTK_MOZ_EMBED_FLAG_TOOLBARON, EPHY_EMBED_CHROME_TOOLBAR },
-		{ GTK_MOZ_EMBED_FLAG_STATUSBARON, EPHY_EMBED_CHROME_STATUSBAR },
-		{ GTK_MOZ_EMBED_FLAG_PERSONALTOOLBARON, EPHY_EMBED_CHROME_BOOKMARKSBAR },
+		{ GECKO_EMBED_FLAG_MENUBARON, EPHY_EMBED_CHROME_MENUBAR },
+		{ GECKO_EMBED_FLAG_TOOLBARON, EPHY_EMBED_CHROME_TOOLBAR },
+		{ GECKO_EMBED_FLAG_STATUSBARON, EPHY_EMBED_CHROME_STATUSBAR },
+		{ GECKO_EMBED_FLAG_PERSONALTOOLBARON, EPHY_EMBED_CHROME_BOOKMARKSBAR },
 	};
 
 	guint mask = 0, i;
@@ -1074,17 +1079,17 @@ _mozilla_embed_translate_chrome (GtkMozEmbedChromeFlags flags)
 }
 
 static void
-mozilla_embed_new_window_cb (GtkMozEmbed *embed, 
-			     GtkMozEmbed **newEmbed,
+mozilla_embed_new_window_cb (GeckoEmbed *embed,
+			     GeckoEmbed **newEmbed,
 			     guint chrome_mask, 
 			     MozillaEmbed *membed)
 {
-	GtkMozEmbedChromeFlags chrome = (GtkMozEmbedChromeFlags) chrome_mask;
+	GeckoEmbedChromeFlags chrome = (GeckoEmbedChromeFlags) chrome_mask;
 	EphyEmbed *new_embed = NULL;
 	GObject *single;
 	EphyEmbedChrome mask;
 
-	if (chrome & GTK_MOZ_EMBED_FLAG_OPENASCHROME)
+	if (chrome & GECKO_EMBED_FLAG_OPENASCHROME)
 	{
 		*newEmbed = _mozilla_embed_new_xul_dialog ();
 		return;
@@ -1098,15 +1103,15 @@ mozilla_embed_new_window_cb (GtkMozEmbed *embed,
 
 	g_assert (new_embed != NULL);
 
-	gtk_moz_embed_set_chrome_mask (GTK_MOZ_EMBED (new_embed), chrome);
+	gecko_embed_set_chrome_mask (GECKO_EMBED (new_embed), chrome);
 
 	g_signal_emit_by_name (membed, "ge-new-window", new_embed);
 
-	*newEmbed = GTK_MOZ_EMBED (new_embed);
+	*newEmbed = GECKO_EMBED (new_embed);
 }
 
 static void
-mozilla_embed_security_change_cb (GtkMozEmbed *embed, 
+mozilla_embed_security_change_cb (GeckoEmbed *embed,
 				  gpointer requestptr,
 				  PRUint32 state,
 				  MozillaEmbed *membed)
@@ -1208,28 +1213,28 @@ xul_size_to_cb (GtkWidget *embed, gint width, gint height, gpointer dummy)
 }
 
 static void
-xul_new_window_cb (GtkMozEmbed *embed,
-		   GtkMozEmbed **retval, 
+xul_new_window_cb (GeckoEmbed *embed,
+		   GeckoEmbed **retval,
 		   guint chrome_mask,
 		   gpointer dummy)
 {
-        g_assert (chrome_mask & GTK_MOZ_EMBED_FLAG_OPENASCHROME);
+        g_assert (chrome_mask & GECKO_EMBED_FLAG_OPENASCHROME);
 
         *retval = _mozilla_embed_new_xul_dialog ();
 }
 
 static void
-xul_title_cb (GtkMozEmbed *embed,
+xul_title_cb (GeckoEmbed *embed,
 	      GtkWindow *window)
 {
 	char *title;
 
-	title = gtk_moz_embed_get_title (embed);
+	title = gecko_embed_get_title (embed);
 	gtk_window_set_title (window, title);
 	g_free (title);
 }
 
-GtkMozEmbed *
+GeckoEmbed *
 _mozilla_embed_new_xul_dialog (void)
 {
 	GtkWidget *window, *embed;
@@ -1244,7 +1249,7 @@ _mozilla_embed_new_xul_dialog (void)
 				 G_CALLBACK (gtk_widget_destroy), window,
 				 (GConnectFlags) G_CONNECT_SWAPPED);
 
-	embed = gtk_moz_embed_new ();
+	embed = gecko_embed_new ();
 	gtk_widget_show (embed);
 	gtk_container_add (GTK_CONTAINER (window), embed);
 
@@ -1264,5 +1269,5 @@ _mozilla_embed_new_xul_dialog (void)
 				 G_CALLBACK (xul_title_cb),
 				 window, (GConnectFlags) 0);
 
-	return GTK_MOZ_EMBED (embed);
+	return GECKO_EMBED (embed);
 }

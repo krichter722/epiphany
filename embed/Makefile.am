@@ -1,4 +1,4 @@
-SUBDIRS = mozilla gecko
+SUBDIRS = gecko mozilla
 
 noinst_LTLIBRARIES = libephyembed.la libephyembedfactory.la
 
@@ -79,7 +79,6 @@ libephyembed_la_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
 libephyembed_la_CFLAGS = \
-	-I$(GECKO_INCLUDE_ROOT)/gtkembedmoz	\
 	-DSHARE_DIR=\"$(pkgdatadir)\"	\
 	$(DEPENDENCIES_CFLAGS) 	\
 	$(AM_CFLAGS)
@@ -89,8 +88,9 @@ libephyembedfactory_la_SOURCES =	\
 	ephy-embed-factory.h
 
 libephyembedfactory_la_CPPFLAGS = \
+	-I$(srcdir)/gecko/src		\
+	-Igecko/src			\
 	-I$(top_srcdir)/embed/mozilla		\
-	-I$(GECKO_INCLUDE_ROOT)/gtkembedmoz	\
 	$(AM_CPPFLAGS)
 
 libephyembedfactory_la_CFLAGS = \

@@ -33,8 +33,6 @@
 
 #include <nsStringAPI.h>
 
-#include <gtkmozembed.h>
-#include <gtkmozembed_internal.h>
 #include <nsComponentManagerUtils.h>
 #include <nsCOMPtr.h>
 #include <nsCPasswordManager.h>
@@ -71,6 +69,11 @@
 #include <nsIPassword.h>
 #include <nsIPasswordManager.h>
 #endif /* !HAVE_GECKO_1_9 */
+
+#include "gecko-init.h"
+#include "gecko-init-internal.h"
+#include "gecko-embed.h"
+#include "gecko-embed-single.h"
 
 #include "ephy-file-helpers.h"
 #include "eel-gconf-extensions.h"
@@ -286,16 +289,16 @@ mozilla_set_default_prefs (MozillaEmbedSingle *mes)
 }
 
 static void 
-mozilla_embed_single_new_window_orphan_cb (GtkMozEmbedSingle *moz_single,
-					   GtkMozEmbed **newEmbed,
+mozilla_embed_single_new_window_orphan_cb (GeckoEmbedSingle *moz_single,
+					   GeckoEmbed **newEmbed,
 					   guint chrome_mask,
 					   EphyEmbedSingle *single)
 {
-	GtkMozEmbedChromeFlags chrome = (GtkMozEmbedChromeFlags) chrome_mask;
+	GeckoEmbedChromeFlags chrome = (GeckoEmbedChromeFlags) chrome_mask;
 	EphyEmbed *new_embed = NULL;
 	EphyEmbedChrome mask;
 
-	if (chrome_mask & GTK_MOZ_EMBED_FLAG_OPENASCHROME)
+	if (chrome_mask & GECKO_EMBED_FLAG_OPENASCHROME)
 	{
 		*newEmbed = _mozilla_embed_new_xul_dialog ();
 		return;
@@ -309,9 +312,9 @@ mozilla_embed_single_new_window_orphan_cb (GtkMozEmbedSingle *moz_single,
 	/* it's okay not to have a new embed */
 	if (new_embed != NULL)
 	{
-		gtk_moz_embed_set_chrome_mask (GTK_MOZ_EMBED (new_embed), chrome);
+		gecko_embed_set_chrome_mask (GECKO_EMBED (new_embed), chrome);
 
-		*newEmbed = GTK_MOZ_EMBED (new_embed);
+		*newEmbed = GECKO_EMBED (new_embed);
 	}
 }
 
@@ -393,30 +396,20 @@ mozilla_init_plugin_path ()
 static void
 mozilla_init_single (MozillaEmbedSingle *mes)
 {	
-	GtkMozEmbedSingle *single;
+	GeckoEmbedSingle *single;
 	
 	/* get single */
-        single = gtk_moz_embed_single_get ();
+        single = gecko_embed_single_get ();
         if (single == NULL)
         {
                 g_warning ("Failed to get singleton embed object!\n");
+                return;
         }
 
         /* allow creation of orphan windows */
         g_signal_connect (G_OBJECT (single), "new_window_orphan",
                           G_CALLBACK (mozilla_embed_single_new_window_orphan_cb),
 			  mes);
-}
-
-void
-mozilla_init_profile (void)
-{
-	char *profile_path;
-	profile_path = g_build_filename (ephy_dot_dir (), 
-					 MOZILLA_PROFILE_DIR,
-					 (char *) NULL);
-        gtk_moz_embed_set_profile_path (profile_path, MOZILLA_PROFILE_NAME);
-        g_free (profile_path);
 }
 
 #if defined(MOZ_NSIXULCHROMEREGISTRY_SELECTSKIN) || defined(HAVE_CHROME_NSICHROMEREGISTRYSEA_H)
@@ -640,38 +633,35 @@ static gboolean
 impl_init (EphyEmbedSingle *esingle)
 {
 	MozillaEmbedSingle *single = MOZILLA_EMBED_SINGLE (esingle);
+        char *profile_path;
 
 	g_setenv ("MOZILLA_POSTSCRIPT_ENABLED", "1", TRUE);
 	g_unsetenv ("MOZILLA_POSTSCRIPT_PRINTER_LIST");
 
-#ifdef MOZ_ENABLE_XPRINT
-	/* XPrint? No, thanks! */
-	g_unsetenv ("XPSERVERLIST");
-#endif
-
-#ifdef HAVE_GECKO_1_9
 	NS_LogInit ();
-#endif
 
 	/* Pre initialization */
 	mozilla_init_plugin_path ();
 
-	mozilla_init_profile ();
+	profile_path = g_build_filename (ephy_dot_dir (),
+					 MOZILLA_PROFILE_DIR,
+					 (char *) NULL);
 
-#ifdef HAVE_GECKO_1_9
-	gtk_moz_embed_set_path (MOZILLA_HOME);
-#endif
-	/* Set mozilla binary path */
-	gtk_moz_embed_set_comp_path (MOZILLA_HOME);
+//	gecko_embed_set_comp_path (MOZILLA_HOME);
 
 	nsCOMPtr<nsIDirectoryServiceProvider> dp = new EphyDirectoryProvider ();
 	if (!dp) return FALSE;
 
-	gtk_moz_embed_set_directory_service_provider (dp);
+        if (!gecko_init_with_params (MOZILLA_HOME,
+                                     profile_path,
+                                     MOZILLA_PROFILE_NAME,
+                                     dp)) {
+          g_free (profile_path);
+          g_warning ("Failed to init gecko!\n");
+          return FALSE;   
+        }
 
-	/* Fire up the beast */
-	gtk_moz_embed_push_startup ();
-	/* FIXME check that it succeeded! */
+        g_free (profile_path);
 
 	mozilla_register_components ();
 
@@ -753,11 +743,9 @@ mozilla_embed_single_finalize (GObject *object)
 
 	mozilla_notifiers_shutdown ();
 
-	gtk_moz_embed_pop_startup ();
+        gecko_shutdown ();
 
-#ifdef HAVE_GECKO_1_9
 	NS_LogTerm ();
-#endif
 
 	g_free (mes->priv->user_prefs);
 }

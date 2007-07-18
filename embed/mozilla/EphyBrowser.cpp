@@ -26,8 +26,6 @@
 
 #include <nsStringAPI.h>
 
-#include <gtkmozembed.h>
-#include <gtkmozembed_internal.h>
 #include <nsIChannel.h>
 #include <nsICommandManager.h>
 #include <nsIContentViewer.h>
@@ -97,6 +95,9 @@
 #include <nsIImageDocument.h>
 #include <nsIMarkupDocumentViewer.h>
 #endif
+
+#include "gecko-embed.h"
+#include "gecko-embed-private.h"
 
 #include "ephy-debug.h"
 #include "ephy-embed.h"
@@ -566,14 +567,14 @@ EphyBrowser::~EphyBrowser ()
 	LOG ("EphyBrowser dtor (%p)", this);
 }
 
-nsresult EphyBrowser::Init (GtkMozEmbed *mozembed)
+nsresult EphyBrowser::Init (GeckoEmbed *mozembed)
 {
 	if (mInitialized) return NS_OK;
 
 	mEmbed = GTK_WIDGET (mozembed);
 
-	gtk_moz_embed_get_nsIWebBrowser (mozembed,
-					 getter_AddRefs(mWebBrowser));
+	gecko_embed_get_nsIWebBrowser (mozembed,
+				       getter_AddRefs(mWebBrowser));
 	NS_ENSURE_TRUE (mWebBrowser, NS_ERROR_FAILURE);
 
 	mWebBrowserFocus = do_QueryInterface (mWebBrowser);
