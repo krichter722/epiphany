@@ -188,8 +188,10 @@ fi
 
 AM_CONDITIONAL([HAVE_XULRUNNER],[true])
 
+GECKO_VERSION_REQUIRED=1.9
+
 # Added $gecko_cv_gecko-js for debian xulrunner brokenness
-PKG_CHECK_MODULES([GECKO],[${gecko_cv_gecko}-xpcom >= $min_version ${gecko_cv_gecko}-js $gecko_cv_extra_pkg_dependencies])
+PKG_CHECK_MODULES([GECKO],[${gecko_cv_gecko}-xpcom >= $GECKO_VERSION_REQUIRED ${gecko_cv_gecko}-js $gecko_cv_extra_pkg_dependencies])
 AC_SUBST([GECKO_CFLAGS])
 AC_SUBST([GECKO_LIBS])
 
