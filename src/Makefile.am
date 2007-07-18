@@ -217,6 +217,7 @@ epiphany_LDADD = \
 	$(GECKO_LIBS) \
 	$(GECKO_EXTRA_LIBS) \
 	$(GECKO_GLUE_LIBS) \
+	-lxpcomglue \
 	$(DEPENDENCIES_LIBS) \
 	$(DBUS_LIBS) \
 	$(LIBINTL)
