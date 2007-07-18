@@ -138,12 +138,12 @@ libgnomegeckoembed_0_0_la_CPPFLAGS = \
 #-DMOZILLA_STRICT_API
 
 libgnomegeckoembed_0_0_la_CXXFLAGS = \
-	$(GNOME_DEPENDENCY_CFLAGS)	\
+	$(GGE_DEPENDENCY_CFLAGS)	\
 	$(GECKO_CFLAGS)			\
 	$(AM_CXXFLAGS)
 
 libgnomegeckoembed_0_0_la_LIBADD = \
-	$(GNOME_DEPENDENCY_LIBS)	\
+	$(GGE_DEPENDENCY_LIBS)	\
 	$(GECKO_LIBS)			\
 	$(GECKO_EXTRA_LIBS)		\
 	$(GECKO_GLUE_LIBS)

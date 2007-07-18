@@ -9,12 +9,12 @@ pkgpyexec_LTLIBRARIES = gnomegeckoembed.la
 
 gnomegeckoembed_la_CPPFLAGS = \
 	-I$(top_srcdir)		\
-	-I$(top_srcdir)/src	\
-	-I$(top_builddir)/src	\
+	-I$(top_srcdir)/embed/gecko/src	\
+	-I$(top_builddir)/embed/gecko/srcsrc	\
 	$(AM_CPPFLAGS)
 
 gnomegeckoembed_la_CFLAGS = \
-	$(GNOME_DEPENDENCY_CFLAGS)	\
+	$(GGE_DEPENDENCY_CFLAGS)	\
 	$(GECKO_CFLAGS)			\
 	$(NO_STRICT_ALIASING_CFLAGS)	\
 	$(PYGTK_CFLAGS)			\
@@ -22,7 +22,7 @@ gnomegeckoembed_la_CFLAGS = \
 	$(AM_CFLAGS)
 
 gnomegeckoembed_la_LIBADD = \
-	$(top_builddir)/src/libgnomegeckoembed-0.0.la	\
+	$(top_builddir)/embed/gecko/src/libgnomegeckoembed-0.0.la	\
 	$(GECKO_LIBS)		\
 	$(PYTHON_LIBS)		\
 	$(PYTHON_EXTRA_LIBS)	\
@@ -50,9 +50,9 @@ EXTRA_DIST = gnomegeckoembed.override gnomegeckoembed.defs
 	&& rm -f gen-$*.c
 
 BINDING_HEADERS_SRCDIR_IN = \
-							src/gecko-embed.h \
-							src/gecko-embed-single.h \
-							src/gecko-embed-types.h
+	src/gecko-embed.h \
+	src/gecko-embed-single.h \
+	src/gecko-embed-types.h
 
 BINDING_HEADERS_BUILDDIR_IN =
 

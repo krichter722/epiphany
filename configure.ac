@@ -188,10 +188,10 @@ fi
 
 AM_CONDITIONAL([HAVE_XULRUNNER],[true])
 
-GECKO_VERSION_REQUIRED=1.9
+GECKO_REQUIRED=1.9
 
 # Added $gecko_cv_gecko-js for debian xulrunner brokenness
-PKG_CHECK_MODULES([GECKO],[${gecko_cv_gecko}-xpcom >= $GECKO_VERSION_REQUIRED ${gecko_cv_gecko}-js $gecko_cv_extra_pkg_dependencies])
+PKG_CHECK_MODULES([GECKO],[${gecko_cv_gecko}-xpcom >= $GECKO_REQUIRED ${gecko_cv_gecko}-js $gecko_cv_extra_pkg_dependencies])
 AC_SUBST([GECKO_CFLAGS])
 AC_SUBST([GECKO_LIBS])
 
@@ -701,6 +701,14 @@ po/Makefile.in
 [EPIPHANY_API_VERSION=$EPIPHANY_API_VERSION])
 
 # new gecko embedding
+PKG_CHECK_MODULES([GGE_DEPENDENCY],[gtk+-2.0 >= $GTK_REQUIRED])
+
+GGE_VERSION=0
+AC_SUBST([GGE_VERSION])
+
+GGE_API_VERSION=0
+AC_SUBST([GGE_API_VERSION])
+
 AC_CONFIG_FILES([
 embed/gecko/Makefile
 embed/gecko/src/Makefile
@@ -709,6 +717,9 @@ embed/gecko/bindings/Makefile
 embed/gecko/bindings/python/Makefile
 embed/gecko/tests/Makefile
 ])
+AC_CONFIG_FILES([
+embed/gecko/data/gnome-gecko-embed-${GGE_API_VERSION}.pc:embed/gecko/data/gnome-gecko-embed.pc.in
+],[],[GGE_API_VERSION=$GGE_API_VERSION])
 
 AC_OUTPUT
 
