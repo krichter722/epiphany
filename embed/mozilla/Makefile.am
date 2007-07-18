@@ -155,3 +155,6 @@ libephymozillaembed_la_CXXFLAGS = \
 	$(GECKO_CFLAGS)		\
 	$(DEPENDENCIES_CFLAGS) 	\
 	$(AM_CXXFLAGS)
+
+libephymozillaembed_la_LIBADD = \
+	$(top_builddir)/embed/gecko/src/libgnomegeckoembed-0.0.la

@@ -70,6 +70,9 @@
 #include <nsIPasswordManager.h>
 #endif /* !HAVE_GECKO_1_9 */
 
+#define XPCOM_GLUE
+#include <nsXPCOMGlue.h>
+
 #include "gecko-init.h"
 #include "gecko-init-internal.h"
 #include "gecko-embed.h"
@@ -649,10 +652,35 @@ impl_init (EphyEmbedSingle *esingle)
 
 //	gecko_embed_set_comp_path (MOZILLA_HOME);
 
+        static const GREVersionRange greVersion = {
+          "1.9a", PR_TRUE,
+          "2", PR_TRUE
+        };
+
+        char xpcomPath[PATH_MAX];
+
+        nsresult rv = GRE_GetGREPathWithProperties(&greVersion, 1, nsnull, 0,
+                                                  xpcomPath, sizeof(xpcomPath));
+        if (NS_FAILED(rv)) {
+          fprintf(stderr, "Couldn't find a compatible GRE.\n");
+          return 1;
+        }
+
+        rv = XPCOMGlueStartup(xpcomPath);
+        if (NS_FAILED(rv)) {
+          fprintf(stderr, "Couldn't start XPCOM.");
+          return 1;
+        }
+
+        char *lastSlash = strrchr(xpcomPath, '/');
+        if (lastSlash)
+          *lastSlash = '\0';
+
+  
 	nsCOMPtr<nsIDirectoryServiceProvider> dp = new EphyDirectoryProvider ();
 	if (!dp) return FALSE;
 
-        if (!gecko_init_with_params (MOZILLA_HOME,
+        if (!gecko_init_with_params (xpcomPath,
                                      profile_path,
                                      MOZILLA_PROFILE_NAME,
                                      dp)) {
@@ -746,6 +774,8 @@ mozilla_embed_single_finalize (GObject *object)
         gecko_shutdown ();
 
 	NS_LogTerm ();
+
+        /* FIXMEchpe: XPCOM glue shutdown */
 
 	g_free (mes->priv->user_prefs);
 }
