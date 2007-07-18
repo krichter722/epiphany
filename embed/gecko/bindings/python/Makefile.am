@@ -10,7 +10,7 @@ pkgpyexec_LTLIBRARIES = gnomegeckoembed.la
 gnomegeckoembed_la_CPPFLAGS = \
 	-I$(top_srcdir)		\
 	-I$(top_srcdir)/embed/gecko/src	\
-	-I$(top_builddir)/embed/gecko/srcsrc	\
+	-I$(top_builddir)/embed/gecko/src	\
 	$(AM_CPPFLAGS)
 
 gnomegeckoembed_la_CFLAGS = \

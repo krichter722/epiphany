@@ -1,3 +1,3 @@
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gnome-gecko-embed-$(GNOME_GECKO_EMBED_API_VERSION).pc
+pkgconfig_DATA = gnome-gecko-embed-$(GGE_API_VERSION).pc
 	
