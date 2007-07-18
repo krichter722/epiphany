@@ -773,9 +773,9 @@ mozilla_embed_single_finalize (GObject *object)
 
         gecko_shutdown ();
 
-	NS_LogTerm ();
+        XPCOMGlueShutdown ();
 
-        /* FIXMEchpe: XPCOM glue shutdown */
+	NS_LogTerm ();
 
 	g_free (mes->priv->user_prefs);
 }
