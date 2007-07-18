@@ -1,20 +1,9 @@
-SUBDIRS = src data bindings tests po
+SUBDIRS = src data bindings tests
 
-ACLOCAL_AMFLAGS = -I m4
+NULL =
 
 EXTRA_DIST =			\
-	autogen.sh		\
-	ChangeLog  		\
 	README 			\
 	TODO 			\
 	COPYRIGHT		\
-	intltool-extract.in 	\
-	intltool-merge.in 	\
-	intltool-update.in
-
-DISTCLEANFILES = 		\
-	intltool-extract 	\
-	intltool-merge 		\
-	intltool-update
-
-DISTCHECK_CONFIGURE_FLAGS =
+	$(NULL)

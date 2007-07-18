@@ -704,6 +704,16 @@ po/Makefile.in
 [],
 [EPIPHANY_API_VERSION=$EPIPHANY_API_VERSION])
 
+# new gecko embedding
+AC_CONFIG_FILES([
+embed/gecko/Makefile
+embed/gecko/src/Makefile
+embed/gecko/data/Makefile
+embed/gecko/bindings/Makefile
+embed/gecko/bindings/python/Makefile
+embed/gecko/tests/Makefile
+])
+
 AC_OUTPUT
 
 # *************************************

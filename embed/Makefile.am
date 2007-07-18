@@ -1,4 +1,4 @@
-SUBDIRS = mozilla
+SUBDIRS = mozilla gecko
 
 noinst_LTLIBRARIES = libephyembed.la libephyembedfactory.la
 
