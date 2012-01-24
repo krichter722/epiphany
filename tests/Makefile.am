@@ -2,7 +2,8 @@ noinst_PROGRAMS = \
 	test-ephy-download \
 	test-ephy-embed-single \
 	test-ephy-location-entry \
-	test-ephy-search-entry
+	test-ephy-search-entry \
+	test-ephy-snapshot-service
 
 # Mostly copied from Makefile.decl in glib
 GTESTER = gtester
@@ -114,3 +115,6 @@ test_ephy_location_entry_SOURCES = \
 
 test_ephy_search_entry_SOURCES = \
 	ephy-search-entry.c
+
+test_ephy_snapshot_service_SOURCES = \
+	ephy-snapshot-service.c
