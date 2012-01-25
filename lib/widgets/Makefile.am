@@ -15,6 +15,8 @@ libephywidgets_la_SOURCES = \
 	ephy-middle-clickable-button.h		\
 	ephy-node-view.c			\
 	ephy-node-view.h			\
+	ephy-overview-store.c			\
+	ephy-overview-store.h			\
 	ephy-search-entry.c			\
 	ephy-search-entry.h			\
 	ephy-tree-model-node.c			\
