@@ -71,6 +71,10 @@ void		  ephy_window_load_url		  (EphyWindow *window,
 void		  ephy_window_set_zoom		  (EphyWindow *window,
 						   float zoom);
 
+gboolean          ephy_window_get_overview_mode   (EphyWindow *window);
+
+void              ephy_window_set_overview_mode   (EphyWindow *window, gboolean overview_mode);
+
 void		  ephy_window_activate_location	  (EphyWindow *window);
 const char       *ephy_window_get_location        (EphyWindow *window);
 

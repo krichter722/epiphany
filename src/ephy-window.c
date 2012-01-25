@@ -45,6 +45,7 @@
 #include "ephy-location-entry.h"
 #include "ephy-navigation-history-action.h"
 #include "ephy-notebook.h"
+#include "ephy-overview.h"
 #include "ephy-page-menu-action.h"
 #include "ephy-prefs.h"
 #include "ephy-private.h"
@@ -348,6 +349,7 @@ struct _EphyWindowPrivate
 	EphyEmbedEvent *context_event;
 	guint idle_worker;
 	GtkWidget *downloads_box;
+	GtkWidget *overview;
 
 	EphyLocationController *location_controller;
 
@@ -361,6 +363,7 @@ struct _EphyWindowPrivate
 	guint key_theme_is_emacs : 1;
 	guint updating_address : 1;
 	guint show_lock : 1;
+	guint overview_mode : 1;
 };
 
 enum
@@ -368,7 +371,8 @@ enum
 	PROP_0,
 	PROP_ACTIVE_CHILD,
 	PROP_CHROME,
-	PROP_SINGLE_TAB_MODE
+	PROP_SINGLE_TAB_MODE,
+	PROP_OVERVIEW_MODE
 };
 
 /* Make sure not to overlap with those in ephy-lockdown.c */
@@ -3259,6 +3263,9 @@ ephy_window_set_property (GObject *object,
 		case PROP_SINGLE_TAB_MODE:
 			ephy_window_set_is_popup (window, g_value_get_boolean (value));
 			break;
+		case PROP_OVERVIEW_MODE:
+			ephy_window_set_overview_mode (window, g_value_get_boolean (value));
+			break;
 	        default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec); 
 			break;
@@ -3283,6 +3290,9 @@ ephy_window_get_property (GObject *object,
 			break;
 		case PROP_SINGLE_TAB_MODE:
 			g_value_set_boolean (value, window->priv->is_popup);
+			break;
+		case PROP_OVERVIEW_MODE:
+			g_value_set_boolean (value, ephy_window_get_overview_mode (EPHY_WINDOW (object)));
 			break;
 	        default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec); 
@@ -3575,6 +3585,18 @@ ephy_window_constructor (GType type,
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
 			    GTK_WIDGET (priv->find_toolbar), FALSE, FALSE, 0);
 
+	priv->overview = ephy_overview_new (EPHY_WINDOW (window));
+	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
+			    priv->overview, TRUE, TRUE, 0);
+	g_object_bind_property (window, "overview-mode",
+				priv->overview, "visible",
+				G_BINDING_SYNC_CREATE
+				| G_BINDING_BIDIRECTIONAL);
+	g_object_bind_property (window, "overview-mode",
+				priv->notebook, "visible",
+				G_BINDING_SYNC_CREATE
+				| G_BINDING_INVERT_BOOLEAN
+				| G_BINDING_BIDIRECTIONAL);
 	priv->downloads_box = setup_downloads_box (window);
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
 			    GTK_WIDGET (priv->downloads_box), FALSE, FALSE, 0);
@@ -3680,6 +3702,8 @@ ephy_window_constructor (GType type,
 
 	sync_chromes_visibility (window);
 
+	ephy_window_set_overview_mode (window, FALSE);
+
 	return object;
 }
 
@@ -3742,6 +3766,14 @@ ephy_window_class_init (EphyWindowClass *klass)
 	g_object_class_override_property (object_class,
 					  PROP_CHROME,
 					  "chrome");
+
+	g_object_class_install_property (object_class,
+					 PROP_OVERVIEW_MODE,
+					 g_param_spec_boolean ("overview-mode",
+							       "Overview mode",
+							       "Whether the window is showing the overview",
+							       TRUE,
+							       G_PARAM_READWRITE));
 
 	g_type_class_add_private (object_class, sizeof (EphyWindowPrivate));
 }
@@ -4066,4 +4098,29 @@ ephy_window_get_location_controller (EphyWindow *window)
 	g_return_val_if_fail (EPHY_IS_WINDOW (window), NULL);
 
 	return window->priv->location_controller;
+}
+
+gboolean
+ephy_window_get_overview_mode (EphyWindow *window)
+{
+	g_return_val_if_fail (EPHY_IS_WINDOW (window), FALSE);
+
+	return window->priv->overview_mode;
+}
+
+void
+ephy_window_set_overview_mode (EphyWindow *window, gboolean overview_mode)
+{
+	EphyWindowPrivate *priv;
+
+	g_return_if_fail (EPHY_IS_WINDOW (window));
+
+	priv = window->priv;
+
+	if (priv->overview_mode == overview_mode)
+		return;
+
+	priv->overview_mode = overview_mode;
+
+	g_object_notify (G_OBJECT (window), "overview-mode");
 }
