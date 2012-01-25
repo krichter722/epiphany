@@ -2902,6 +2902,27 @@ present_on_idle_cb (GtkWindow *window)
       return FALSE;
 }
 
+#ifdef HAVE_WEBKIT2
+static void
+load_changed_cb (EphyWebView *view,
+		 WebKitLoadEvent load_event,
+		 EphyWindow *window)
+{
+	if (load_event == WEBKIT_LOAD_STARTED)
+		ephy_window_set_overview_mode (window, FALSE);
+}
+#else
+static void
+load_status_cb (EphyWebView *view,
+		GParamSpec *pspec,
+		EphyWindow *window)
+{
+	if (webkit_web_view_get_load_status (WEBKIT_WEB_VIEW (view)) == WEBKIT_LOAD_PROVISIONAL) {
+		ephy_window_set_overview_mode (window, FALSE);
+	}
+}
+#endif
+
 static void
 notebook_page_added_cb (EphyNotebook *notebook,
 			EphyEmbed *embed,
@@ -2923,6 +2944,13 @@ notebook_page_added_cb (EphyNotebook *notebook,
 
 	g_signal_connect_object (ephy_embed_get_web_view (embed), "ge-modal-alert",
 				 G_CALLBACK (embed_modal_alert_cb), window, G_CONNECT_AFTER);
+#ifdef HAVE_WEBKIT2
+	g_signal_connect (ephy_embed_get_web_view (embed), "load-changed",
+			  G_CALLBACK (load_changed_cb), window);
+#else
+	g_signal_connect (ephy_embed_get_web_view (embed), "notify::load-status",
+			  G_CALLBACK (load_status_cb), window);
+#endif
 
 	/* Let the extensions attach themselves to the tab */
 	manager = EPHY_EXTENSION (ephy_shell_get_extensions_manager (ephy_shell));
