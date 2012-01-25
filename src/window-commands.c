@@ -1524,3 +1524,10 @@ window_cmd_browse_with_caret (GtkAction *action,
 	g_settings_set_boolean (EPHY_SETTINGS_MAIN,
 				EPHY_PREFS_ENABLE_CARET_BROWSING, active);
 }
+
+void
+window_cmd_show_overview (GtkAction *action,
+			  EphyWindow *window)
+{
+	ephy_window_set_overview_mode (window, TRUE);
+}

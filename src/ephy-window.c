@@ -1392,6 +1392,16 @@ setup_ui_manager (EphyWindow *window)
 	g_object_unref (action_group);
 
 	action_group = gtk_action_group_new ("SpecialToolbarActions");
+	action = GTK_ACTION (gtk_action_new ("ViewOverviewMode",
+					     _("Pages"),
+					     _("Shows the pages overview"),
+					     NULL));
+	g_signal_connect (action, "activate",
+			  G_CALLBACK (window_cmd_show_overview),
+			  window);
+	gtk_action_group_add_action (action_group, action);
+	g_object_unref (action);
+
 	action =
 		g_object_new (EPHY_TYPE_NAVIGATION_HISTORY_ACTION,
 			      "name", "NavigationBack",
