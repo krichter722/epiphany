@@ -1,4 +1,5 @@
 noinst_PROGRAMS = \
+	test-ephy-action-helper \
 	test-ephy-download \
 	test-ephy-embed-single \
 	test-ephy-location-entry \
@@ -102,6 +103,9 @@ CFLAGS += \
 LDADD += \
 	$(SEED_LIBS)
 endif
+
+test_ephy_action_helper_SOURCES = \
+	test-ephy-action-helper.c
 
 test_ephy_download_SOURCES = \
 	ephy-download.c
