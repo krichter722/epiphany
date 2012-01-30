@@ -1560,16 +1560,6 @@ sync_tab_is_blank (EphyWebView *view,
 
 	/* Page menu */
 	action = gtk_action_group_get_action (action_group,
-					      "FileSaveAs");
-	ephy_action_change_sensitivity_flags (action,
-					      SENS_FLAG_IS_BLANK, is_blank);
-
-	action = gtk_action_group_get_action (action_group,
-					      "FileSaveAsApplication");
-	ephy_action_change_sensitivity_flags (action,
-					      SENS_FLAG_IS_BLANK, is_blank);
-
-	action = gtk_action_group_get_action (action_group,
 					      "FilePrint");
 	ephy_action_change_sensitivity_flags (action,
 					      SENS_FLAG_IS_BLANK, is_blank);
@@ -3240,9 +3230,17 @@ setup_toolbar (EphyWindow *window)
 	return toolbar;
 }
 
+static gboolean
+is_application_mode_transform (GBinding *binding,
+			       const GValue *source_value,
+			       GValue *target_value,
+			       gpointer user_data)
+{
+	EphyEmbedShellMode mode = g_value_get_enum (source_value);
+	return mode == EPHY_EMBED_SHELL_MODE_APPLICATION;
+}
+
 static const char* disabled_actions_for_app_mode[] = { "FileOpen",
-                                                       "FileSaveAs",
-                                                       "FileSaveAsApplication",
                                                        "ViewEncoding",
                                                        "FileBookmarkPage" };
 
@@ -3397,11 +3395,25 @@ ephy_window_constructor (GType type,
 	g_signal_connect (single, "notify::network-status",
 			  G_CALLBACK (sync_network_status), window);
 
-	/* Disable actions not needed for popup mode. */
+	/* Configure actions sensitivity. */
 	toolbar_action_group = priv->toolbar_action_group;
 	action = gtk_action_group_get_action (toolbar_action_group, "FileNewTab");
-	ephy_action_change_sensitivity_flags (action, SENS_FLAG_CHROME,
-					      priv->is_popup);
+	ephy_action_bind_sensitivity (action,
+				      window, "is-popup", NULL, G_BINDING_SYNC_CREATE,
+				      embed_shell, "mode", is_application_mode_transform, G_BINDING_SYNC_CREATE,
+				      NULL);
+
+	action = gtk_action_group_get_action (priv->action_group, "FileSaveAs");
+	ephy_action_bind_sensitivity (action,
+				      window, "is-blank", UNLL, G_BINDING_SYNC_CREATE,
+				      embed_shell, "mode", is_application_mode_transform, G_BINDING_SYNC_CREATE,
+				      NULL);
+
+	action = gtk_action_group_get_action (priv->action_group, "FileSaveAsApplication");
+	ephy_action_bind_sensitivity (action,
+				      window, "is-blank", UNLL, G_BINDING_SYNC_CREATE,
+				      embed_shell, "mode", is_application_mode_transform, G_BINDING_SYNC_CREATE,
+				      NULL);
 
 	action = gtk_action_group_get_action (priv->popups_action_group, "OpenLinkInNewTab");
 	ephy_action_change_sensitivity_flags (action, SENS_FLAG_CHROME,
@@ -3411,11 +3423,6 @@ ephy_window_constructor (GType type,
 	mode = ephy_embed_shell_get_mode (embed_shell);
 	if (mode == EPHY_EMBED_SHELL_MODE_APPLICATION)
 	{
-		/* FileNewTab and FileNewWindow are sort of special. */
-		action = gtk_action_group_get_action (toolbar_action_group, "FileNewTab");
-		ephy_action_change_sensitivity_flags (action, SENS_FLAG_CHROME,
-						      TRUE);
-
 		for (i = 0; i < G_N_ELEMENTS (disabled_actions_for_app_mode); i++)
 		{
 			action = gtk_action_group_get_action (priv->action_group,
