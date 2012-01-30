@@ -356,6 +356,7 @@ struct _EphyWindowPrivate
 	guint key_theme_is_emacs : 1;
 	guint updating_address : 1;
 	guint show_lock : 1;
+	guint is_blank : 1;
 };
 
 enum
@@ -363,7 +364,8 @@ enum
 	PROP_0,
 	PROP_ACTIVE_CHILD,
 	PROP_CHROME,
-	PROP_SINGLE_TAB_MODE
+	PROP_SINGLE_TAB_MODE,
+	PROP_IS_BLANK
 };
 
 /* Make sure not to overlap with those in ephy-lockdown.c */
@@ -1545,9 +1547,15 @@ sync_tab_is_blank (EphyWebView *view,
 	GtkAction *action;
 	gboolean is_blank = TRUE;
 
-	if (window->priv->closing) return;
+	if (priv->closing) return;
 
 	is_blank = ephy_web_view_get_is_blank (view);
+	if (priv->is_blank != is_blank)
+	{
+		priv->is_blank = is_blank;
+		g_object_notify (G_OBJECT (window), "is-blank");
+	}
+
 	action_group = priv->action_group;
 
 	/* Page menu */
@@ -2992,6 +3000,9 @@ ephy_window_set_property (GObject *object,
 		case PROP_SINGLE_TAB_MODE:
 			ephy_window_set_is_popup (window, g_value_get_boolean (value));
 			break;
+	        case PROP_IS_BLANK:
+			window->priv->is_blank = g_value_get_boolean (value);
+			break;
 	        default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec); 
 			break;
@@ -3016,6 +3027,9 @@ ephy_window_get_property (GObject *object,
 			break;
 		case PROP_SINGLE_TAB_MODE:
 			g_value_set_boolean (value, window->priv->is_popup);
+			break;
+		case PROP_IS_BLANK:
+			g_value_set_boolean (value, window->priv->is_blank);
 			break;
 	        default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec); 
@@ -3481,6 +3495,14 @@ ephy_window_class_init (EphyWindowClass *klass)
 	g_object_class_override_property (object_class,
 					  PROP_CHROME,
 					  "chrome");
+
+	g_object_class_install_property (object_class,
+					 PROP_IS_BLANK,
+					 g_param_spec_boolean ("is-blank",
+							       "Is blank",
+							       "Whether the active embed is showing the blank page",
+							       FALSE,
+							       G_PARAM_READABLE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
 	g_type_class_add_private (object_class, sizeof (EphyWindowPrivate));
 }
