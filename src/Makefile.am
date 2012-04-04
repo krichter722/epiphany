@@ -23,6 +23,7 @@ NOINST_H_FILES = \
 	ephy-encoding-dialog.h			\
 	ephy-encoding-menu.h			\
 	ephy-find-toolbar.h			\
+	ephy-frecent-store.h			\
 	ephy-history-window.h			\
 	ephy-home-action.h			\
 	ephy-link-action.h			\
@@ -62,6 +63,7 @@ libephymain_la_SOURCES = \
 	ephy-extension.c			\
 	ephy-extensions-manager.c		\
 	ephy-find-toolbar.c			\
+	ephy-frecent-store.c			\
 	ephy-home-action.c			\
 	ephy-history-window.c			\
 	ephy-link.c				\
