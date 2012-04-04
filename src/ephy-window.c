@@ -262,6 +262,7 @@ static const struct
 	 * extra keybindings, but does not seem to work for some
 	 * reason. */
 	{ GDK_KEY_e,		GDK_MOD1_MASK,	        "PageMenu",		 TRUE },
+	{ GDK_KEY_Home,		GDK_MOD1_MASK,	        "ViewOverviewMode",	 TRUE },
 	/* FIXME: these are not in any menu for now, so add them here. */
 	{ GDK_KEY_F11,          0,                      "ViewFullscreen",        FALSE },
 	{ GDK_KEY_plus,         GDK_CONTROL_MASK,       "ViewZoomIn",            FALSE },
@@ -1399,7 +1400,8 @@ setup_ui_manager (EphyWindow *window)
 	g_signal_connect (action, "activate",
 			  G_CALLBACK (window_cmd_show_overview),
 			  window);
-	gtk_action_group_add_action (action_group, action);
+	gtk_action_group_add_action_with_accel (action_group, action,
+						"<alt>Home");
 	g_object_unref (action);
 
 	action =
