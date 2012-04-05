@@ -29,6 +29,7 @@ NOINST_H_FILES = \
 	ephy-link-action.h			\
 	ephy-lockdown.h				\
 	ephy-location-controller.h		\
+	ephy-overview.h				\
 	ephy-navigation-history-action.h	\
 	ephy-page-menu-action.h			\
 	ephy-password-info.h			\
@@ -70,6 +71,7 @@ libephymain_la_SOURCES = \
 	ephy-link-action.c			\
 	ephy-location-controller.c		\
 	ephy-lockdown.c				\
+	ephy-overview.c				\
 	ephy-navigation-history-action.c	\
 	ephy-notebook.c				\
 	ephy-page-menu-action.c			\
