@@ -60,10 +60,6 @@ struct _EphyEmbedContainerIface
   EphyEmbed * (* get_active_child) (EphyEmbedContainer *container);
 
   GList * (* get_children)         (EphyEmbedContainer *container);
-
-  gboolean (* get_is_popup)        (EphyEmbedContainer *container);
-
-  EphyWebViewChrome (* get_chrome) (EphyEmbedContainer *container);
 };
 
 GType             ephy_embed_container_get_type         (void);
@@ -77,8 +73,6 @@ void              ephy_embed_container_remove_child     (EphyEmbedContainer *con
                                                          EphyEmbed          *child);
 EphyEmbed *       ephy_embed_container_get_active_child (EphyEmbedContainer *container);
 GList *           ephy_embed_container_get_children     (EphyEmbedContainer *container);
-gboolean          ephy_embed_container_get_is_popup     (EphyEmbedContainer *container);
-EphyWebViewChrome ephy_embed_container_get_chrome       (EphyEmbedContainer *container);
 
 G_END_DECLS
 

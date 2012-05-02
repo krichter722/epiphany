@@ -78,6 +78,10 @@ void              ephy_window_set_overview_mode   (EphyWindow *window, gboolean 
 void		  ephy_window_activate_location	  (EphyWindow *window);
 const char       *ephy_window_get_location        (EphyWindow *window);
 
+gboolean          ephy_window_get_is_popup        (EphyWindow *window);
+
+EphyWebViewChrome ephy_window_get_chrome          (EphyWindow *window);
+
 G_END_DECLS
 
 #endif

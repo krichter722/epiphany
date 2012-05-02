@@ -372,7 +372,7 @@ enum
 	PROP_0,
 	PROP_ACTIVE_CHILD,
 	PROP_CHROME,
-	PROP_SINGLE_TAB_MODE,
+	PROP_IS_POPUP,
 	PROP_OVERVIEW_MODE
 };
 
@@ -513,18 +513,6 @@ impl_get_children (EphyEmbedContainer *container)
 	return gtk_container_get_children (GTK_CONTAINER (window->priv->notebook));
 }
 
-static gboolean
-impl_get_is_popup (EphyEmbedContainer *container)
-{
-	return EPHY_WINDOW (container)->priv->is_popup;
-}
-
-static EphyWebViewChrome
-impl_get_chrome (EphyEmbedContainer *container)
-{
-	return EPHY_WINDOW (container)->priv->chrome;
-}
-
 static void
 ephy_window_embed_container_iface_init (EphyEmbedContainerIface *iface)
 {
@@ -533,9 +521,40 @@ ephy_window_embed_container_iface_init (EphyEmbedContainerIface *iface)
 	iface->remove_child = impl_remove_child;
 	iface->get_active_child = impl_get_active_child;
 	iface->get_children = impl_get_children;
-	iface->get_is_popup = impl_get_is_popup;
-	iface->get_chrome = impl_get_chrome;
 }
+
+/**
+ * ephy_window_get_is_popup:
+ * @window: a #EphyWindow
+ *
+ * Returns whether this window is a popup.
+ *
+ * Return value: %TRUE if it is a popup
+ **/
+gboolean
+ephy_window_get_is_popup (EphyWindow *window)
+ {
+	g_return_val_if_fail (EPHY_IS_WINDOW (window), FALSE);
+
+	return window->priv->is_popup;
+ }
+
+/**
+ * ephy_window_get_chrome:
+ * @window: a #EphyWindow
+ *
+ * Returns the #EphyWebViewChrome flags indicating the visibility of several parts
+ * of @window.
+ *
+ * Return value: #EphyWebViewChrome flags.
+ **/
+EphyWebViewChrome
+ephy_window_get_chrome (EphyWindow *window)
+ {
+	g_return_val_if_fail (EPHY_IS_WINDOW (window), 0);
+
+	return window->priv->chrome;
+ }
 
 static EphyEmbed *
 ephy_window_open_link (EphyLink *link,
@@ -3300,7 +3319,7 @@ ephy_window_set_property (GObject *object,
 		case PROP_CHROME:
 			ephy_window_set_chrome (window, g_value_get_flags (value));
 			break;
-		case PROP_SINGLE_TAB_MODE:
+		case PROP_IS_POPUP:
 			ephy_window_set_is_popup (window, g_value_get_boolean (value));
 			break;
 		case PROP_OVERVIEW_MODE:
@@ -3328,7 +3347,7 @@ ephy_window_get_property (GObject *object,
 		case PROP_CHROME:
 			g_value_set_flags (value, window->priv->chrome);
 			break;
-		case PROP_SINGLE_TAB_MODE:
+		case PROP_IS_POPUP:
 			g_value_set_boolean (value, window->priv->is_popup);
 			break;
 		case PROP_OVERVIEW_MODE:
@@ -3799,13 +3818,19 @@ ephy_window_class_init (EphyWindowClass *klass)
 					  PROP_ACTIVE_CHILD,
 					  "active-child");
 
-	g_object_class_override_property (object_class,
-					  PROP_SINGLE_TAB_MODE,
-					  "is-popup");
-
-	g_object_class_override_property (object_class,
-					  PROP_CHROME,
-					  "chrome");
+	g_object_class_install_property (object_class,
+					 PROP_CHROME,
+					 g_param_spec_flags ("chrome", NULL, NULL,
+							     EPHY_TYPE_WEB_VIEW_CHROME,
+							     EPHY_WEB_VIEW_CHROME_ALL,
+							     G_PARAM_CONSTRUCT_ONLY |
+							     G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+	g_object_class_install_property (object_class,
+					 PROP_IS_POPUP,
+					 g_param_spec_boolean ("is-popup", NULL, NULL,
+							       FALSE,
+							       G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB |
+							       G_PARAM_CONSTRUCT_ONLY));
 
 	g_object_class_install_property (object_class,
 					 PROP_OVERVIEW_MODE,

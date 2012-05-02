@@ -1351,19 +1351,18 @@ ephy_session_remove_window (EphySession *session,
 EphyWindow *
 ephy_session_get_active_window (EphySession *session)
 {
-	EphyWindow *window = NULL;
-	EphyEmbedContainer *w;
+	EphyWindow *w, *window = NULL;
 	GList *l;
 
 	g_return_val_if_fail (EPHY_IS_SESSION (session), NULL);
 
 	for (l = session->priv->windows; l != NULL; l = l->next)
 	{
-		w = EPHY_EMBED_CONTAINER (l->data);
+		w = EPHY_WINDOW (l->data);
 
-		if (ephy_embed_container_get_is_popup (w) == FALSE)
+		if (ephy_window_get_is_popup (w) == FALSE)
 		{
-			window = EPHY_WINDOW (w);
+			window = w;
 			break;
 		}
 	}
