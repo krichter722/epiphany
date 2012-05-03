@@ -185,11 +185,13 @@ popups_manager_new_window_info (EphyEmbedContainer *container)
 {
   EphyEmbed *embed;
   EphyWebViewChrome chrome;
+  GtkWidget *window;
   GtkAllocation allocation;
   gboolean is_popup;
   char *features;
 
-  g_object_get (container, "chrome", &chrome, "is-popup", &is_popup, NULL);
+  window = gtk_widget_get_toplevel (GTK_WIDGET (container));
+  g_object_get (window, "chrome", &chrome, "is-popup", &is_popup, NULL);
   g_return_val_if_fail (is_popup, g_strdup (""));
 
   embed = ephy_embed_container_get_active_child (container);
@@ -250,6 +252,7 @@ popups_manager_hide (EphyEmbedContainer *container,
   EphyEmbed *embed;
   const char *location;
   char *features;
+  GtkWidget *window;
 
   embed = ephy_embed_container_get_active_child (container);
   g_return_if_fail (EPHY_IS_EMBED (embed));
@@ -260,8 +263,8 @@ popups_manager_hide (EphyEmbedContainer *container,
   features = popups_manager_new_window_info (container);
 
   popups_manager_add (parent_view, location, "" /* FIXME? maybe _blank? */, features);
-
-  gtk_widget_destroy (GTK_WIDGET (container));
+  window = gtk_widget_get_toplevel (GTK_WIDGET (container));
+  gtk_widget_destroy (GTK_WIDGET (window));
 
   g_free (features);
 }
@@ -1694,8 +1697,8 @@ new_window_cb (EphyWebView *view,
 
   g_return_if_fail (new_view != NULL);
 
-  container = EPHY_EMBED_CONTAINER (gtk_widget_get_toplevel (GTK_WIDGET (new_view)));
-  g_return_if_fail (container != NULL || !gtk_widget_is_toplevel (GTK_WIDGET (container)));
+  container = EPHY_EMBED_CONTAINER
+    (ephy_embed_get_container (EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (new_view)));
 
   popups_manager_add_window (view, container);
 }
@@ -2595,13 +2598,17 @@ close_web_view_cb (WebKitWebView *web_view,
                    gpointer user_data)
 #endif
 {
-  GtkWidget *widget = gtk_widget_get_toplevel (GTK_WIDGET (web_view));
+  GtkWidget *widget;
+  EphyEmbed *embed;
 
   LOG ("close web view");
 
+  embed = EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (web_view);
+  widget = ephy_embed_get_container (embed);
+
   if (EPHY_IS_EMBED_CONTAINER (widget))
     ephy_embed_container_remove_child (EPHY_EMBED_CONTAINER (widget),
-                                       EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (web_view));
+                                       embed);
   else
     gtk_widget_destroy (widget);
 

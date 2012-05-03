@@ -1012,3 +1012,19 @@ ephy_embed_remove_top_widget (EphyEmbed *embed, GtkWidget *widget)
   gtk_container_remove (GTK_CONTAINER (embed->priv->top_widgets_vbox),
                         GTK_WIDGET (widget));
 }
+
+/**
+ * ephy_embed_get_container:
+ * @embed: a #EphyEmbed
+ *
+ * Returns the container where @embed is
+ *
+ * Return value: (transfer none): the container
+ **/
+GtkWidget *
+ephy_embed_get_container (EphyEmbed *embed)
+{
+  g_return_val_if_fail (EPHY_IS_EMBED (embed), NULL);
+
+  return gtk_widget_get_parent (GTK_WIDGET (embed));
+}

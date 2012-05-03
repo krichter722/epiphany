@@ -133,7 +133,7 @@ update_encoding_menu_cb (GtkAction *dummy, EphyEncodingMenu *menu)
 	/* get most recently used encodings */
 	recent = ephy_encodings_get_recent (p->encodings);
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (p->window));
+	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (p->window)));
 	view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);
 #ifdef HAVE_WEBKIT2
 	encoding = webkit_web_view_get_custom_charset (view);
@@ -251,7 +251,7 @@ encoding_activate_cb (GtkAction *action, EphyEncodingMenu *menu)
 	name = gtk_action_get_name (GTK_ACTION (action));
 	encoding = name + strlen("Encoding");
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (menu->priv->window));
+	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (menu->priv->window)));
 
 	view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);
 #ifdef HAVE_WEBKIT2
@@ -325,7 +325,7 @@ ephy_encoding_menu_automatic_cb (GtkAction *action, EphyEncodingMenu *menu)
 	}
 
 	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (menu->priv->window));
+	   (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (menu->priv->window)));
 
 	/* setting NULL will clear the forced encoding */
 	view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);

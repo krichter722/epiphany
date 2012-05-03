@@ -72,7 +72,7 @@ arbitrary_url_cb (GSettings *settings,
 	/* Restore the real web page address when disabling entry */
 	if (g_settings_get_boolean (settings, key))
 	{
-		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		/* embed is NULL on startup */
 		if (embed == NULL)
 			return;

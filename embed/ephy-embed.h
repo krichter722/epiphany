@@ -61,6 +61,7 @@ void         ephy_embed_auto_download_url        (EphyEmbed  *embed,
                                                   const char *url);
 void         ephy_embed_entering_fullscreen      (EphyEmbed *embed);
 void         ephy_embed_leaving_fullscreen       (EphyEmbed *embed);
+GtkWidget*   ephy_embed_get_container            (EphyEmbed *embed);
 
 G_END_DECLS
 

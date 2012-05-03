@@ -370,7 +370,6 @@ struct _EphyWindowPrivate
 enum
 {
 	PROP_0,
-	PROP_ACTIVE_CHILD,
 	PROP_CHROME,
 	PROP_IS_POPUP,
 	PROP_OVERVIEW_MODE
@@ -386,36 +385,6 @@ enum
 	SENS_FLAG_NAVIGATION	= 1 << 4,
 	SENS_FLAG_IS_BLANK	= 1 << 5
 };
-
-static gint
-impl_add_child (EphyEmbedContainer *container,
-		EphyEmbed *child,
-		gint position,
-		gboolean jump_to)
-{
-	EphyWindow *window = EPHY_WINDOW (container);
-
-	g_return_val_if_fail (!window->priv->is_popup ||
-			      gtk_notebook_get_n_pages (GTK_NOTEBOOK (window->priv->notebook)) < 1, -1);
-
-	return ephy_notebook_add_tab (EPHY_NOTEBOOK (window->priv->notebook),
-				      child, position, jump_to);
-}
-
-static void
-impl_set_active_child (EphyEmbedContainer *container,
-		       EphyEmbed *child)
-{
-	int page;
-	EphyWindow *window;
-
-	window = EPHY_WINDOW (container);
-
-	page = gtk_notebook_page_num
-		(window->priv->notebook, GTK_WIDGET (child));
-	gtk_notebook_set_current_page
-		(window->priv->notebook, page);
-}
 
 static GtkWidget *
 construct_confirm_close_dialog (EphyWindow *window,
@@ -485,42 +454,6 @@ confirm_close_with_downloads (EphyWindow *window)
 	gtk_widget_destroy (dialog);
 
 	return response == GTK_RESPONSE_ACCEPT;
-}
-
-static void
-impl_remove_child (EphyEmbedContainer *container,
-		   EphyEmbed *child)
-{
-	EphyWindow *window;
-
-	window = EPHY_WINDOW (container);
-	g_signal_emit_by_name (window->priv->notebook,
-			       "tab-close-request",
-			       child, window);
-}
-
-static EphyEmbed *
-impl_get_active_child (EphyEmbedContainer *container)
-{
-	return EPHY_WINDOW (container)->priv->active_embed;
-}
-
-static GList *
-impl_get_children (EphyEmbedContainer *container)
-{
-	EphyWindow *window = EPHY_WINDOW (container);
-
-	return gtk_container_get_children (GTK_CONTAINER (window->priv->notebook));
-}
-
-static void
-ephy_window_embed_container_iface_init (EphyEmbedContainerIface *iface)
-{
-	iface->add_child = impl_add_child;
-	iface->set_active_child = impl_set_active_child;
-	iface->remove_child = impl_remove_child;
-	iface->get_active_child = impl_get_active_child;
-	iface->get_children = impl_get_children;
 }
 
 /**
@@ -643,9 +576,7 @@ ephy_window_link_iface_init (EphyLinkIface *iface)
 
 G_DEFINE_TYPE_WITH_CODE (EphyWindow, ephy_window, GTK_TYPE_APPLICATION_WINDOW,
 			 G_IMPLEMENT_INTERFACE (EPHY_TYPE_LINK,
-						ephy_window_link_iface_init)
-			 G_IMPLEMENT_INTERFACE (EPHY_TYPE_EMBED_CONTAINER,
-						ephy_window_embed_container_iface_init))
+						ephy_window_link_iface_init))
 
 /* FIXME: fix this! */
 static void
@@ -1006,7 +937,7 @@ ephy_window_delete_event (GtkWidget *widget,
 	if (g_settings_get_boolean (EPHY_SETTINGS_LOCKDOWN,
 				    EPHY_PREFS_LOCKDOWN_QUIT)) return TRUE;
 
-	tabs = impl_get_children (EPHY_EMBED_CONTAINER (window));
+	tabs = ephy_embed_container_get_children (EPHY_EMBED_CONTAINER (window->priv->notebook));
 	for (l = tabs; l != NULL; l = l->next)
 	{
 		EphyEmbed *embed = (EphyEmbed *) l->data;
@@ -1025,8 +956,8 @@ ephy_window_delete_event (GtkWidget *widget,
 	if (modified)
 	{
 		/* jump to the first tab with modified forms */
-		impl_set_active_child (EPHY_EMBED_CONTAINER (window),
-				       modified_embed);
+		ephy_embed_container_set_active_child (EPHY_EMBED_CONTAINER (window->priv->notebook),
+						       modified_embed);
 
 		if (confirm_close_with_modified_forms (window) == FALSE)
 		{
@@ -2533,7 +2464,7 @@ policy_decision_required_cb (WebKitWebView *web_view,
 		}
 
 		embed = ephy_embed_container_get_active_child
-			(EPHY_EMBED_CONTAINER (window));
+			(EPHY_EMBED_CONTAINER (window->priv->notebook));
 
 		ephy_shell_new_tab_full (ephy_shell_get_default (),
 					 window,
@@ -2651,7 +2582,7 @@ ephy_window_connect_active_embed (EphyWindow *window)
 				 G_CALLBACK (ephy_window_visibility_cb),
 				 window, 0);
 
-	g_object_notify (G_OBJECT (window), "active-child");
+	g_object_notify (G_OBJECT (window->priv->notebook), "active-child");
 }
 
 static void
@@ -2771,7 +2702,7 @@ embed_modal_alert_cb (EphyEmbed *embed,
 	 * (since the alert is modal, the user won't be able to do anything
 	 * with his current window anyway :|)
 	 */
-	impl_set_active_child (EPHY_EMBED_CONTAINER (window), embed);
+	ephy_embed_container_set_active_child (EPHY_EMBED_CONTAINER (window->priv->notebook), embed);
 	gtk_window_present (GTK_WINDOW (window));
 
 	/* make sure the location entry shows the real URL of the tab's page */
@@ -3312,10 +3243,6 @@ ephy_window_set_property (GObject *object,
 
 	switch (prop_id)
 	{
-		case PROP_ACTIVE_CHILD:
-			impl_set_active_child (EPHY_EMBED_CONTAINER (window),
-					       g_value_get_object (value));
-			break;
 		case PROP_CHROME:
 			ephy_window_set_chrome (window, g_value_get_flags (value));
 			break;
@@ -3341,9 +3268,6 @@ ephy_window_get_property (GObject *object,
 
 	switch (prop_id)
 	{
-		case PROP_ACTIVE_CHILD:
-			g_value_set_object (value, window->priv->active_embed);
-			break;
 		case PROP_CHROME:
 			g_value_set_flags (value, window->priv->chrome);
 			break;
@@ -3443,7 +3367,7 @@ allow_popups_notifier (GSettings *settings,
 
 	g_return_if_fail (EPHY_IS_WINDOW (window));
 
-	tabs = impl_get_children (EPHY_EMBED_CONTAINER (window));
+	tabs = ephy_embed_container_get_children (EPHY_EMBED_CONTAINER (window->priv->notebook));
 
 	for (; tabs; tabs = g_list_next (tabs))
 	{
@@ -3481,7 +3405,7 @@ sync_user_input_cb (EphyLocationController *action,
 
 	if (priv->updating_address) return;
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window->priv->notebook));
 	g_assert (EPHY_IS_EMBED (embed));
 
 	address = ephy_location_controller_get_address (action);
@@ -3813,10 +3737,6 @@ ephy_window_class_init (EphyWindowClass *klass)
 	widget_class->key_press_event = ephy_window_key_press_event;
 	widget_class->window_state_event = ephy_window_state_event;
 	widget_class->delete_event = ephy_window_delete_event;
-
-	g_object_class_override_property (object_class,
-					  PROP_ACTIVE_CHILD,
-					  "active-child");
 
 	g_object_class_install_property (object_class,
 					 PROP_CHROME,

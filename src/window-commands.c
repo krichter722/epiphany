@@ -72,7 +72,7 @@ window_cmd_file_print (GtkAction *action,
 	EphyWebView *view;
 
 	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (EPHY_IS_EMBED (embed));
 	view = ephy_embed_get_web_view (embed);
 
@@ -90,7 +90,7 @@ window_cmd_file_send_to	(GtkAction *action,
 	GError *error = NULL;
 
 	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	location = ephy_web_view_get_address (ephy_embed_get_web_view (embed));
@@ -164,8 +164,8 @@ window_cmd_view_stop (GtkAction *action,
 {
 	EphyEmbed *embed;
 	
-	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	gtk_widget_grab_focus (GTK_WIDGET (embed));
@@ -181,7 +181,7 @@ window_cmd_view_reload (GtkAction *action,
 	WebKitWebView *view;
 
 	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	gtk_widget_grab_focus (GTK_WIDGET (embed));
@@ -199,8 +199,8 @@ window_cmd_file_bookmark_page (GtkAction *action,
 {
 	EphyEmbed *embed;
 
-	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	ephy_bookmarks_ui_add_bookmark (GTK_WINDOW (window),
@@ -336,7 +336,8 @@ window_cmd_file_save_as (GtkAction *action,
 	char *suggested_filename;
 	EphyWebView *view;
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	dialog = ephy_file_chooser_new (_("Save"),
@@ -629,7 +630,8 @@ window_cmd_file_save_as_application (GtkAction *action,
 	EphyWebView *view;
 	EphyApplicationDialogData *data;
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	view = EPHY_WEB_VIEW (EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed));
@@ -707,7 +709,8 @@ window_cmd_file_close_window (GtkAction *action,
 		return;
 	}
 
-	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	g_signal_emit_by_name (notebook, "tab-close-request", embed);
@@ -784,7 +787,9 @@ window_cmd_edit_cut (GtkAction *action,
 	else
 	{
 		EphyEmbed *embed;
-		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+
+		embed = ephy_embed_container_get_active_child
+		  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		g_return_if_fail (embed != NULL);
 
 #ifdef HAVE_WEBKIT2
@@ -809,7 +814,8 @@ window_cmd_edit_copy (GtkAction *action,
 	{
 		EphyEmbed *embed;
 
-		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+		embed = ephy_embed_container_get_active_child
+		  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		g_return_if_fail (embed != NULL);
 #ifdef HAVE_WEBKIT2
 		webkit_web_view_execute_editing_command (EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed), WEBKIT_EDITING_COMMAND_COPY);
@@ -833,7 +839,8 @@ window_cmd_edit_paste (GtkAction *action,
 	{
 		EphyEmbed *embed;
 
-		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+		embed = ephy_embed_container_get_active_child
+		  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		g_return_if_fail (embed != NULL);
 
 #ifdef HAVE_WEBKIT2
@@ -858,7 +865,8 @@ window_cmd_edit_delete (GtkAction *action,
 	{
 		EphyEmbed *embed;
 
-		embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+		embed = ephy_embed_container_get_active_child
+		  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		g_return_if_fail (embed != NULL);
 
 		/* FIXME: TODO */
@@ -883,8 +891,8 @@ window_cmd_edit_select_all (GtkAction *action,
 	{
 		EphyEmbed *embed;
 
-		embed = ephy_embed_container_get_active_child 
-                  (EPHY_EMBED_CONTAINER (window));
+		embed = ephy_embed_container_get_active_child
+		  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 		g_return_if_fail (embed != NULL);
 
 #ifdef HAVE_WEBKIT2
@@ -1190,8 +1198,8 @@ window_cmd_view_page_source (GtkAction *action,
 	const char *address;
 	guint32 user_time;
 
-	embed = ephy_embed_container_get_active_child 
-          (EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	address = ephy_web_view_get_address (ephy_embed_get_web_view (embed));
@@ -1441,13 +1449,13 @@ window_cmd_tabs_detach  (GtkAction *action,
         if (gtk_notebook_get_n_pages (notebook) <= 1)
                 return;
 
-        embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
-
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
         g_object_ref_sink (embed);
         gtk_notebook_remove_page (notebook, gtk_notebook_page_num (notebook, GTK_WIDGET (embed)));
 
         new_window = ephy_window_new ();
-        ephy_embed_container_add_child (EPHY_EMBED_CONTAINER (new_window), embed, 0, FALSE);
+        ephy_embed_container_add_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)), embed, 0, FALSE);
         g_object_unref (embed);
 
         gtk_window_present (GTK_WINDOW (new_window));
@@ -1472,7 +1480,7 @@ window_cmd_load_location (GtkAction *action,
 		g_return_if_fail (address != NULL);
 
 		ephy_link_open (EPHY_LINK (window), address,
-			        ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window)),
+			        ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window))),
 				ephy_link_flags_from_current_event ());
 	}
 }
@@ -1484,9 +1492,9 @@ window_cmd_browse_with_caret (GtkAction *action,
 	gboolean active;
 	EphyEmbed *embed;
 
-	embed = ephy_embed_container_get_active_child 
-		(EPHY_EMBED_CONTAINER (window));
-	
+	embed = ephy_embed_container_get_active_child
+	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
+
 	active = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION (action));
 
 	/* FIXME: perhaps a bit of a kludge; we check if there's an

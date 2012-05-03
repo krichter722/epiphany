@@ -752,7 +752,7 @@ ephy_shell_new_tab_full (EphyShell *shell,
 
   if (flags & EPHY_NEW_TAB_FROM_EXTERNAL) {
     /* If the active embed is blank, use that to open the url and jump to it */
-    embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+    embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
     if (embed != NULL) {
       if (ephy_web_view_get_is_blank (ephy_embed_get_web_view (embed)) &&
           ephy_web_view_is_loading (ephy_embed_get_web_view (embed)) == FALSE) {
@@ -766,7 +766,8 @@ ephy_shell_new_tab_full (EphyShell *shell,
     g_assert (embed != NULL);
     gtk_widget_show (GTK_WIDGET (embed));
 
-    ephy_embed_container_add_child (EPHY_EMBED_CONTAINER (window), embed, position, jump_to);
+    ephy_embed_container_add_child (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)),
+                                    embed, position, jump_to);
   }
 
   if (copy_history && previous_embed != NULL) {

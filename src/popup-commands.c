@@ -50,8 +50,8 @@ popup_cmd_link_in_new_window (GtkAction *action,
 	EphyEmbed *embed;
 	GValue value = { 0, };
 
-	embed = ephy_embed_container_get_active_child 
-		(EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 
 	event = ephy_window_get_context_event (window);
 	g_return_if_fail (event != NULL);
@@ -74,7 +74,7 @@ popup_cmd_link_in_new_tab (GtkAction *action,
 	GValue value = { 0, };
 
 	embed = ephy_embed_container_get_active_child
-		(EPHY_EMBED_CONTAINER (window));
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 
 	event = ephy_window_get_context_event (window);
 	g_return_if_fail (event != NULL);
@@ -264,8 +264,8 @@ popup_cmd_open_link (GtkAction *action,
 	GValue value = { 0, };
 	EphyEmbed *embed;
 
-	embed = ephy_embed_container_get_active_child 
-		(EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	event = ephy_window_get_context_event (window);
@@ -462,8 +462,8 @@ popup_replace_spelling (GtkAction *action,
 	WebKitDOMDocument *document;
 	WebKitDOMDOMWindow *default_view;
 
-	embed = ephy_embed_container_get_active_child 
-		(EPHY_EMBED_CONTAINER (window));
+	embed = ephy_embed_container_get_active_child
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	view = WEBKIT_WEB_VIEW (ephy_embed_get_web_view (embed));
@@ -493,7 +493,7 @@ popup_cmd_open_image (GtkAction *action,
 	g_return_if_fail (event != NULL);
 
 	embed = ephy_embed_container_get_active_child 
-		(EPHY_EMBED_CONTAINER (window));
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	g_return_if_fail (embed != NULL);
 
 	ephy_embed_event_get_property (event, "image-uri", &value);
@@ -533,7 +533,7 @@ popup_cmd_inspect_element (GtkAction *action, EphyWindow *window)
 	guint x, y;
 
 	embed = ephy_embed_container_get_active_child
-		(EPHY_EMBED_CONTAINER (window));
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 
 	event = ephy_window_get_context_event (window);
 	g_return_if_fail (event != NULL);

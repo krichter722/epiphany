@@ -91,7 +91,8 @@ action_activate (GtkAction *action)
 
   history_action = EPHY_NAVIGATION_HISTORY_ACTION (action);
   window = ephy_window_action_get_window (EPHY_WINDOW_ACTION (action));
-  embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+  embed = ephy_embed_container_get_active_child
+    (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
   g_return_if_fail (embed != NULL);
 
   web_view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);

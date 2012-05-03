@@ -25,6 +25,7 @@
 
 #include "ephy-debug.h"
 #include "ephy-dnd.h"
+#include "ephy-embed-container.h"
 #include "ephy-embed-utils.h"
 #include "ephy-embed.h"
 #include "ephy-file-helpers.h"
@@ -77,7 +78,8 @@ static const GtkTargetEntry url_drag_types [] =
 enum
 {
 	PROP_0,
-	PROP_TABS_ALLOWED
+	PROP_TABS_ALLOWED,
+	PROP_ACTIVE_CHILD,
 };
 
 enum
@@ -88,9 +90,76 @@ enum
 
 static guint signals[LAST_SIGNAL];
 
+static int
+impl_add_child (EphyEmbedContainer *container,
+		EphyEmbed *child,
+		int position,
+		gboolean active)
+{
+	EphyWindow *window;
+	EphyNotebook *notebook = EPHY_NOTEBOOK (container);
+
+	window = EPHY_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (container)));
+	g_return_val_if_fail (!ephy_window_get_is_popup (window) ||
+			      gtk_notebook_get_n_pages (GTK_NOTEBOOK (notebook)) < 1, -1);
+
+	return ephy_notebook_add_tab (EPHY_NOTEBOOK (notebook),
+				      child, position, active);
+}
+
+static void
+impl_set_active_child (EphyEmbedContainer *container,
+		       EphyEmbed *child)
+{
+	int page;
+	GtkNotebook *notebook;
+
+	notebook = GTK_NOTEBOOK (container);
+
+	page = gtk_notebook_page_num (notebook, GTK_WIDGET (child));
+	gtk_notebook_set_current_page (notebook, page);
+}
+
+static void
+impl_remove_child (EphyEmbedContainer *container,
+		   EphyEmbed *child)
+{
+	g_signal_emit_by_name (container, "tab-close-request",
+			       child);
+}
+
+static EphyEmbed *
+impl_get_active_child (EphyEmbedContainer *container)
+{
+	EphyNotebook *notebook = EPHY_NOTEBOOK (container);
+	int active;
+
+	active = gtk_notebook_get_current_page (GTK_NOTEBOOK (notebook));
+	return EPHY_EMBED (gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook), active));
+}
+
+/* Fixme: I'd remove this method from the interface altogether. */
+static GList *
+impl_get_children (EphyEmbedContainer *container)
+{
+	return gtk_container_get_children (GTK_CONTAINER (container));
+}
+
+static void
+ephy_notebook_embed_container_iface_init (EphyEmbedContainerIface *iface)
+{
+	iface->add_child = impl_add_child;
+	iface->set_active_child = impl_set_active_child;
+	iface->remove_child = impl_remove_child;
+	iface->get_active_child = impl_get_active_child;
+	iface->get_children = impl_get_children;
+}
+
 G_DEFINE_TYPE_WITH_CODE (EphyNotebook, ephy_notebook, GTK_TYPE_NOTEBOOK,
 			 G_IMPLEMENT_INTERFACE (EPHY_TYPE_LINK,
-						NULL))
+						NULL)
+			 G_IMPLEMENT_INTERFACE (EPHY_TYPE_EMBED_CONTAINER,
+						ephy_notebook_embed_container_iface_init))
 
 static void
 ephy_notebook_get_property (GObject *object,
@@ -156,6 +225,10 @@ ephy_notebook_class_init (EphyNotebookClass *klass)
 					 g_param_spec_boolean ("tabs-allowed", NULL, NULL,
 							       TRUE,
 							       G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+
+	g_object_class_override_property (object_class,
+					  PROP_ACTIVE_CHILD,
+					  "active-child");
 
 	g_type_class_add_private (object_class, sizeof (EphyNotebookPrivate));
 }

@@ -496,7 +496,7 @@ attach_window (EphyWindow *window,
 	ephy_extension_attach_window (extension, window);
 
 	tabs = ephy_embed_container_get_children 
-          (EPHY_EMBED_CONTAINER (window));
+	   (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	for (l = tabs; l; l = l->next)
 	{
 		ephy_extension_attach_tab (extension, window,
@@ -559,8 +559,8 @@ detach_window (EphyWindow *window,
 {
 	GList *tabs, *l;
 
-	tabs = ephy_embed_container_get_children 
-          (EPHY_EMBED_CONTAINER (window));
+	tabs = ephy_embed_container_get_children
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	for (l = tabs; l; l = l->next)
 	{
 		ephy_extension_detach_tab (extension, window,
@@ -1053,7 +1053,8 @@ impl_detach_window (EphyExtension *extension,
 	g_object_ref (window);
 
 	/* Detach tabs (uses impl_detach_tab) */
-	tabs = ephy_embed_container_get_children (EPHY_EMBED_CONTAINER (window));
+	tabs = ephy_embed_container_get_children
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 	for (l = tabs; l; l = l->next)
 	{
 		ephy_extension_detach_tab (extension, window,

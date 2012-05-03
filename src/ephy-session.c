@@ -376,7 +376,8 @@ session_command_open_uris (EphySession *session,
 		{
 			EphyWebView *web_view;
 			
-			embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (priv->resume_window));
+			embed = ephy_embed_container_get_active_child
+			  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (EPHY_WINDOW (priv->resume_window))));
 			web_view = ephy_embed_get_web_view (embed);
 			ephy_web_view_load_url (web_view, url);
 		}
@@ -796,8 +797,8 @@ write_ephy_window (xmlTextWriterPtr writer,
 	const char *role;
 	int ret;
 
-	tabs = ephy_embed_container_get_children (EPHY_EMBED_CONTAINER (window));
 	notebook = ephy_window_get_notebook (window);
+	tabs = ephy_embed_container_get_children (EPHY_EMBED_CONTAINER (notebook));
 
 	/* Do not save an empty EphyWindow.
 	 * This only happens when the window was newly opened.
@@ -989,7 +990,8 @@ parse_embed (xmlNodePtr child,
 					EphyWebView *web_view;
 					EphyEmbed *embed;
 
-					embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+					embed = ephy_embed_container_get_active_child
+					  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (EPHY_WINDOW (window))));
 					web_view = ephy_embed_get_web_view (embed);
 					ephy_web_view_load_url (web_view, recover_url);
 
@@ -1180,7 +1182,8 @@ ephy_session_load_from_string (EphySession *session,
 
 			if (ephy_embed_shell_get_mode (embed_shell) != EPHY_EMBED_SHELL_MODE_TEST)
 			{
-				active_child = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+				active_child = ephy_embed_container_get_active_child
+					(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
 				gtk_widget_grab_focus (GTK_WIDGET (active_child));
 				gtk_widget_show (widget);
 			}
