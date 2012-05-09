@@ -2683,12 +2683,12 @@ ephy_window_set_active_tab (EphyWindow *window, EphyEmbed *new_embed)
 
 	if (old_embed == new_embed) return;
 
-	if (old_embed != NULL)
+	if (window->priv->overview_mode == FALSE && old_embed != NULL)
 		ephy_window_disconnect_active_embed (window);
 
 	window->priv->active_embed = new_embed;
 
-	if (new_embed != NULL)
+	if (window->priv->overview_mode == FALSE && new_embed != NULL)
 		ephy_window_connect_active_embed (window);
 }
 
@@ -4093,6 +4093,16 @@ ephy_window_get_overview_mode (EphyWindow *window)
 	return window->priv->overview_mode;
 }
 
+static void
+ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
+{
+	if (overview_mode) {
+		ephy_window_disconnect_active_embed (window);
+	} else {
+		ephy_window_connect_active_embed (window);
+	}
+}
+
 void
 ephy_window_set_overview_mode (EphyWindow *window, gboolean overview_mode)
 {
@@ -4104,6 +4114,8 @@ ephy_window_set_overview_mode (EphyWindow *window, gboolean overview_mode)
 
 	if (priv->overview_mode == overview_mode)
 		return;
+
+	ephy_window_toggle_overview (window, overview_mode);
 
 	priv->overview_mode = overview_mode;
 
