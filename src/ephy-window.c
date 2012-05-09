@@ -383,7 +383,8 @@ enum
 	SENS_FLAG_DOCUMENT	= 1 << 2,
 	SENS_FLAG_LOADING	= 1 << 3,
 	SENS_FLAG_NAVIGATION	= 1 << 4,
-	SENS_FLAG_IS_BLANK	= 1 << 5
+	SENS_FLAG_IS_BLANK	= 1 << 5,
+	SENS_FLAG_OVERVIEW      = 1 << 6
 };
 
 static GtkWidget *
@@ -4101,6 +4102,7 @@ ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
 	} else {
 		ephy_window_connect_active_embed (window);
 	}
+	_ephy_window_set_default_actions_sensitive (window, SENS_FLAG_OVERVIEW, overview_mode);
 }
 
 void
