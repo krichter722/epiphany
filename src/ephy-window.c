@@ -4095,10 +4095,30 @@ ephy_window_get_overview_mode (EphyWindow *window)
 }
 
 static void
+ephy_window_prepare_for_overview (EphyWindow *window)
+{
+	GtkAction *action;
+
+	gtk_window_set_title (GTK_WINDOW (window), _(("Web overview")));
+	ephy_window_set_location (window, "");
+	_ephy_window_set_security_state (window, FALSE, STOCK_LOCK_INSECURE);
+	_ephy_window_action_set_favicon (window, NULL);
+	_ephy_window_set_navigation_flags (window, 0);
+
+	/* Update sensitivity of actions */
+
+	action = gtk_action_group_get_action (window->priv->toolbar_action_group,
+					      "ViewCombinedStopReload");
+	ephy_combined_stop_reload_action_set_loading (EPHY_COMBINED_STOP_RELOAD_ACTION (action),
+						      FALSE);
+}
+
+static void
 ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
 {
 	if (overview_mode) {
 		ephy_window_disconnect_active_embed (window);
+		ephy_window_prepare_for_overview (window);
 	} else {
 		ephy_window_connect_active_embed (window);
 	}
