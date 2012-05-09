@@ -1433,6 +1433,7 @@ sync_tab_address (EphyWebView *view,
 
 	address = ephy_web_view_get_address (view);
 	typed_address = ephy_web_view_get_typed_address (view);
+	g_object_set (window->priv->location_controller, "show-icon", TRUE, NULL);
 
 	ephy_window_set_location (window, typed_address ? typed_address : address);
 	ephy_find_toolbar_request_close (priv->find_toolbar);
@@ -4101,6 +4102,7 @@ ephy_window_prepare_for_overview (EphyWindow *window)
 
 	gtk_window_set_title (GTK_WINDOW (window), _(("Web overview")));
 	ephy_window_set_location (window, "");
+	g_object_set (window->priv->location_controller, "show-icon", FALSE, NULL);
 	_ephy_window_set_security_state (window, FALSE, STOCK_LOCK_INSECURE);
 	_ephy_window_action_set_favicon (window, NULL);
 	_ephy_window_set_navigation_flags (window, 0);
