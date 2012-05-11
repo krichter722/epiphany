@@ -86,7 +86,7 @@
 			<description>Hide or show the downloads window. When hidden, a notification will be shown when new downloads are started.</description>
 		</key>
 		<key name="tabs-bar-visibility-policy" enum="org.gnome.Epiphany.EphyPrefsUITabsBarVisibilityPolicy">
-			<default>'more-than-one'</default>
+			<default>'never'</default>
 			<summary>The visibility policy for the tabs  bar.</summary>
 			<description>Controls when the tabs bar is shown. Possible values are 'always' (the tabs bar is always shown), 'more-than-one' (the tabs bar is only shown if there's two or more tabs) and 'never' (the tabs bar is never shown).</description>
 		</key>
