@@ -48,6 +48,7 @@ enum {
 
 enum {
   ITEM_ACTIVATED = 1,
+  ITEM_DELETED,
   SELECTION_MODE_REQUEST,
   VIEW_SELECTION_CHANGED,
   NUM_SIGNALS
@@ -139,6 +140,27 @@ gd_main_view_set_property (GObject    *object,
     }
 }
 
+static gboolean
+gd_main_view_real_item_deleted (GdMainView *self,
+                                const gchar *path)
+{
+#if 0
+  /* Handling this breaks the logic of the models used. I think
+     we shouldn't handle this at all. */
+  GtkTreePath *tree_path = gtk_tree_path_new_from_string (path);
+  GtkTreeIter iter;
+
+  if (!gtk_tree_model_get_iter (self->priv->model, &iter, tree_path)) {
+    gtk_tree_path_free (tree_path);
+    return FALSE;
+  }
+
+  gtk_list_store_remove (GTK_LIST_STORE (self->priv->model), &iter);
+  gtk_tree_path_free (tree_path);
+#endif
+  return TRUE;
+}
+
 static void
 gd_main_view_class_init (GdMainViewClass *klass)
 {
@@ -147,6 +169,8 @@ gd_main_view_class_init (GdMainViewClass *klass)
   oclass->get_property = gd_main_view_get_property;
   oclass->set_property = gd_main_view_set_property;
   oclass->dispose = gd_main_view_dispose;
+
+  klass->item_deleted = gd_main_view_real_item_deleted;
 
   properties[PROP_VIEW_TYPE] =
     g_param_spec_int ("view-type",
@@ -184,6 +208,16 @@ gd_main_view_class_init (GdMainViewClass *klass)
                   G_TYPE_NONE, 2,
                   G_TYPE_STRING, 
                   GTK_TYPE_TREE_PATH);
+
+  signals[ITEM_DELETED] =
+    g_signal_new ("item-deleted",
+                  GD_TYPE_MAIN_VIEW,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GdMainViewClass, item_deleted),
+                  g_signal_accumulator_true_handled, NULL,
+                  g_cclosure_marshal_generic,
+                  G_TYPE_BOOLEAN, 1,
+                  G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
 
   signals[SELECTION_MODE_REQUEST] =
     g_signal_new ("selection-mode-request",
@@ -526,6 +560,16 @@ on_drag_begin (GdMainViewGeneric *generic,
 }
 
 static void
+on_delete_item_clicked (GdMainViewGeneric *generic,
+                        const gchar *path,
+                        GdMainView *self)
+{
+  self->priv->button_press_x = self->priv->button_press_y = 0;
+
+  gd_main_view_item_deleted (self, path);
+}
+
+static void
 gd_main_view_apply_model (GdMainView *self)
 {
   GdMainViewGeneric *generic = get_generic (self);
@@ -588,6 +632,8 @@ gd_main_view_rebuild (GdMainView *self)
                     G_CALLBACK (on_button_release_event), self);
   g_signal_connect_after (self->priv->current_view, "drag-begin",
                           G_CALLBACK (on_drag_begin), self);
+  g_signal_connect (self->priv->current_view, "delete-item-clicked",
+                    G_CALLBACK (on_delete_item_clicked), self);
 
   gd_main_view_apply_selection_mode (self);
   gd_main_view_apply_model (self);
@@ -723,4 +769,13 @@ gd_main_view_get_selection (GdMainView *self)
                           &retval);
 
   return g_list_reverse (retval);
+}
+
+void
+gd_main_view_item_deleted (GdMainView *self,
+                           const gchar *path)
+{
+	gboolean result;
+
+	g_signal_emit (self, signals [ITEM_DELETED], 0, path, &result);
 }
