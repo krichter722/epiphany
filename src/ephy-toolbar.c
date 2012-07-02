@@ -21,9 +21,11 @@
 #include "config.h"
 #include "ephy-toolbar.h"
 
+#include "ephy-embed-container.h"
 #include "ephy-location-entry.h"
 #include "ephy-middle-clickable-button.h"
 #include "ephy-private.h"
+#include "ephy-title-domain-box.h"
 
 G_DEFINE_TYPE (EphyToolbar, ephy_toolbar, GTK_TYPE_TOOLBAR)
 
@@ -40,6 +42,12 @@ static GParamSpec *object_properties[N_PROPERTIES] = { NULL, };
 struct _EphyToolbarPrivate {
   EphyWindow *window;
   GtkWidget *entry;
+  GtkWidget *title_domain;
+  GtkWidget *title_domain_tool_item;
+  GtkWidget *location_stop_reload;
+
+  EphyWebView *view;
+  gulong active_embed_tracker_id;
 };
 
 static void
@@ -78,12 +86,45 @@ ephy_toolbar_get_property (GObject *object,
 }
 
 static void
+active_embed_load_status_cb (EphyWebView *view, GParamSpec *spec, EphyToolbar *toolbar)
+{
+  WebKitLoadStatus status;
+  EphyToolbarPrivate *priv = toolbar->priv;
+
+  status = webkit_web_view_get_load_status (WEBKIT_WEB_VIEW (view));
+  
+  if (status == WEBKIT_LOAD_FINISHED)
+    gtk_widget_show (priv->title_domain_tool_item);
+  else
+    gtk_widget_hide (priv->title_domain_tool_item);
+}
+
+static void
+active_child_cb (EphyWindow *window, GParamSpec *pspec, EphyToolbar *toolbar)
+{
+  EphyEmbed *embed;
+  EphyToolbarPrivate *priv = toolbar->priv;
+
+  embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window));
+  if (embed) {
+    priv->view = ephy_embed_get_web_view (embed);
+    ephy_title_domain_box_set_view (EPHY_TITLE_DOMAIN_BOX (priv->title_domain), priv->view);
+
+    if (priv->active_embed_tracker_id)
+      g_signal_handlers_disconnect_by_func (priv->view, active_embed_load_status_cb, toolbar);
+
+    priv->active_embed_tracker_id = g_signal_connect (priv->view, "notify::load-status",
+                                                      G_CALLBACK (active_embed_load_status_cb), toolbar);
+  }
+}
+
+static void
 ephy_toolbar_constructed (GObject *object)
 {
   EphyToolbarPrivate *priv = EPHY_TOOLBAR (object)->priv;
   GtkActionGroup *action_group;
   GtkAction *action;
-  GtkToolItem *back_forward, *location_stop_reload, *tool_item;
+  GtkToolItem *back_forward, *tool_item;
   GtkWidget *tool_button, *box, *location, *toolbar;
   GtkSizeGroup *size;
 
@@ -103,6 +144,7 @@ ephy_toolbar_constructed (GObject *object)
   /* Back and Forward */
   back_forward = gtk_tool_item_new ();
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_set_name (box, "ephy-back-forward-button-container");
 
   /* Back */
   tool_button = ephy_middle_clickable_button_new ();
@@ -121,6 +163,7 @@ ephy_toolbar_constructed (GObject *object)
   /* FIXME: apparently we need an image inside the button for the action
    * icon to appear. */
   gtk_button_set_image (GTK_BUTTON (tool_button), gtk_image_new ());
+
   action = gtk_action_group_get_action (action_group, "NavigationForward");
   gtk_activatable_set_related_action (GTK_ACTIVATABLE (tool_button),
                                       action);
@@ -138,11 +181,19 @@ ephy_toolbar_constructed (GObject *object)
   gtk_widget_set_margin_right (GTK_WIDGET (back_forward), 12);
 
   /* Location and Reload/Stop */
-  location_stop_reload = gtk_tool_item_new ();
+  priv->location_stop_reload = GTK_WIDGET (gtk_tool_item_new ());
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   /* Location */
   priv->entry = location = ephy_location_entry_new ();
+
+  /* Make the whole entry+reload combo visible if the entry is
+   * visible, since some parts of Epiphany set the entry visible in
+   * reaction to some event (like Ctrl+L). */
+  g_object_bind_property (priv->entry, "visible",
+                          priv->location_stop_reload, "visible",
+                          G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
+
   gtk_box_pack_start (GTK_BOX (box), location,
                       TRUE, TRUE, 0);
   gtk_style_context_add_class (gtk_widget_get_style_context (box),
@@ -158,20 +209,42 @@ ephy_toolbar_constructed (GObject *object)
                                       action);
   gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (tool_button));
 
-  gtk_container_add (GTK_CONTAINER (location_stop_reload), box);
+  gtk_container_add (GTK_CONTAINER (priv->location_stop_reload), box); 
   gtk_container_child_set (GTK_CONTAINER (toolbar),
-                           GTK_WIDGET (location_stop_reload),
+                           GTK_WIDGET (priv->location_stop_reload),
                            "expand", TRUE,
                            NULL);
   
-  gtk_container_add (GTK_CONTAINER (toolbar), GTK_WIDGET (location_stop_reload));
+  gtk_container_add (GTK_CONTAINER (toolbar), GTK_WIDGET (priv->location_stop_reload));
 
   gtk_size_group_add_widget (size, tool_button);
   gtk_size_group_add_widget (size, location);
   g_object_unref (size);
 
-  gtk_widget_set_margin_right (GTK_WIDGET (location_stop_reload), 12);
-  gtk_widget_show_all (GTK_WIDGET (location_stop_reload));
+  gtk_widget_set_margin_right (GTK_WIDGET (priv->location_stop_reload), 12);
+  gtk_widget_show_all (GTK_WIDGET (priv->location_stop_reload));
+
+  /* Title+domain widget. */
+  priv->title_domain_tool_item = GTK_WIDGET (gtk_tool_item_new ());
+  priv->title_domain = ephy_title_domain_box_new (NULL);
+
+  gtk_container_child_set (GTK_CONTAINER (toolbar),
+                           GTK_WIDGET (priv->title_domain_tool_item),
+                           "expand", TRUE,
+                           NULL);
+  g_signal_connect (priv->window, "notify::active-child",
+                    G_CALLBACK (active_child_cb), toolbar);
+
+  /* Add it, but don't show it, it's hidden by default. */
+  gtk_widget_show (GTK_WIDGET (priv->title_domain));
+  gtk_container_add (GTK_CONTAINER (priv->title_domain_tool_item), priv->title_domain);
+  gtk_container_add (GTK_CONTAINER (toolbar), GTK_WIDGET (priv->title_domain_tool_item));
+
+  /* If the location entry is visible the title+domain widget cannot
+   * be, and viceversa. */
+  g_object_bind_property (priv->title_domain_tool_item, "visible",
+                          priv->location_stop_reload, "visible",
+                          G_BINDING_SYNC_CREATE | G_BINDING_INVERT_BOOLEAN | G_BINDING_BIDIRECTIONAL);
 
   /* Page Menu */
   tool_item = gtk_tool_item_new ();
@@ -189,10 +262,24 @@ ephy_toolbar_constructed (GObject *object)
 }
 
 static void
+ephy_toolbar_dispose (GObject *object)
+{
+  EphyToolbarPrivate *priv = EPHY_TOOLBAR (object)->priv;
+
+  if (priv->active_embed_tracker_id) {
+    g_signal_handlers_disconnect_by_func (priv->view, active_embed_load_status_cb, object);
+    priv->active_embed_tracker_id = 0;
+  }
+
+  G_OBJECT_CLASS (ephy_toolbar_parent_class)->dispose (object);
+}
+
+static void
 ephy_toolbar_class_init (EphyToolbarClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
+    gobject_class->dispose = ephy_toolbar_dispose;
     gobject_class->set_property = ephy_toolbar_set_property;
     gobject_class->get_property = ephy_toolbar_get_property;
     gobject_class->constructed = ephy_toolbar_constructed;

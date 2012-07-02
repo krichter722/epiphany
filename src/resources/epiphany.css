@@ -14,6 +14,10 @@
   padding: 0;
 }
 
+#ephy-back-forward-button-container GtkButton {
+  padding: 6px;
+}
+
 .primary-toolbar.toolbar {
     padding-left: 0;
     padding-right: 0;

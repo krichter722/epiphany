@@ -3751,6 +3751,7 @@ _ephy_window_activate_location (EphyWindow *window)
 	gboolean visible;
 
 	entry = ephy_toolbar_get_location_entry (EPHY_TOOLBAR (priv->toolbar));
+	gtk_widget_show (entry);
 
 	g_object_get (G_OBJECT (priv->toolbar), "visible", &visible, NULL);
 	if (visible == FALSE)

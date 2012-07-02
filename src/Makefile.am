@@ -31,6 +31,7 @@ NOINST_H_FILES = \
 	ephy-page-menu-action.h			\
 	ephy-password-info.h			\
 	ephy-private.h				\
+	ephy-title-domain-box.h			\
 	ephy-toolbar.h				\
 	ephy-window-action.h			\
 	languages.h				\
@@ -72,6 +73,7 @@ libephymain_la_SOURCES = \
 	ephy-password-info.c	        	\
 	ephy-session.c				\
 	ephy-shell.c				\
+	ephy-title-domain-box.c			\
 	ephy-toolbar.c				\
 	ephy-window.c				\
 	ephy-window-action.c			\
