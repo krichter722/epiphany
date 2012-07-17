@@ -113,8 +113,8 @@ ephy_removable_pixbuf_renderer_activate (GtkCellRenderer      *cell,
 					 const GdkRectangle   *cell_area,
 					 GtkCellRendererState  flags)
 {
-  GdkEventButton *ev = (GdkEventButton *) event;
   GdkRectangle icon_area;
+  GdkEventButton *ev = (GdkEventButton *) gtk_get_current_event();
   GdkPixbuf *icon = gtk_widget_render_icon_pixbuf (widget, GTK_STOCK_CLOSE,
 						   GTK_ICON_SIZE_BUTTON);
   get_icon_rectangle (widget, cell, cell_area, icon, &icon_area);
