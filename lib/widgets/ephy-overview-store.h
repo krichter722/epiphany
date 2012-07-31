@@ -70,6 +70,10 @@ GType ephy_overview_store_get_type (void) G_GNUC_CONST;
 void ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
                                         WebKitWebView *webview,
                                         GtkTreeIter *iter);
+
+void ephy_overview_store_set_default_icon (EphyOverviewStore *store,
+                                           GdkPixbuf *default_icon);
+
 G_END_DECLS
 
 #endif /* _EPHY_OVERVIEW_STORE_H */

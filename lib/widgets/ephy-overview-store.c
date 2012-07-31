@@ -28,12 +28,14 @@
 struct _EphyOverviewStorePrivate
 {
   EphyHistoryService *history_service;
+  GdkPixbuf *default_icon;
 };
 
 enum
 {
   PROP_0,
   PROP_HISTORY_SERVICE,
+  PROP_DEFAULT_ICON,
 };
 
 G_DEFINE_TYPE (EphyOverviewStore, ephy_overview_store, GTK_TYPE_LIST_STORE)
@@ -51,6 +53,10 @@ ephy_overview_store_set_property (GObject *object,
   case PROP_HISTORY_SERVICE:
     store->priv->history_service = g_value_get_object (value);
     g_object_notify (object, "history-service");
+    break;
+  case PROP_DEFAULT_ICON:
+    ephy_overview_store_set_default_icon (store,
+                                          g_value_get_object (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -70,6 +76,9 @@ ephy_overview_store_get_property (GObject *object,
   {
   case PROP_HISTORY_SERVICE:
     g_value_set_object (value, store->priv->history_service);
+    break;
+  case PROP_DEFAULT_ICON:
+    g_value_set_object (value, store->priv->default_icon);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -91,6 +100,14 @@ ephy_overview_store_class_init (EphyOverviewStoreClass *klass)
                                                         "History service",
                                                         "History Service",
                                                         EPHY_TYPE_HISTORY_SERVICE,
+                                                        G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+
+  g_object_class_install_property (object_class,
+                                   PROP_DEFAULT_ICON,
+                                   g_param_spec_object ("default-icon",
+                                                        "Default icon",
+                                                        "Default Icon",
+                                                        GDK_TYPE_PIXBUF,
                                                         G_PARAM_READWRITE | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
   g_type_class_add_private (object_class, sizeof(EphyOverviewStorePrivate));
@@ -151,7 +168,7 @@ on_snapshot_retrieved_cb (GObject *object,
     g_warning ("Error retrieving snapshot: %s\n", error->message);
     g_error_free (error);
     error = NULL;
-  } else if (gtk_tree_row_reference_valid (ctx->ref)) {
+  } else if (snapshot && gtk_tree_row_reference_valid (ctx->ref)) {
     model = gtk_tree_row_reference_get_model (ctx->ref);
     path = gtk_tree_row_reference_get_path (ctx->ref);
     gtk_tree_model_get_iter (model, &iter, path);
@@ -211,7 +228,12 @@ ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
                       EPHY_OVERVIEW_STORE_URI, &url,
                       -1);
 
-  if (url == NULL)
+  gtk_list_store_set (GTK_LIST_STORE (self), iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT,
+                      self->priv->default_icon,
+                      -1);
+
+  if (url == NULL || g_strcmp0 (url, "about:blank") == 0)
     return;
 
   ctx = g_slice_new (PeekContext);
@@ -223,4 +245,47 @@ ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
                                 url, NULL, (EphyHistoryJobCallback)history_service_url_cb,
                                 ctx);
   gtk_tree_path_free (path);
+}
+
+static gboolean
+set_default_icon_helper (GtkTreeModel *model,
+                         GtkTreePath *path,
+                         GtkTreeIter *iter,
+                         GdkPixbuf *new_default_icon)
+{
+  EphyOverviewStorePrivate *priv;
+  GdkPixbuf *current_pixbuf;
+
+  priv = EPHY_OVERVIEW_STORE (model)->priv;
+
+  gtk_tree_model_get (model, iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT, &current_pixbuf,
+                      -1);
+  if (current_pixbuf == priv->default_icon ||
+      current_pixbuf == NULL)
+    gtk_list_store_set (GTK_LIST_STORE (model), iter,
+                        EPHY_OVERVIEW_STORE_SNAPSHOT, new_default_icon,
+                        -1);
+  g_object_unref (current_pixbuf);
+
+  return FALSE;
+}
+
+void
+ephy_overview_store_set_default_icon (EphyOverviewStore *store,
+                                      GdkPixbuf *default_icon)
+{
+  if (store->priv->default_icon == default_icon)
+    return;
+
+  if (store->priv->default_icon)
+    g_object_unref (store->priv->default_icon);
+
+  store->priv->default_icon = g_object_ref (default_icon);
+
+  gtk_tree_model_foreach (GTK_TREE_MODEL (store),
+                          (GtkTreeModelForeachFunc) set_default_icon_helper,
+                          NULL);
+
+  g_object_notify (G_OBJECT (store), "default-icon");
 }
