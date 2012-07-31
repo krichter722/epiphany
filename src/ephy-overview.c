@@ -44,6 +44,8 @@ struct _EphyOverviewPrivate
   GtkWidget *active_view;
 };
 
+#define EPHY_OVERVIEW_ICON_SIZE 175
+
 G_DEFINE_TYPE (EphyOverview, ephy_overview, GTK_TYPE_GRID)
 
 static void
@@ -116,6 +118,29 @@ main_view_item_activated (GtkWidget *widget,
   }
 }
 
+static GdkPixbuf *
+ephy_overview_get_icon (const gchar *icon_name)
+{
+	GError *error = NULL;
+	GtkIconTheme *icon_theme;
+	GdkPixbuf *pixbuf;
+
+	icon_theme = gtk_icon_theme_get_default ();
+
+	pixbuf = gtk_icon_theme_load_icon (icon_theme,
+                                     icon_name,
+                                     EPHY_OVERVIEW_ICON_SIZE,
+                                     0,
+                                     &error);
+
+	if (!pixbuf) {
+		g_warning ("Couldn't load icon: %s", error->message);
+		g_error_free (error);
+	}
+
+	return pixbuf;
+}
+
 static void
 ephy_overview_constructed (GObject *object)
 {
@@ -123,11 +148,13 @@ ephy_overview_constructed (GObject *object)
   EphyOverviewStore *store;
   EphyNotebook *notebook;
   EphyOverview *self = EPHY_OVERVIEW (object);
+  GdkPixbuf *default_icon;
 
   if (G_OBJECT_CLASS (ephy_overview_parent_class)->constructed)
     G_OBJECT_CLASS (ephy_overview_parent_class)->constructed (object);
 
   service = EPHY_HISTORY_SERVICE (ephy_embed_shell_get_global_history_service (EPHY_EMBED_SHELL (ephy_shell)));
+  default_icon = ephy_overview_get_icon ("text-html");
 
   self->priv->frecent_view = GTK_WIDGET (gd_main_view_new (GD_MAIN_VIEW_ICON));
   g_signal_connect (self->priv->frecent_view, "item-activated",
@@ -135,6 +162,7 @@ ephy_overview_constructed (GObject *object)
   store = EPHY_OVERVIEW_STORE (ephy_frecent_store_new ());
   g_object_set (G_OBJECT (store),
                 "history-service", service,
+                "default-icon", default_icon,
                 NULL);
   gd_main_view_set_model (GD_MAIN_VIEW (self->priv->frecent_view),
                           GTK_TREE_MODEL (store));
@@ -151,6 +179,7 @@ ephy_overview_constructed (GObject *object)
   store = EPHY_OVERVIEW_STORE (ephy_active_store_new (notebook));
   g_object_set (G_OBJECT (store),
                 "history-service", service,
+                "default-icon", default_icon,
                 NULL);
   gd_main_view_set_model (GD_MAIN_VIEW (self->priv->active_view),
                           GTK_TREE_MODEL (store));
@@ -158,6 +187,7 @@ ephy_overview_constructed (GObject *object)
                    0, 1, 1, 1);
 
   gtk_widget_show_all (GTK_WIDGET (self));
+  g_object_unref (default_icon);
 }
 
 static void
