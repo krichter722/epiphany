@@ -149,6 +149,127 @@ peek_context_free (PeekContext *ctx)
   g_slice_free (PeekContext, ctx);
 }
 
+static GdkPixbuf *
+overview_add_frame (GdkPixbuf *pixbuf) {
+  cairo_t *cr;
+  cairo_surface_t *surface;
+  cairo_pattern_t *pattern;
+  int width, height;
+  int border = 10;
+  GdkPixbuf *framed;
+
+  width = gdk_pixbuf_get_width (pixbuf) + 2*border;
+  height = gdk_pixbuf_get_height (pixbuf) + 2*border;
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  cr = cairo_create (surface);
+
+  /* FIXME: This could be done as two masks that are later rotated
+     and moved, instead of repeating the same code 4 times. */
+
+  /* Draw the left-shadow. */
+  cairo_save(cr);
+  pattern = cairo_pattern_create_linear (border, border, 0, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0, 0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, 0, border, border, height - 2*border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore (cr);
+
+  /* Draw the up-left quarter-circle. */
+  cairo_save(cr);
+  pattern = cairo_pattern_create_radial (border, border, 0, border, border, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0,  0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, 0, 0, border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore(cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_linear (border, border, border, 0);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0, 0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, border, 0, width - 2*border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore (cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_radial (width - border, border, 0, width - border, border, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0,  0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, width - border, 0, border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore(cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_linear (width - border, border, width, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0, 0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, width - border, border, width, height - 2*border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore (cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_radial (border, height - border, 0, border, height - border, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0,  0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, 0, height - border, border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore(cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_linear (border, height - border, border, height);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0, 0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, border, height - border, width - 2*border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore (cr);
+
+  cairo_save(cr);
+  pattern = cairo_pattern_create_radial (width - border, height - border, 0, width - border, height - border, border);
+  cairo_pattern_add_color_stop_rgba (pattern, 0, 0, 0, 0,  0.5);
+  cairo_pattern_add_color_stop_rgba (pattern, 1, 0, 0, 0, 0.0);
+  cairo_rectangle (cr, width - border, height - border, border, border);
+  cairo_clip (cr);
+  cairo_set_source (cr, pattern);
+  cairo_mask (cr, pattern);
+  cairo_pattern_destroy (pattern);
+  cairo_restore(cr);
+
+  gdk_cairo_set_source_pixbuf (cr, pixbuf, border, border);
+  cairo_rectangle (cr, border, border, width - 2*border, height - 2*border);
+  cairo_clip(cr);
+  cairo_paint (cr);
+
+  framed = gdk_pixbuf_get_from_surface (surface, 0, 0, width, height);
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+
+  return framed;
+}
+
 static void
 on_snapshot_retrieved_cb (GObject *object,
                           GAsyncResult *res,
@@ -158,7 +279,7 @@ on_snapshot_retrieved_cb (GObject *object,
   GtkTreePath *path;
   GtkTreeIter iter;
   char *url;
-  GdkPixbuf *snapshot;
+  GdkPixbuf *snapshot, *framed_snapshot;
   GError *error = NULL;
 
   snapshot = ephy_snapshot_service_get_snapshot_finish (EPHY_SNAPSHOT_SERVICE (object),
@@ -178,10 +299,13 @@ on_snapshot_retrieved_cb (GObject *object,
        row has already replaced with a new one.  Make sure that this
        is not the case. */
     gtk_tree_model_get (model, &iter, EPHY_OVERVIEW_STORE_URI, &url, -1);
-    if (g_strcmp0 (url, ctx->url) == 0)
+    if (g_strcmp0 (url, ctx->url) == 0) {
+      framed_snapshot = overview_add_frame (snapshot);
       gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          EPHY_OVERVIEW_STORE_SNAPSHOT, snapshot,
+                          EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
                           -1);
+      g_object_unref (framed_snapshot);
+    }
 
     g_free (url);
     g_object_unref (snapshot);
