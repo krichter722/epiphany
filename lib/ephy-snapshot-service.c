@@ -33,10 +33,6 @@
 
 #define EPHY_SNAPSHOT_SERVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), EPHY_TYPE_SNAPSHOT_SERVICE, EphySnapshotServicePrivate))
 
-/* Values taken from the Web mockups. */
-#define EPHY_THUMBNAIL_WIDTH 175
-#define EPHY_THUMBNAIL_HEIGHT 175
-
 struct _EphySnapshotServicePrivate
 {
   GnomeDesktopThumbnailFactory *factory;

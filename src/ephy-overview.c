@@ -22,6 +22,7 @@
 #include "config.h"
 #include "ephy-active-store.h"
 #include "ephy-frecent-store.h"
+#include "ephy-snapshot-service.h"
 #include "ephy-history-service.h"
 #include "ephy-overview.h"
 #include "ephy-shell.h"
@@ -43,8 +44,6 @@ struct _EphyOverviewPrivate
   GtkWidget *frecent_view;
   GtkWidget *active_view;
 };
-
-#define EPHY_OVERVIEW_ICON_SIZE 175
 
 G_DEFINE_TYPE (EphyOverview, ephy_overview, GTK_TYPE_GRID)
 
@@ -129,7 +128,7 @@ ephy_overview_get_icon (const gchar *icon_name)
 
 	pixbuf = gtk_icon_theme_load_icon (icon_theme,
                                      icon_name,
-                                     EPHY_OVERVIEW_ICON_SIZE,
+                                     EPHY_THUMBNAIL_WIDTH,
                                      0,
                                      &error);
 
