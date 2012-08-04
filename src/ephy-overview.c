@@ -85,6 +85,33 @@ ephy_overview_get_property (GObject *object,
   }
 }
 
+static gboolean
+active_view_item_deleted (GtkWidget *widget,
+                          const gchar *path,
+                          EphyOverview *overview)
+
+{
+  GtkTreeModel *model;
+  GtkTreeIter iter;
+  EphyNotebook *notebook;
+  GtkWidget* embed;
+  GtkTreePath* tree_path;
+  guint position;
+
+  model = gd_main_view_get_model (GD_MAIN_VIEW (widget));
+  notebook = ephy_active_store_get_notebook (EPHY_ACTIVE_STORE (model));
+  tree_path = gtk_tree_path_new_from_string (path);
+  gtk_tree_model_get_iter (model, &iter, tree_path);
+  gtk_tree_model_get (model, &iter,
+                      EPHY_ACTIVE_STORE_TAB_POS, &position,
+                      -1);
+  embed = gtk_notebook_get_nth_page (GTK_NOTEBOOK (notebook), position);
+  g_signal_emit_by_name (notebook, "tab-close-request", embed);
+  gtk_tree_path_free (tree_path);
+
+  return TRUE;
+}
+
 static void
 main_view_item_activated (GtkWidget *widget,
                           gchar *id,
@@ -174,6 +201,8 @@ ephy_overview_constructed (GObject *object)
   g_signal_connect (self->priv->active_view, "item-activated",
                     G_CALLBACK (main_view_item_activated),
                     self->priv->parent_window);
+  g_signal_connect (self->priv->active_view, "item-deleted",
+                    G_CALLBACK (active_view_item_deleted), self);
   notebook = EPHY_NOTEBOOK (ephy_window_get_notebook (EPHY_WINDOW (self->priv->parent_window)));
   store = EPHY_OVERVIEW_STORE (ephy_active_store_new (notebook));
   g_object_set (G_OBJECT (store),
