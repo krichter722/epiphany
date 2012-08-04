@@ -3582,6 +3582,14 @@ ephy_window_constructor (GType type,
 				G_BINDING_SYNC_CREATE
 				| G_BINDING_INVERT_BOOLEAN
 				| G_BINDING_BIDIRECTIONAL);
+	action = gtk_action_group_get_action (window->priv->toolbar_action_group,
+					      "ViewOverviewMode");
+	g_object_bind_property (window, "overview-mode",
+				action, "sensitive",
+				G_BINDING_SYNC_CREATE
+				| G_BINDING_INVERT_BOOLEAN
+				| G_BINDING_BIDIRECTIONAL);
+
 	priv->downloads_box = setup_downloads_box (window);
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
 			    GTK_WIDGET (priv->downloads_box), FALSE, FALSE, 0);
