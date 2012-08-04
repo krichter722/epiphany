@@ -185,6 +185,9 @@ ephy_overview_constructed (GObject *object)
   self->priv->frecent_view = GTK_WIDGET (gd_main_view_new (GD_MAIN_VIEW_ICON));
   g_signal_connect (self->priv->frecent_view, "item-activated",
                     G_CALLBACK (main_view_item_activated), self->priv->parent_window);
+  g_signal_connect (self->priv->frecent_view, "item-deleted",
+                    G_CALLBACK (gtk_true), NULL);
+
   store = EPHY_OVERVIEW_STORE (ephy_frecent_store_new ());
   g_object_set (G_OBJECT (store),
                 "history-service", service,
