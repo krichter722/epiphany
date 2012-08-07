@@ -35,8 +35,7 @@ struct _GdMainViewPrivate {
   GtkWidget *current_view;
   GtkTreeModel *model;
 
-  gdouble button_press_x;
-  gdouble button_press_y;
+  gchar *button_press_item_path;
 };
 
 enum {
@@ -67,6 +66,16 @@ gd_main_view_dispose (GObject *obj)
   g_clear_object (&self->priv->model);
 
   G_OBJECT_CLASS (gd_main_view_parent_class)->dispose (obj);
+}
+
+static void
+gd_main_view_finalize (GObject *obj)
+{
+  GdMainView *self = GD_MAIN_VIEW (obj);
+
+  g_free (self->priv->button_press_item_path);
+
+  G_OBJECT_CLASS (gd_main_view_parent_class)->finalize (obj);
 }
 
 static void
@@ -169,6 +178,7 @@ gd_main_view_class_init (GdMainViewClass *klass)
   oclass->get_property = gd_main_view_get_property;
   oclass->set_property = gd_main_view_set_property;
   oclass->dispose = gd_main_view_dispose;
+  oclass->finalize = gd_main_view_finalize;
 
   klass->item_deleted = gd_main_view_real_item_deleted;
 
@@ -402,6 +412,7 @@ on_button_release_event (GtkWidget *view,
   GdMainView *self = user_data;
   GdMainViewGeneric *generic = get_generic (self);
   GtkTreePath *path;
+  gchar *button_release_item_path;
   gboolean entered_mode = FALSE, selection_mode;
   gboolean res, same_item = FALSE;
 
@@ -413,12 +424,15 @@ on_button_release_event (GtkWidget *view,
 
   if (path != NULL)
     {
-      if (event->x == self->priv->button_press_x &&
-          event->y == self->priv->button_press_y)
+      button_release_item_path = gtk_tree_path_to_string (path);
+      if (g_strcmp0 (self->priv->button_press_item_path, button_release_item_path) == 0)
         same_item = TRUE;
+
+      g_free (button_release_item_path);
     }
 
-  self->priv->button_press_x = self->priv->button_press_y = 0;
+  g_free (self->priv->button_press_item_path);
+  self->priv->button_press_item_path = NULL;
 
   if (!same_item)
     {
@@ -460,21 +474,11 @@ on_button_press_event (GtkWidget *view,
   GList *selection, *l;
   GtkTreePath *sel_path;
   gboolean found = FALSE;
-  gdouble event_x = 0, event_y = 0;
-
-  self->priv->button_press_x = event->x;
-  self->priv->button_press_y = event->y;
 
   path = gd_main_view_generic_get_path_at_pos (generic, event->x, event->y);
 
   if (path != NULL)
-    {
-      event_x = event->x;
-      event_y = event->y;
-    }
-
-  self->priv->button_press_x = event_x;
-  self->priv->button_press_y = event_y;
+    self->priv->button_press_item_path = gtk_tree_path_to_string (path);
 
   if (!self->priv->selection_mode ||
       path == NULL)
@@ -510,18 +514,15 @@ on_drag_begin (GdMainViewGeneric *generic,
                gpointer user_data)
 {
   GdMainView *self = user_data;
-  GtkTreePath *path;
 
-  path = gd_main_view_generic_get_path_at_pos (generic,
-                                               self->priv->button_press_x,
-                                               self->priv->button_press_y);
-
-  if (path != NULL)
+  if (self->priv->button_press_item_path != NULL)
     {
       gboolean res;
       GtkTreeIter iter;
       GdkPixbuf *icon = NULL;
+      GtkTreePath *path;
 
+      path = gtk_tree_path_new_from_string (self->priv->button_press_item_path);
       res = gtk_tree_model_get_iter (self->priv->model,
                                      &iter, path);
       if (res)
@@ -564,7 +565,8 @@ on_delete_item_clicked (GdMainViewGeneric *generic,
                         const gchar *path,
                         GdMainView *self)
 {
-  self->priv->button_press_x = self->priv->button_press_y = 0;
+  g_free (self->priv->button_press_item_path);
+  self->priv->button_press_item_path = NULL;
 
   gd_main_view_item_deleted (self, path);
 }
@@ -582,8 +584,6 @@ clear_selection_list_foreach (GtkTreeModel *model,
                               GtkTreeIter *iter,
                               gpointer user_data)
 {
-  gboolean is_selected;
-
   gtk_list_store_set (GTK_LIST_STORE (model), iter,
                       GD_MAIN_COLUMN_SELECTED, FALSE,
                       -1);
