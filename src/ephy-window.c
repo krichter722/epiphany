@@ -1594,7 +1594,7 @@ _ephy_window_set_default_actions_sensitive (EphyWindow *window,
 	GtkAction *action;
 	int i;
 	const char *action_group_actions[] = { "FileSaveAs", "FileSaveAsApplication", "FilePrint",
-					       "FileSendTo", "FileBookmarkPage", "EditFind",
+					       "FileSendTo", "FileCloseTab", "FileBookmarkPage", "EditFind",
 					       "EditFindPrev", "EditFindNext", "ViewEncoding",
 					       "ViewZoomIn", "ViewZoomOut", "ViewPageSource",
 					       NULL };
