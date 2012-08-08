@@ -3411,7 +3411,7 @@ sync_user_input_cb (EphyLocationController *action,
 
 	LOG ("sync_user_input_cb");
 
-	if (priv->updating_address) return;
+	if (priv->updating_address || priv->overview_mode) return;
 
 	embed = ephy_embed_container_get_active_child (EPHY_EMBED_CONTAINER (window->priv->notebook));
 	g_assert (EPHY_IS_EMBED (embed));
