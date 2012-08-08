@@ -1534,8 +1534,9 @@ window_cmd_browse_with_caret (GtkAction *action,
 }
 
 void
-window_cmd_show_overview (GtkAction *action,
-			  EphyWindow *window)
+window_cmd_toggle_overview (GtkAction *action,
+			    EphyWindow *window)
 {
-	ephy_window_set_overview_mode (window, TRUE);
+	ephy_window_set_overview_mode (window,
+				       !ephy_window_get_overview_mode (window));
 }

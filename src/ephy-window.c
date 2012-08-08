@@ -1352,10 +1352,10 @@ setup_ui_manager (EphyWindow *window)
 	action_group = gtk_action_group_new ("SpecialToolbarActions");
 	action = GTK_ACTION (gtk_action_new ("ViewOverviewMode",
 					     _("Pages"),
-					     _("Shows the pages overview"),
+					     _("Toggles the pages overview"),
 					     NULL));
 	g_signal_connect (action, "activate",
-			  G_CALLBACK (window_cmd_show_overview),
+			  G_CALLBACK (window_cmd_toggle_overview),
 			  window);
 	gtk_action_group_add_action_with_accel (action_group, action,
 						"<alt>Home");
@@ -3590,11 +3590,6 @@ ephy_window_constructor (GType type,
 				| G_BINDING_BIDIRECTIONAL);
 	action = gtk_action_group_get_action (window->priv->toolbar_action_group,
 					      "ViewOverviewMode");
-	g_object_bind_property (window, "overview-mode",
-				action, "sensitive",
-				G_BINDING_SYNC_CREATE
-				| G_BINDING_INVERT_BOOLEAN
-				| G_BINDING_BIDIRECTIONAL);
 
 	priv->downloads_box = setup_downloads_box (window);
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
