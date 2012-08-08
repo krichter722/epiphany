@@ -228,7 +228,10 @@ get_location_cb (EphyLocationEntry *entry,
 {
 	EphyLocationControllerPrivate *priv = controller->priv;
 	EphyEmbed *embed;
-	
+
+	if (ephy_window_get_overview_mode (priv->window))
+		return NULL;
+
 	embed = ephy_embed_container_get_active_child 
 	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (priv->window)));
 
