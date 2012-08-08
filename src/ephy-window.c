@@ -4112,7 +4112,9 @@ ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
 	if (overview_mode) {
 		ephy_window_disconnect_active_embed (window);
 		ephy_window_prepare_for_overview (window);
+		ephy_window_activate_location (window);
 	} else {
+		gtk_widget_grab_focus (GTK_WIDGET(window->priv->active_embed));
 		ephy_window_connect_active_embed (window);
 	}
 	_ephy_window_set_default_actions_sensitive (window, SENS_FLAG_OVERVIEW, overview_mode);
