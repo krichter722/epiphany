@@ -40,7 +40,6 @@
 #include "ephy-file-helpers.h"
 #include "ephy-find-toolbar.h"
 #include "ephy-gui.h"
-#include "ephy-home-action.h"
 #include "ephy-link.h"
 #include "ephy-location-entry.h"
 #include "ephy-navigation-history-action.h"
@@ -98,6 +97,8 @@ static const GtkActionEntry ephy_menu_entries [] = {
 
 	/* File actions. */
 
+	{ "FileNewPage", NULL, N_("_New Page"), "<control>T", NULL,
+	  G_CALLBACK (window_cmd_file_new_page) },
 	{ "FileOpen", NULL, N_("_Open…"), "<control>O", NULL,
 	  G_CALLBACK (window_cmd_file_open) },
 	{ "FileSaveAs", NULL, N_("Save _As…"), "<shift><control>S", NULL,
@@ -1394,13 +1395,6 @@ setup_ui_manager (EphyWindow *window)
 	gtk_action_group_add_action (action_group, action);
 	g_object_unref (action);
 
-	action = g_object_new (EPHY_TYPE_HOME_ACTION,
-			       "name", "FileNewTab",
-			       "label", _("New _Tab"),
-			       NULL);
-	gtk_action_group_add_action_with_accel (action_group, action, "<control>T");
-	g_object_unref (action);
-
 	action = g_object_new (EPHY_TYPE_COMBINED_STOP_RELOAD_ACTION,
 			       "name", "ViewCombinedStopReload",
 			       "loading", FALSE,
@@ -1593,7 +1587,7 @@ _ephy_window_set_default_actions_sensitive (EphyWindow *window,
 	GtkActionGroup *action_group;
 	GtkAction *action;
 	int i;
-	const char *action_group_actions[] = { "FileSaveAs", "FileSaveAsApplication", "FilePrint",
+	const char *action_group_actions[] = { "FileNewPage", "FileSaveAs", "FileSaveAsApplication", "FilePrint",
 					       "FileSendTo", "FileCloseTab", "FileBookmarkPage", "EditFind",
 					       "EditFindPrev", "EditFindNext", "ViewEncoding",
 					       "ViewZoomIn", "ViewZoomOut", "ViewPageSource",
@@ -3453,11 +3447,6 @@ setup_toolbar (EphyWindow *window)
 				  G_CALLBACK (ephy_link_open), window);
 
 	action = gtk_action_group_get_action (priv->toolbar_action_group,
-					      "FileNewTab");
-	g_signal_connect_swapped (action, "open-link",
-				  G_CALLBACK (ephy_link_open), window);
-
-	action = gtk_action_group_get_action (priv->toolbar_action_group,
 					      "Zoom");
 	g_signal_connect (action, "zoom-to-level",
 			  G_CALLBACK (zoom_to_level_cb), window);
@@ -3507,7 +3496,6 @@ ephy_window_constructor (GType type,
 	EphyEmbedSingle *single;
 	GtkSettings *settings;
 	GtkAction *action;
-	GtkActionGroup *toolbar_action_group;
 	GError *error = NULL;
 	guint settings_connection;
 	GtkCssProvider *css_provider;
@@ -3663,8 +3651,7 @@ ephy_window_constructor (GType type,
 			  G_CALLBACK (sync_network_status), window);
 
 	/* Disable actions not needed for popup mode. */
-	toolbar_action_group = priv->toolbar_action_group;
-	action = gtk_action_group_get_action (toolbar_action_group, "FileNewTab");
+	action = gtk_action_group_get_action (priv->action_group, "FileNewPage");
 	ephy_action_change_sensitivity_flags (action, SENS_FLAG_CHROME,
 					      priv->is_popup);
 
@@ -3676,11 +3663,6 @@ ephy_window_constructor (GType type,
 	mode = ephy_embed_shell_get_mode (embed_shell);
 	if (mode == EPHY_EMBED_SHELL_MODE_APPLICATION)
 	{
-		/* FileNewTab and FileNewWindow are sort of special. */
-		action = gtk_action_group_get_action (toolbar_action_group, "FileNewTab");
-		ephy_action_change_sensitivity_flags (action, SENS_FLAG_CHROME,
-						      TRUE);
-
 		for (i = 0; i < G_N_ELEMENTS (disabled_actions_for_app_mode); i++)
 		{
 			action = gtk_action_group_get_action (priv->action_group,

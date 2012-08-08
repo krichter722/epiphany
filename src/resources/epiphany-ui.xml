@@ -68,7 +68,7 @@
 	</popup>
 
 	<popup name="PagePopup" action="PagePopupAction" accelerators="true">
-                <menuitem name="FileNewTabMenu" action="FileNewTab"/>
+                <menuitem name="FileNewPageMenu" action="FileNewPage"/>
                 <menuitem name="FileOpenMenu" action="FileOpen"/>
                 <separator name="FileSep1"/>	
                 <menuitem name="FileSaveAsMenu" action="FileSaveAs"/>
