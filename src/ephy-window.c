@@ -513,7 +513,10 @@ ephy_window_open_link (EphyLink *link,
 	else if (flags & EPHY_LINK_TYPED)
 		ephy_web_view_set_visit_type (ephy_embed_get_web_view (embed),
 					      EPHY_PAGE_VISIT_TYPED);
-		
+
+	if (priv->overview_mode)
+		flags |= EPHY_LINK_NEW_TAB | EPHY_LINK_JUMP_TO;
+
 	if (flags  & (EPHY_LINK_JUMP_TO | 
 		      EPHY_LINK_NEW_TAB | 
 		      EPHY_LINK_NEW_WINDOW |
@@ -544,6 +547,9 @@ ephy_window_open_link (EphyLink *link,
 			if (flags & EPHY_LINK_NEW_TAB)
 				ntflags |= EPHY_NEW_TAB_DONT_COPY_HISTORY;
 		}
+
+		if (priv->overview_mode)
+			ntflags |= EPHY_NEW_TAB_DONT_COPY_HISTORY;
 
 		new_embed = ephy_shell_new_tab
 				(ephy_shell,
