@@ -54,7 +54,6 @@ on_find_urls_cb (EphyHistoryService *service,
                           EPHY_OVERVIEW_STORE_URI, &old_url,
                           -1);
       gtk_list_store_set (GTK_LIST_STORE (store), &treeiter,
-                          EPHY_OVERVIEW_STORE_TITLE, url->title,
                           EPHY_OVERVIEW_STORE_URI, url->url,
                           EPHY_OVERVIEW_STORE_LAST_VISIT, url->last_visit_time,
                           -1);
@@ -116,6 +115,33 @@ on_cleared_cb (EphyHistoryService *service,
 }
 
 static void
+on_url_title_changed (EphyHistoryService *service,
+                      const char *url,
+                      const char *title,
+                      EphyFrecentStore *store)
+{
+  GtkTreeIter iter;
+  gchar *iter_url;
+
+  if (!gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter))
+    return;
+
+  do {
+    gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
+                        EPHY_OVERVIEW_STORE_URI, &iter_url,
+                        -1);
+    if (g_strcmp0 (iter_url, url) == 0) {
+      gtk_list_store_set (GTK_LIST_STORE (store), &iter,
+                          EPHY_OVERVIEW_STORE_TITLE, title,
+                          -1);
+      g_free (iter_url);
+      break;
+    }
+    g_free (iter_url);
+  } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
+}
+
+static void
 setup_history_service (EphyFrecentStore *store)
 {
   EphyHistoryService *service;
@@ -128,6 +154,8 @@ setup_history_service (EphyFrecentStore *store)
                     G_CALLBACK (on_visit_url_cb), store);
   g_signal_connect (service, "cleared",
                     G_CALLBACK (on_cleared_cb), store);
+  g_signal_connect (service, "url-title-changed",
+                    G_CALLBACK (on_url_title_changed), store);
 }
 
 static void
