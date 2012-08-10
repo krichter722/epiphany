@@ -81,7 +81,7 @@ on_find_urls_cb (EphyHistoryService *service,
   g_list_free_full (urls, (GDestroyNotify)ephy_history_url_free);
 
   while (valid)
-    valid = gtk_list_store_remove (GTK_LIST_STORE (store), &treeiter);
+    valid = ephy_overview_store_remove (EPHY_OVERVIEW_STORE (store), &treeiter);
 }
 
 static void

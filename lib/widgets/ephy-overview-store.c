@@ -125,6 +125,7 @@ ephy_overview_store_init (EphyOverviewStore *self)
   types[EPHY_OVERVIEW_STORE_SNAPSHOT] = GDK_TYPE_PIXBUF;
   types[EPHY_OVERVIEW_STORE_LAST_VISIT] = G_TYPE_LONG;
   types[EPHY_OVERVIEW_STORE_SELECTED] = G_TYPE_BOOLEAN;
+  types[EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE] = G_TYPE_CANCELLABLE;
 
   gtk_list_store_set_column_types (GTK_LIST_STORE (self),
                                    EPHY_OVERVIEW_STORE_NCOLS, types);
@@ -136,6 +137,7 @@ typedef struct {
   GtkTreeRowReference *ref;
   char *url;
   WebKitWebView *webview;
+  GCancellable *cancellable;
 } PeekContext;
 
 static void
@@ -145,6 +147,8 @@ peek_context_free (PeekContext *ctx)
   gtk_tree_row_reference_free (ctx->ref);
   if (ctx->webview)
     g_object_unref (ctx->webview);
+  if (ctx->cancellable)
+    g_object_unref (ctx->cancellable);
 
   g_slice_free (PeekContext, ctx);
 }
@@ -333,7 +337,7 @@ history_service_url_cb (gpointer service,
   timestamp = success ? (url->visit_count / 5) : 0;
 
   ephy_snapshot_service_get_snapshot_async (snapshot_service,
-                                            ctx->webview, ctx->url, timestamp, NULL,
+                                            ctx->webview, ctx->url, timestamp, ctx->cancellable,
                                             (GAsyncReadyCallback) on_snapshot_retrieved_cb,
                                             ctx);
   ephy_history_url_free (url);
@@ -347,10 +351,17 @@ ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
   char *url;
   GtkTreePath *path;
   PeekContext *ctx;
+  GCancellable *cancellable;
 
   gtk_tree_model_get (GTK_TREE_MODEL (self), iter,
                       EPHY_OVERVIEW_STORE_URI, &url,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE, &cancellable,
                       -1);
+
+  if (cancellable) {
+    g_cancellable_cancel (cancellable);
+    g_object_unref (cancellable);
+  }
 
   gtk_list_store_set (GTK_LIST_STORE (self), iter,
                       EPHY_OVERVIEW_STORE_SNAPSHOT,
@@ -360,11 +371,17 @@ ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
   if (url == NULL || g_strcmp0 (url, "about:blank") == 0)
     return;
 
+  cancellable = g_cancellable_new ();
+  gtk_list_store_set (GTK_LIST_STORE (self), iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE,
+                      cancellable, -1);
+
   ctx = g_slice_new (PeekContext);
   path = gtk_tree_model_get_path (GTK_TREE_MODEL (self), iter);
   ctx->ref = gtk_tree_row_reference_new (GTK_TREE_MODEL (self), path);
   ctx->url = url;
   ctx->webview = webview ? g_object_ref (webview) : NULL;
+  ctx->cancellable = cancellable;
   ephy_history_service_get_url (self->priv->history_service,
                                 url, NULL, (EphyHistoryJobCallback)history_service_url_cb,
                                 ctx);
@@ -412,4 +429,24 @@ ephy_overview_store_set_default_icon (EphyOverviewStore *store,
                           NULL);
 
   g_object_notify (G_OBJECT (store), "default-icon");
+}
+
+gboolean
+ephy_overview_store_remove (EphyOverviewStore *store,
+                            GtkTreeIter *iter)
+{
+  GCancellable *cancellable;
+
+  g_return_val_if_fail (EPHY_IS_OVERVIEW_STORE (store), FALSE);
+
+  gtk_tree_model_get (GTK_TREE_MODEL (store), iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE,
+                      &cancellable,
+                      -1);
+  if (cancellable) {
+    g_cancellable_cancel (cancellable);
+    g_object_unref (cancellable);
+  }
+
+  return gtk_list_store_remove (GTK_LIST_STORE (store), iter);
 }

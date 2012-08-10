@@ -62,6 +62,7 @@ enum {
   EPHY_OVERVIEW_STORE_SNAPSHOT = GD_MAIN_COLUMN_ICON,
   EPHY_OVERVIEW_STORE_LAST_VISIT = GD_MAIN_COLUMN_MTIME,
   EPHY_OVERVIEW_STORE_SELECTED = GD_MAIN_COLUMN_SELECTED,
+  EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE,
   EPHY_OVERVIEW_STORE_NCOLS
 };
 
@@ -73,6 +74,9 @@ void ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
 
 void ephy_overview_store_set_default_icon (EphyOverviewStore *store,
                                            GdkPixbuf *default_icon);
+
+gboolean ephy_overview_store_remove       (EphyOverviewStore *store,
+                                           GtkTreeIter       *iter);
 
 G_END_DECLS
 

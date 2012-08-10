@@ -110,6 +110,7 @@ ephy_active_store_init (EphyActiveStore *self)
   types[EPHY_OVERVIEW_STORE_SNAPSHOT] = GDK_TYPE_PIXBUF;
   types[EPHY_OVERVIEW_STORE_LAST_VISIT] = G_TYPE_LONG;
   types[EPHY_OVERVIEW_STORE_SELECTED] = G_TYPE_BOOLEAN;
+  types[EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE] = G_TYPE_CANCELLABLE;
   types[EPHY_ACTIVE_STORE_TAB_POS] = G_TYPE_UINT;
 
   gtk_list_store_set_column_types (GTK_LIST_STORE (self),
@@ -361,7 +362,7 @@ ephy_active_store_remove_embed (EphyActiveStore *store,
   iter = ctx->iter;
   g_slice_free (HelperCtx, ctx);
 
-  gtk_list_store_remove (GTK_LIST_STORE (store), &iter);
+  ephy_overview_store_remove (EPHY_OVERVIEW_STORE (store), &iter);
 
   bindings_drop (G_OBJECT (webview));
   bindings_drop (G_OBJECT (embed));
