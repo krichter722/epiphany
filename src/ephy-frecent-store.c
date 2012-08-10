@@ -65,7 +65,7 @@ on_find_urls_cb (EphyHistoryService *service,
                                            &treeiter);
       }
     } else {
-      gtk_list_store_insert_with_values (GTK_LIST_STORE (store), &treeiter, G_MAXINT,
+      gtk_list_store_insert_with_values (GTK_LIST_STORE (store), &treeiter, -1,
                                          EPHY_OVERVIEW_STORE_TITLE, url->title,
                                          EPHY_OVERVIEW_STORE_URI, url->url,
                                          EPHY_OVERVIEW_STORE_LAST_VISIT, url->last_visit_time,
