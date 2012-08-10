@@ -142,6 +142,75 @@ on_url_title_changed (EphyHistoryService *service,
 }
 
 static void
+on_url_deleted (EphyHistoryService *service,
+                const char *url,
+                EphyFrecentStore *store)
+{
+  GtkTreeIter iter;
+  gchar *iter_url;
+  gboolean needs_update = FALSE;
+
+  if (!gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter))
+    return;
+
+  do {
+    gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
+                        EPHY_OVERVIEW_STORE_URI, &iter_url,
+                        -1);
+    if (g_strcmp0 (iter_url, url) == 0) {
+      needs_update = TRUE;
+      ephy_overview_store_remove (EPHY_OVERVIEW_STORE (store), &iter);
+      g_free (iter_url);
+      break;
+    }
+    g_free (iter_url);
+  } while (gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter));
+
+  if (needs_update)
+    ephy_frecent_store_fetch_urls (store, service);
+}
+
+static void
+on_host_deleted (EphyHistoryService *service,
+                 const char *deleted_url,
+                 EphyFrecentStore *store)
+{
+  GtkTreeIter iter;
+  gchar *iter_url;
+  SoupURI *store_uri;
+  SoupURI *deleted_uri;
+  gboolean needs_update = FALSE;
+  gboolean remove, valid;
+
+  if (!gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter))
+    return;
+
+  deleted_uri = soup_uri_new (deleted_url);
+
+  do {
+    gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
+                        EPHY_OVERVIEW_STORE_URI, &iter_url,
+                        -1);
+    store_uri = soup_uri_new (iter_url);
+    remove = g_strcmp0 (soup_uri_get_host (deleted_uri), soup_uri_get_host (store_uri)) == 0;
+    soup_uri_free (store_uri);
+    g_free (iter_url);
+
+    if (remove) {
+      valid = ephy_overview_store_remove (EPHY_OVERVIEW_STORE (store), &iter);
+      needs_update = TRUE;
+    } else
+      valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter);
+  } while (valid);
+
+  soup_uri_free (deleted_uri);
+
+  if (needs_update)
+    ephy_frecent_store_fetch_urls (store, service);
+
+}
+
+static void
 setup_history_service (EphyFrecentStore *store)
 {
   EphyHistoryService *service;
@@ -156,6 +225,10 @@ setup_history_service (EphyFrecentStore *store)
                     G_CALLBACK (on_cleared_cb), store);
   g_signal_connect (service, "url-title-changed",
                     G_CALLBACK (on_url_title_changed), store);
+  g_signal_connect (service, "url-deleted",
+                    G_CALLBACK (on_url_deleted), store);
+  g_signal_connect (service, "host-deleted",
+                    G_CALLBACK (on_host_deleted), store);
 }
 
 static void
