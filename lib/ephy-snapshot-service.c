@@ -313,7 +313,7 @@ ephy_snapshot_service_take_from_webview (SnapshotOp *op)
                       G_CALLBACK (webview_load_failed_cb), op);
   }
 #else
-  if (webkit_web_view_get_progress (WEBKIT_WEB_VIEW (webview)) == 1.0)
+  if (webkit_web_view_get_load_status (webview) == WEBKIT_LOAD_FINISHED)
     webview_retrieve_snapshot (op);
   else
     g_signal_connect (webview, "notify::load-status",
