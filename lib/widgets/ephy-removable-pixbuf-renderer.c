@@ -41,6 +41,7 @@ static guint signals[LAST_SIGNAL] = { 0 };
 
 struct _EphyRemovablePixbufRendererPrivate {
   EphyRemovablePixbufRenderPolicy policy;
+  GdkPixbuf *close_icon;
 };
 
 static void
@@ -59,12 +60,12 @@ get_icon_rectangle (GtkWidget *widget,
   icon_size = gdk_pixbuf_get_width (icon);
 
   if (direction == GTK_TEXT_DIR_RTL)
-    x_offset = xpad;
+    x_offset = xpad + 10;
   else
-    x_offset = cell_area->width - icon_size - xpad;
+    x_offset = cell_area->width - icon_size - xpad - 10;
 
   rectangle->x = cell_area->x + x_offset;
-  rectangle->y = cell_area->y + ypad;
+  rectangle->y = cell_area->y + ypad + 5;
   rectangle->width = rectangle->height = icon_size;
 }
 
@@ -78,7 +79,6 @@ ephy_removable_pixbuf_renderer_render (GtkCellRenderer      *cell,
 {
   GtkStyleContext *context;
   EphyRemovablePixbufRenderer *self = EPHY_REMOVABLE_PIXBUF_RENDERER (cell);
-  GdkPixbuf *icon;
   GdkRectangle icon_area;
 
   GTK_CELL_RENDERER_CLASS (ephy_removable_pixbuf_renderer_parent_class)->render
@@ -89,19 +89,9 @@ ephy_removable_pixbuf_renderer_render (GtkCellRenderer      *cell,
       (self->priv->policy == EPHY_REMOVABLE_PIXBUF_RENDER_PRELIT && !(flags & GTK_CELL_RENDERER_PRELIT)))
     return;
 
-  /* gtk_widget_style_get (widget, */
-  /*                       "check-icon-size", &icon_size, */
-  /*                       NULL); */
-
-  /* if (icon_size == -1) */
-  /*   icon_size = 40; */
-
-  icon = gtk_widget_render_icon_pixbuf (widget, GTK_STOCK_CLOSE,
-					GTK_ICON_SIZE_BUTTON);
-  get_icon_rectangle (widget, cell, cell_area, icon, &icon_area);
+  get_icon_rectangle (widget, cell, cell_area, self->priv->close_icon, &icon_area);
   context = gtk_widget_get_style_context (widget);
-  gtk_render_icon (context, cr, icon, icon_area.x, icon_area.y);
-  g_object_unref (icon);
+  gtk_render_icon (context, cr, self->priv->close_icon, icon_area.x, icon_area.y);
 }
 
 static gboolean
@@ -115,15 +105,14 @@ ephy_removable_pixbuf_renderer_activate (GtkCellRenderer      *cell,
 {
   GdkRectangle icon_area;
   GdkEventButton *ev = (GdkEventButton *) gtk_get_current_event();
-  GdkPixbuf *icon = gtk_widget_render_icon_pixbuf (widget, GTK_STOCK_CLOSE,
-						   GTK_ICON_SIZE_BUTTON);
-  get_icon_rectangle (widget, cell, cell_area, icon, &icon_area);
+  EphyRemovablePixbufRendererPrivate *priv = EPHY_REMOVABLE_PIXBUF_RENDERER (cell)->priv;
+
+  get_icon_rectangle (widget, cell, cell_area, priv->close_icon, &icon_area);
   if (icon_area.x <= ev->x && ev->x <= icon_area.x + icon_area.width &&
       icon_area.y <= ev->y && ev->y <= icon_area.y + icon_area.height) {
     g_signal_emit (cell, signals [DELETE_CLICKED], 0, path);
     return TRUE;
   }
-  g_object_unref (icon);
 
   return FALSE;
 }
@@ -167,6 +156,17 @@ ephy_removable_pixbuf_renderer_set_property (GObject    *object,
 }
 
 static void
+ephy_removable_pixbuf_renderer_dispose (GObject     *object)
+{
+  EphyRemovablePixbufRendererPrivate *priv = EPHY_REMOVABLE_PIXBUF_RENDERER (object)->priv;
+
+  if (priv->close_icon)
+    g_clear_object (&priv->close_icon);
+
+  G_OBJECT_CLASS (ephy_removable_pixbuf_renderer_parent_class)->dispose (object);
+}
+
+static void
 ephy_removable_pixbuf_renderer_class_init (EphyRemovablePixbufRendererClass *klass)
 {
   GObjectClass *oclass = G_OBJECT_CLASS (klass);
@@ -176,6 +176,7 @@ ephy_removable_pixbuf_renderer_class_init (EphyRemovablePixbufRendererClass *kla
   crclass->activate = ephy_removable_pixbuf_renderer_activate;
   oclass->get_property = ephy_removable_pixbuf_renderer_get_property;
   oclass->set_property = ephy_removable_pixbuf_renderer_set_property;
+  oclass->dispose = ephy_removable_pixbuf_renderer_dispose;
 
   g_object_class_install_property (oclass,
 				   PROP_RENDER_POLICY,
@@ -202,9 +203,15 @@ ephy_removable_pixbuf_renderer_class_init (EphyRemovablePixbufRendererClass *kla
 static void
 ephy_removable_pixbuf_renderer_init (EphyRemovablePixbufRenderer *self)
 {
+  GtkIconTheme *icon_theme;
+
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, EPHY_TYPE_REMOVABLE_PIXBUF_RENDERER,
                                             EphyRemovablePixbufRendererPrivate);
   g_object_set (self, "mode", GTK_CELL_RENDERER_MODE_ACTIVATABLE, NULL);
+  icon_theme = gtk_icon_theme_get_default ();
+  self->priv->close_icon = gtk_icon_theme_load_icon (icon_theme,
+						     "window-close-symbolic",
+						     24, 0, NULL);
 }
 
 GtkCellRenderer *
