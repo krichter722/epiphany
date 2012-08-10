@@ -282,7 +282,6 @@ on_snapshot_retrieved_cb (GObject *object,
   GtkTreeModel *model;
   GtkTreePath *path;
   GtkTreeIter iter;
-  char *url;
   GdkPixbuf *snapshot, *framed_snapshot;
   GError *error = NULL;
 
@@ -299,19 +298,11 @@ on_snapshot_retrieved_cb (GObject *object,
     gtk_tree_model_get_iter (model, &iter, path);
     gtk_tree_path_free (path);
 
-    /* Chances are that this callback is called after the URL in this
-       row has already replaced with a new one.  Make sure that this
-       is not the case. */
-    gtk_tree_model_get (model, &iter, EPHY_OVERVIEW_STORE_URI, &url, -1);
-    if (g_strcmp0 (url, ctx->url) == 0) {
-      framed_snapshot = overview_add_frame (snapshot);
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
-                          -1);
-      g_object_unref (framed_snapshot);
-    }
-
-    g_free (url);
+    framed_snapshot = overview_add_frame (snapshot);
+    gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                        EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
+                        -1);
+    g_object_unref (framed_snapshot);
     g_object_unref (snapshot);
   }
   peek_context_free (ctx);
