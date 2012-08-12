@@ -89,9 +89,17 @@ static void
 ephy_frecent_store_fetch_urls (EphyFrecentStore *store,
                               EphyHistoryService *service)
 {
-  ephy_history_service_find_urls (service, 0, 0, 5, 0, NULL, NULL,
-                                  (EphyHistoryJobCallback) on_find_urls_cb,
-                                  store);
+  EphyHistoryQuery *query;
+
+  query = ephy_history_query_new ();
+  query->sort_type = EPHY_HISTORY_SORT_MV;
+  query->limit = 5;
+  query->ignore_hidden = TRUE;
+
+  ephy_history_service_query_urls (service, query, NULL,
+                                   (EphyHistoryJobCallback) on_find_urls_cb,
+                                   store);
+  ephy_history_query_free (query);
 }
 
 static gboolean
