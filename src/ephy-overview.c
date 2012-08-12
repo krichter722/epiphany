@@ -112,6 +112,24 @@ active_view_item_deleted (GtkWidget *widget,
   return TRUE;
 }
 
+static gboolean
+frecent_view_item_deleted (GtkWidget *widget,
+                           gchar *path,
+                           gpointer data)
+{
+  EphyFrecentStore *store;
+  GtkTreeIter iter;
+  GtkTreePath *tree_path;
+
+  store = EPHY_FRECENT_STORE (gd_main_view_get_model (GD_MAIN_VIEW (widget)));
+  tree_path = gtk_tree_path_new_from_string (path);
+  gtk_tree_model_get_iter (GTK_TREE_MODEL (store), &iter, tree_path);
+  ephy_frecent_store_set_hidden (store, &iter);
+  gtk_tree_path_free (tree_path);
+
+  return TRUE;
+}
+
 static void
 main_view_item_activated (GtkWidget *widget,
                           gchar *id,
@@ -186,7 +204,7 @@ ephy_overview_constructed (GObject *object)
   g_signal_connect (self->priv->frecent_view, "item-activated",
                     G_CALLBACK (main_view_item_activated), self->priv->parent_window);
   g_signal_connect (self->priv->frecent_view, "item-deleted",
-                    G_CALLBACK (gtk_true), NULL);
+                    G_CALLBACK (frecent_view_item_deleted), NULL);
 
   store = EPHY_OVERVIEW_STORE (ephy_frecent_store_new ());
   g_object_set (G_OBJECT (store),
