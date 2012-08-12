@@ -51,7 +51,10 @@ struct _EphyFrecentStoreClass
 
 GType ephy_frecent_store_get_type (void) G_GNUC_CONST;
 
-EphyFrecentStore* ephy_frecent_store_new (void);
+EphyFrecentStore* ephy_frecent_store_new        (void);
+
+void              ephy_frecent_store_set_hidden (EphyFrecentStore *store,
+                                                 GtkTreeIter      *iter);
 
 G_END_DECLS
 

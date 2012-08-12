@@ -270,3 +270,37 @@ ephy_frecent_store_new (void)
   return g_object_new (EPHY_TYPE_FRECENT_STORE,
                        NULL);
 }
+
+static void
+set_url_hidden_cb (EphyHistoryService *service,
+                   gboolean success,
+                   gpointer result_data,
+                   EphyFrecentStore *store)
+{
+  if (!success)
+    return;
+
+  ephy_frecent_store_fetch_urls (store, service);
+}
+
+void
+ephy_frecent_store_set_hidden (EphyFrecentStore *store,
+                               GtkTreeIter *iter)
+{
+  EphyHistoryService *service;
+  char *uri;
+
+  g_return_if_fail (EPHY_IS_FRECENT_STORE (store));
+  g_return_if_fail (iter != NULL);
+
+  gtk_tree_model_get (GTK_TREE_MODEL (store), iter,
+                      EPHY_OVERVIEW_STORE_URI, &uri,
+                      -1);
+  g_object_get (store, "history-service", &service, NULL);
+
+  ephy_history_service_set_url_hidden (service,
+                                       uri, TRUE, NULL,
+                                       (EphyHistoryJobCallback) set_url_hidden_cb,
+                                       store);
+  g_free (uri);
+}
