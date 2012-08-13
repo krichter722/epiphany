@@ -288,16 +288,16 @@ on_snapshot_retrieved_cb (GObject *object,
   snapshot = ephy_snapshot_service_get_snapshot_finish (EPHY_SNAPSHOT_SERVICE (object),
                                                         res, &error);
 
+  model = gtk_tree_row_reference_get_model (ctx->ref);
+  path = gtk_tree_row_reference_get_path (ctx->ref);
+  gtk_tree_model_get_iter (model, &iter, path);
+  gtk_tree_path_free (path);
+
   if (error) {
     g_warning ("Error retrieving snapshot: %s\n", error->message);
     g_error_free (error);
     error = NULL;
   } else if (snapshot && gtk_tree_row_reference_valid (ctx->ref)) {
-    model = gtk_tree_row_reference_get_model (ctx->ref);
-    path = gtk_tree_row_reference_get_path (ctx->ref);
-    gtk_tree_model_get_iter (model, &iter, path);
-    gtk_tree_path_free (path);
-
     framed_snapshot = overview_add_frame (snapshot);
     gtk_list_store_set (GTK_LIST_STORE (model), &iter,
                         EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
@@ -305,6 +305,11 @@ on_snapshot_retrieved_cb (GObject *object,
     g_object_unref (framed_snapshot);
     g_object_unref (snapshot);
   }
+
+  gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE, NULL,
+                      -1);
+
   peek_context_free (ctx);
 }
 
