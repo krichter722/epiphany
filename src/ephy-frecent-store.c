@@ -39,6 +39,7 @@ on_find_urls_cb (EphyHistoryService *service,
   GtkTreeIter treeiter;
   gboolean valid;
   GList *iter;
+  gboolean peek_snapshot;
 
   if (success != TRUE)
     return;
@@ -47,6 +48,7 @@ on_find_urls_cb (EphyHistoryService *service,
                                          &treeiter);
 
   for (iter = urls; iter != NULL; iter = iter->next) {
+    peek_snapshot = FALSE;
     url = (EphyHistoryURL *)iter->data;
 
     if (valid) {
@@ -60,21 +62,24 @@ on_find_urls_cb (EphyHistoryService *service,
       if (g_strcmp0 (old_url, url->url) != 0) {
         gtk_list_store_set (GTK_LIST_STORE (store), &treeiter,
                             EPHY_OVERVIEW_STORE_TITLE, url->title,
-                            EPHY_OVERVIEW_STORE_SNAPSHOT, NULL, -1);
-        ephy_overview_store_peek_snapshot (EPHY_OVERVIEW_STORE (store),
-                                           NULL,
-                                           &treeiter);
+                            -1);
+        peek_snapshot = TRUE;
       }
+
+      if (ephy_overview_store_needs_snapshot (EPHY_OVERVIEW_STORE (store), &treeiter))
+        peek_snapshot = TRUE;
     } else {
       gtk_list_store_insert_with_values (GTK_LIST_STORE (store), &treeiter, -1,
                                          EPHY_OVERVIEW_STORE_TITLE, url->title,
                                          EPHY_OVERVIEW_STORE_URI, url->url,
                                          EPHY_OVERVIEW_STORE_LAST_VISIT, url->last_visit_time,
                                          -1);
-      ephy_overview_store_peek_snapshot (EPHY_OVERVIEW_STORE (store),
-                                         NULL,
-                                         &treeiter);
+      peek_snapshot = TRUE;
     }
+
+    if (peek_snapshot)
+      ephy_overview_store_peek_snapshot (EPHY_OVERVIEW_STORE (store),
+                                         NULL, &treeiter);
 
     valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &treeiter);
   }
