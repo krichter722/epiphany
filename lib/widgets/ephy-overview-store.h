@@ -66,17 +66,20 @@ enum {
   EPHY_OVERVIEW_STORE_NCOLS
 };
 
-GType ephy_overview_store_get_type (void) G_GNUC_CONST;
+GType    ephy_overview_store_get_type             (void) G_GNUC_CONST;
 
-void ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
-                                        WebKitWebView *webview,
-                                        GtkTreeIter *iter);
+void     ephy_overview_store_peek_snapshot        (EphyOverviewStore *self,
+                                                   WebKitWebView *webview,
+                                                   GtkTreeIter *iter);
 
-void ephy_overview_store_set_default_icon (EphyOverviewStore *store,
-                                           GdkPixbuf *default_icon);
+void     ephy_overview_store_set_default_icon     (EphyOverviewStore *store,
+                                                   GdkPixbuf         *default_icon);
 
-gboolean ephy_overview_store_remove       (EphyOverviewStore *store,
-                                           GtkTreeIter       *iter);
+gboolean ephy_overview_store_needs_snapshot       (EphyOverviewStore *store,
+                                                   GtkTreeIter       *iter);
+
+gboolean ephy_overview_store_remove               (EphyOverviewStore *store,
+                                                   GtkTreeIter       *iter);
 
 G_END_DECLS
 

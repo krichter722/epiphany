@@ -428,6 +428,33 @@ ephy_overview_store_set_default_icon (EphyOverviewStore *store,
 }
 
 gboolean
+ephy_overview_store_needs_snapshot (EphyOverviewStore *store,
+                                    GtkTreeIter *iter)
+{
+  GdkPixbuf *icon;
+  GCancellable *cancellable;
+  gboolean needs_snapshot;
+
+  g_return_val_if_fail (EPHY_IS_OVERVIEW_STORE (store), FALSE);
+  g_return_val_if_fail (iter != NULL, FALSE);
+
+  gtk_tree_model_get (GTK_TREE_MODEL (store), iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT, &icon,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE, &cancellable,
+                      -1);
+
+  /* If the thumbnail is the default icon and there is no cancellable
+     in the row, then this row needs a snapshot. */
+  needs_snapshot = (icon == store->priv->default_icon && cancellable == NULL);
+
+  g_object_unref (icon);
+  if (cancellable)
+    g_object_unref (cancellable);
+
+  return needs_snapshot;
+}
+
+gboolean
 ephy_overview_store_remove (EphyOverviewStore *store,
                             GtkTreeIter *iter)
 {
