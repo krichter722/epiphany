@@ -288,27 +288,28 @@ on_snapshot_retrieved_cb (GObject *object,
   snapshot = ephy_snapshot_service_get_snapshot_finish (EPHY_SNAPSHOT_SERVICE (object),
                                                         res, &error);
 
-  model = gtk_tree_row_reference_get_model (ctx->ref);
-  path = gtk_tree_row_reference_get_path (ctx->ref);
-  gtk_tree_model_get_iter (model, &iter, path);
-  gtk_tree_path_free (path);
-
   if (error) {
     g_warning ("Error retrieving snapshot: %s\n", error->message);
     g_error_free (error);
     error = NULL;
-  } else if (snapshot && gtk_tree_row_reference_valid (ctx->ref)) {
-    framed_snapshot = overview_add_frame (snapshot);
-    gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                        EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
-                        -1);
-    g_object_unref (framed_snapshot);
-    g_object_unref (snapshot);
-  }
+  } else {
+    model = gtk_tree_row_reference_get_model (ctx->ref);
+    path = gtk_tree_row_reference_get_path (ctx->ref);
+    gtk_tree_model_get_iter (model, &iter, path);
+    gtk_tree_path_free (path);
+    if (snapshot) {
+      framed_snapshot = overview_add_frame (snapshot);
+      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                          EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
+                          -1);
+      g_object_unref (framed_snapshot);
+      g_object_unref (snapshot);
 
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                      EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE, NULL,
-                      -1);
+    }
+    gtk_list_store_set (GTK_LIST_STORE (model), &iter,
+                        EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE, NULL,
+                        -1);
+  }
 
   peek_context_free (ctx);
 }
@@ -364,8 +365,12 @@ ephy_overview_store_peek_snapshot (EphyOverviewStore *self,
                       self->priv->default_icon,
                       -1);
 
-  if (url == NULL || g_strcmp0 (url, "about:blank") == 0)
+  if (url == NULL || g_strcmp0 (url, "about:blank") == 0) {
+    gtk_list_store_set (GTK_LIST_STORE (self), iter,
+                        EPHY_OVERVIEW_STORE_SNAPSHOT_CANCELLABLE,
+                        NULL, -1);
     return;
+  }
 
   cancellable = g_cancellable_new ();
   gtk_list_store_set (GTK_LIST_STORE (self), iter,
