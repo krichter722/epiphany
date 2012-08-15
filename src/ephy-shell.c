@@ -33,6 +33,7 @@
 #include "ephy-file-helpers.h"
 #include "ephy-gui.h"
 #include "ephy-history-window.h"
+#include "ephy-home-action.h"
 #include "ephy-lockdown.h"
 #include "ephy-prefs.h"
 #include "ephy-private.h"

@@ -65,13 +65,6 @@
 #endif
 
 void
-window_cmd_file_new_page (GtkAction *action,
-			  EphyWindow *window)
-{
-	ephy_window_set_overview_mode (window, TRUE);
-}
-
-void
 window_cmd_file_print (GtkAction *action,
 		       EphyWindow *window)
 {

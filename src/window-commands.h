@@ -42,8 +42,6 @@ void window_cmd_new                      (GtkAction  *action,
                                           EphyWindow *window);
 void window_cmd_file_bookmark_page       (GtkAction  *action,
                                           EphyWindow *window);
-void window_cmd_file_new_page            (GtkAction *action,
-					  EphyWindow *window);
 void window_cmd_file_open                (GtkAction  *action,
                                           EphyWindow *window);
 void window_cmd_file_save_as             (GtkAction  *action,
