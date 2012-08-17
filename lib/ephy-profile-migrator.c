@@ -68,60 +68,88 @@ profile_dir_exists ()
   return g_file_test (ephy_dot_dir (), G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR);
 }
 
-static void
-migrate_cookies ()
+#define COOKIES_SQLITE "cookies.sqlite"
+#define COOKIES_TXT "cookies.txt"
+
+static gboolean
+migrate_cookies (const char *profile_dir,
+                 const char *dest_dir,
+                 gboolean dry_run,
+                 gpointer data)
 {
-  const char *cookies_file_sqlite = "cookies.sqlite";
-  const char *cookies_file_txt = "cookies.txt";
-  char *src_sqlite = NULL, *src_txt = NULL, *dest = NULL;
+  char *src_sql = NULL, *src_txt = NULL, *dest = NULL;
 
-  dest = g_build_filename (ephy_dot_dir (), cookies_file_sqlite, NULL);
-  /* If we already have a cookies.sqlite file, do nothing */
-  if (g_file_test (dest, G_FILE_TEST_EXISTS))
-    goto out;
+  dest = g_build_filename (dest_dir, COOKIES_SQLITE, NULL);
 
-  src_sqlite = g_build_filename (ephy_dot_dir (), "mozilla",
-                                 "epiphany", cookies_file_sqlite, NULL);
-  src_txt = g_build_filename (ephy_dot_dir (), "mozilla",
-                              "epiphany", cookies_file_txt, NULL);
+  /* The file exists, we assume it has been migrated already. */
+  if (g_file_test (dest, G_FILE_TEST_EXISTS)) {
+    g_free (dest);
+    return TRUE;
+  }
 
-  /* First check if we have a cookies.sqlite file in Mozilla */
-  if (g_file_test (src_sqlite, G_FILE_TEST_EXISTS)) {
-    GFile *gsrc, *gdest;
+  src_sql = g_build_filename (profile_dir, "mozilla", "epiphany",
+                              COOKIES_SQLITE, NULL);
+  src_txt = g_build_filename (profile_dir, "mozilla", "epiphany",
+                              COOKIES_TXT, NULL);
 
-    /* Copy the file */
-    gsrc = g_file_new_for_path (src_sqlite);
-    gdest = g_file_new_for_path (dest);
+  if (g_file_test (src_sql, G_FILE_TEST_EXISTS)) {
+    /* If we have an .sqlite Mozilla file, just copy it over. */
+    GFile *e_src, *e_dest;
+    GError *error = NULL;
 
-    if (!g_file_copy (gsrc, gdest, 0, NULL, NULL, NULL, NULL))
-      g_warning (_("Failed to copy cookies file from Mozilla."));
+    e_src = g_file_new_for_path (src_sql);
+    e_dest = g_file_new_for_path (dest);
 
-    g_object_unref (gsrc);
-    g_object_unref (gdest);
+    if (dry_run)
+      LOG ("[cookies] DR: Copying %s to %s", src_sql, dest);
+    else
+      g_file_copy (e_src, e_dest, G_FILE_COPY_BACKUP, NULL, NULL, NULL,
+                   &error);
+
+    g_object_unref (e_src);
+    g_object_unref (e_dest);
+
+    if (error) {
+      g_warning ("Error copying cookies file from Mozilla: (%s -> %s) (%s)",
+                 src_sql, dest, error->message);
+      g_error_free (error);
+
+      g_free (src_sql);
+      g_free (src_txt);
+      g_free (dest);
+
+      return FALSE;
+    }
   } else if (g_file_test (src_txt, G_FILE_TEST_EXISTS)) {
-    /* Create a SoupCookieJarSQLite with the contents of the txt file */
-    GSList *cookies, *p;
-    SoupCookieJar *txt, *sqlite;
+    /* A SoupCookieJar exists, but it is in txt format. Migrate to
+     * SQLite. */
+    GSList *cookies, *l;
+    SoupCookieJar *soup_txt, *soup_sql;
 
-    txt = soup_cookie_jar_text_new (src_txt, TRUE);
-    sqlite = soup_cookie_jar_sqlite_new (dest, FALSE);
-    cookies = soup_cookie_jar_all_cookies (txt);
+    soup_txt = soup_cookie_jar_text_new (src_txt, TRUE);
+    soup_sql = soup_cookie_jar_sqlite_new (dest, FALSE);
+    cookies = soup_cookie_jar_all_cookies (soup_txt);
 
-    for (p = cookies; p; p = p->next) {
-      SoupCookie *cookie = (SoupCookie*)p->data;
-      /* Cookie is stolen, so we won't free it */
-      soup_cookie_jar_add_cookie (sqlite, cookie);
+    for (l = cookies; l; l = l->next) {
+      SoupCookie *cookie = (SoupCookie*)l->data;
+
+      if (dry_run)
+        LOG ("[cookies] DR: Adding to jar: %s @ %s",
+             soup_cookie_get_name (cookie), soup_cookie_get_domain (cookie));
+      else
+        soup_cookie_jar_add_cookie (soup_sql, cookie);
     }
 
     g_slist_free (cookies);
-    g_object_unref (txt);
-    g_object_unref (sqlite);
+    g_object_unref (soup_txt);
+    g_object_unref (soup_sql);
   }
 
- out:
-  g_free (src_sqlite);
+  g_free (src_sql);
   g_free (src_txt);
   g_free (dest);
+
+  return TRUE;
 }
 
 #ifdef ENABLE_NSS
