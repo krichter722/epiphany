@@ -373,51 +373,72 @@ parse_and_decrypt_signons (const char *signons,
 }
 #endif
 
-static void
-migrate_passwords ()
+static gboolean
+migrate_passwords (const char *profile_dir,
+                   const char *dest_dir,
+                   gboolean dry_run,
+                   gpointer data)
 {
 #ifdef ENABLE_NSS
-  char *dest, *contents, *gecko_passwords_backup;
-  gsize length;
+  char *signons, *contents, *backup;
   GError *error = NULL;
 
-  dest = g_build_filename (ephy_dot_dir (),
-                           "mozilla", "epiphany", "signons3.txt",
-                           NULL);
-  if (!g_file_test (dest, G_FILE_TEST_EXISTS)) {
-    g_free (dest);
-    dest = g_build_filename (ephy_dot_dir (),
-                             "mozilla", "epiphany", "signons2.txt",
-                             NULL);
-    if (!g_file_test (dest, G_FILE_TEST_EXISTS)) {
-      g_free (dest);
-      return;
+  if (ephy_nss_glue_init () == FALSE) {
+    LOG ("[passwords] Can not read passwords: no NSS support");
+    return FALSE;
+  }
+
+  signons = g_build_filename (profile_dir, "mozilla", "epiphany",
+                              "signons3.txt", NULL);
+
+  if (g_file_test (signons, G_FILE_TEST_EXISTS) == FALSE) {
+    LOG ("[passwords] Could not find %s (signons3.txt) file", signons);
+
+    g_free (signons);
+    signons = g_build_filename (profile_dir, "mozilla", "epiphany",
+                                "signons2.txt", NULL);
+
+    if (g_file_test (signons, G_FILE_TEST_EXISTS) == FALSE) {
+      LOG ("[passwords] Could not find %s (signons2.txt) file", signons);
+
+      g_free (signons);
+      return FALSE;
     }
   }
 
-  if (!ephy_nss_glue_init ())
-    return;
+  if (g_file_get_contents (signons, &contents, NULL, &error) == FALSE) {
+    LOG ("[passwords] Error getting contents of %s: %s",
+         signons, error->message);
 
-  if (!g_file_get_contents (dest, &contents, &length, &error)) {
-    g_free (dest);
+    g_free (signons);
+    g_error_free (error);
+
+    return FALSE;
   }
 
-  parse_and_decrypt_signons (contents, FALSE);
+  parse_and_decrypt_signons (contents, FALSE, dry_run);
 
   /* Save the contents in a backup directory for future data
      extraction when we support more features */
-  gecko_passwords_backup = g_build_filename (ephy_dot_dir (),
-                                             "gecko-passwords.txt", NULL);
+  backup = g_build_filename (dest_dir, "gecko-passwords.txt", NULL);
 
-  if (!g_file_set_contents (gecko_passwords_backup, contents,
-                            -1, &error)) {
-    g_error_free (error);
+  if (dry_run) {
+    LOG ("[passwords] DR: Storing gecko-passwords.txt backup at %s", backup);
+  } else {
+    if (g_file_set_contents (backup, contents, -1, &error) == FALSE) {
+      LOG ("[passwords] Error setting contents of backup file %s: %s",
+           backup, error->message);
+      g_error_free (error);
+    }
   }
 
-  g_free (gecko_passwords_backup);
+  g_free (signons);
   g_free (contents);
+  g_free (backup);
 
   ephy_nss_glue_close ();
+
+  return TRUE;
 #endif
 }
 
