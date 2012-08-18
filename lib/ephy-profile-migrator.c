@@ -176,7 +176,8 @@ decrypt (const char *data)
 
 static void
 parse_and_decrypt_signons (const char *signons,
-                           gboolean handle_forms)
+                           gboolean handle_forms,
+                           gboolean dry_run)
 {
   int version;
   gchar **lines;
@@ -324,26 +325,37 @@ parse_and_decrypt_signons (const char *signons,
           !g_str_equal (form_password, "*")) {
         char *u = soup_uri_to_string (uri, FALSE);
         /* We skip the '*' at the beginning of form_password. */
-        _ephy_profile_utils_store_form_auth_data (u,
-                                                 form_username,
-                                                 form_password+1,
-                                                 username,
-                                                 password);
+
+        if (dry_run) {
+          LOG ("[parse_signons] DR: storing form Fu: %s; Fp: %s(+1); U: %s; P: %s;",
+               form_username, form_password, username, password);
+        } else {
+          _ephy_profile_utils_store_form_auth_data (u,
+                                                   form_username,
+                                                   form_password+1,
+                                                   username,
+                                                   password);
+        }
         g_free (u);
       } else if (!handle_forms && realm &&
                  username && password &&
                  !g_str_equal (username, "") &&
                  form_username == NULL && form_password == NULL) {
-        gnome_keyring_set_network_password_sync (NULL,
-                                                 username,
-                                                 realm,
-                                                 uri->host,
-                                                 NULL,
-                                                 uri->scheme,
-                                                 NULL,
-                                                 uri->port,
-                                                 password,
-                                                 &item_id);
+        if (dry_run) {
+          LOG ("[parse_signons] DR: storing password u: %s; r: %s; h: %s; s: %s; p: %d; pass: %s",
+               username, realm, uri->host, uri->scheme, uri->port, password);
+        } else {
+          gnome_keyring_set_network_password_sync (NULL,
+                                                   username,
+                                                   realm,
+                                                   uri->host,
+                                                   NULL,
+                                                   uri->scheme,
+                                                   NULL,
+                                                   uri->port,
+                                                   password,
+                                                   &item_id);
+        }
       }
 
       g_free (username);
