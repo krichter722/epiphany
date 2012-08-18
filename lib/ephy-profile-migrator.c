@@ -442,33 +442,50 @@ migrate_passwords (const char *profile_dir,
 #endif
 }
 
-static void
-migrate_passwords2 ()
+static gboolean
+migrate_form_passwords (const char *profile_dir,
+                        const char *dest_dir,
+                        gboolean dry_run,
+                        gpointer data)
 {
 #ifdef ENABLE_NSS
-  char *dest, *contents;
-  gsize length;
+  char *backup, *contents;
   GError *error = NULL;
 
-  dest = g_build_filename (ephy_dot_dir (),
-                           "gecko-passwords.txt",
-                           NULL);
-  if (!g_file_test (dest, G_FILE_TEST_EXISTS)) {
-    g_free (dest);
-    return;
+  if (ephy_nss_glue_init () == FALSE) {
+    LOG ("[form_passwords] Can not read passwords: no NSS support");
+    return FALSE;
   }
 
-  if (!ephy_nss_glue_init ())
-    return;
+  /* Read from the backup file we stored in the migrated profile_dir
+   * after migrate_passwords(). */
+  backup = g_build_filename (dest_dir, "gecko-passwords.txt", NULL);
 
-  if (!g_file_get_contents (dest, &contents, &length, &error)) {
-    g_free (dest);
+  if (g_file_test (backup, G_FILE_TEST_EXISTS) == FALSE) {
+    LOG ("[form_passwords] No backup file %s", backup);
+
+    g_free (backup);
+    return FALSE;
   }
 
-  parse_and_decrypt_signons (contents, TRUE);
+  if (!g_file_get_contents (backup, &contents, NULL, &error)) {
+    LOG ("[form_passwords] Error getting contents of %s: %s",
+         backup, error->message);
+
+    g_free (backup);
+    g_error_free (error);
+
+    return FALSE;
+  }
+
+  parse_and_decrypt_signons (contents, TRUE, dry_run);
+
   g_free (contents);
+  g_free (backup);
 
   ephy_nss_glue_close ();
+
+  return TRUE;
 #endif
 }
 
@@ -883,7 +900,7 @@ const EphyProfileMigrator migrators[] = {
   migrate_passwords,
   /* Very similar to migrate_passwords, but this migrates
    * login/passwords for page forms, which we previously ignored */
-  migrate_passwords2,
+  migrate_form_passwords,
   migrate_history,
   migrate_tabs_visibility,
   migrate_web_app_links,
