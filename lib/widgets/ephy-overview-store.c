@@ -478,3 +478,32 @@ ephy_overview_store_remove (EphyOverviewStore *store,
 
   return gtk_list_store_remove (GTK_LIST_STORE (store), iter);
 }
+
+gboolean
+ephy_overview_store_find_url (EphyOverviewStore *store,
+                              const char *url,
+                              GtkTreeIter *iter)
+{
+  gboolean valid, found = FALSE;
+  char *row_url;
+
+  g_return_val_if_fail (EPHY_IS_OVERVIEW_STORE (store), FALSE);
+  g_return_val_if_fail (url != NULL, FALSE);
+
+  valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), iter);
+
+  while (valid) {
+    gtk_tree_model_get (GTK_TREE_MODEL (store), iter,
+                        EPHY_OVERVIEW_STORE_URI, &row_url,
+                        -1);
+
+    found = g_strcmp0 (row_url, url) == 0;
+    g_free (row_url);
+    if (found)
+      break;
+
+    valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (store), iter);
+  }
+
+  return found;
+}

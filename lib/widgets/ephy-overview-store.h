@@ -81,6 +81,10 @@ gboolean ephy_overview_store_needs_snapshot       (EphyOverviewStore *store,
 gboolean ephy_overview_store_remove               (EphyOverviewStore *store,
                                                    GtkTreeIter       *iter);
 
+gboolean ephy_overview_store_find_url             (EphyOverviewStore *store,
+                                                   const char        *url,
+                                                   GtkTreeIter       *iter);
+
 G_END_DECLS
 
 #endif /* _EPHY_OVERVIEW_STORE_H */
