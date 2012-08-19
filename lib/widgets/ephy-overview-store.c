@@ -499,7 +499,8 @@ ephy_overview_store_needs_snapshot (EphyOverviewStore *store,
      in the row, then this row needs a snapshot. */
   needs_snapshot = (icon == store->priv->default_icon && cancellable == NULL);
 
-  g_object_unref (icon);
+  if (icon)
+    g_object_unref (icon);
   if (cancellable)
     g_object_unref (cancellable);
 
