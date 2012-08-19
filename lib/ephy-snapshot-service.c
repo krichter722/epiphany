@@ -177,10 +177,6 @@ ephy_snapshot_service_complete_async (SnapshotOp *op)
 static gboolean
 webview_retrieve_snapshot (SnapshotOp *op)
 {
-  GdkPixbuf *snapshot, *scaled;
-  int orig_width, orig_height;
-  float orig_aspect_ratio, dest_aspect_ratio;
-  int x_offset, new_width = 0, new_height;
   cairo_surface_t *surface;
 
 #ifdef HAVE_WEBKIT2
@@ -195,42 +191,7 @@ webview_retrieve_snapshot (SnapshotOp *op)
     return FALSE;
   }
 
-  orig_width = cairo_image_surface_get_width (surface);
-  orig_height = cairo_image_surface_get_height (surface);
-
-  if (orig_width < EPHY_THUMBNAIL_WIDTH ||
-      orig_height < EPHY_THUMBNAIL_HEIGHT) {
-    snapshot = gdk_pixbuf_get_from_surface (surface,
-                                            0, 0,
-                                            orig_width, orig_height);
-    scaled = gdk_pixbuf_scale_simple (snapshot,
-                                      EPHY_THUMBNAIL_WIDTH,
-                                      EPHY_THUMBNAIL_HEIGHT,
-                                      GDK_INTERP_TILES);
-  } else {
-    orig_aspect_ratio = orig_width / (float)orig_height;
-    dest_aspect_ratio = EPHY_THUMBNAIL_WIDTH / (float)EPHY_THUMBNAIL_HEIGHT;
-
-    if (orig_aspect_ratio > dest_aspect_ratio) {
-      /* Wider than taller, crop the sides. */
-      new_width = orig_height * dest_aspect_ratio;
-      new_height = orig_height;
-      x_offset = (orig_width - new_width) / 2;
-    } else {
-      /* Crop the bottom otherwise. */
-      new_width = orig_width;
-      new_height = orig_width / (float)dest_aspect_ratio;
-      x_offset = 0;
-    }
-
-    snapshot = gdk_pixbuf_get_from_surface (surface, x_offset, 0, new_width, new_height);
-    scaled = gnome_desktop_thumbnail_scale_down_pixbuf (snapshot,
-                                                        EPHY_THUMBNAIL_WIDTH,
-                                                        EPHY_THUMBNAIL_HEIGHT);
-  }
-
-  g_object_unref (snapshot);
-  op->snapshot = scaled;
+  op->snapshot = ephy_snapshot_service_crop_snapshot (surface);
 
   g_io_scheduler_push_job ((GIOSchedulerJobFunc)io_scheduler_save_thumbnail,
                            op, NULL, G_PRIORITY_LOW, NULL);
@@ -416,4 +377,51 @@ ephy_snapshot_service_get_snapshot_finish (EphySnapshotService *service,
   op = g_simple_async_result_get_op_res_gpointer (simple);
 
   return op->snapshot ? g_object_ref (op->snapshot) : NULL;
+}
+
+GdkPixbuf *
+ephy_snapshot_service_crop_snapshot (cairo_surface_t *surface)
+{
+  GdkPixbuf *snapshot, *scaled;
+  int orig_width, orig_height;
+  float orig_aspect_ratio, dest_aspect_ratio;
+  int x_offset, new_width = 0, new_height;
+
+  orig_width = cairo_image_surface_get_width (surface);
+  orig_height = cairo_image_surface_get_height (surface);
+
+  if (orig_width < EPHY_THUMBNAIL_WIDTH ||
+      orig_height < EPHY_THUMBNAIL_HEIGHT) {
+    snapshot = gdk_pixbuf_get_from_surface (surface,
+                                            0, 0,
+                                            orig_width, orig_height);
+    scaled = gdk_pixbuf_scale_simple (snapshot,
+                                      EPHY_THUMBNAIL_WIDTH,
+                                      EPHY_THUMBNAIL_HEIGHT,
+                                      GDK_INTERP_TILES);
+  } else {
+    orig_aspect_ratio = orig_width / (float)orig_height;
+    dest_aspect_ratio = EPHY_THUMBNAIL_WIDTH / (float)EPHY_THUMBNAIL_HEIGHT;
+
+    if (orig_aspect_ratio > dest_aspect_ratio) {
+      /* Wider than taller, crop the sides. */
+      new_width = orig_height * dest_aspect_ratio;
+      new_height = orig_height;
+      x_offset = (orig_width - new_width) / 2;
+    } else {
+      /* Crop the bottom otherwise. */
+      new_width = orig_width;
+      new_height = orig_width / (float)dest_aspect_ratio;
+      x_offset = 0;
+    }
+
+    snapshot = gdk_pixbuf_get_from_surface (surface, x_offset, 0, new_width, new_height);
+    scaled = gnome_desktop_thumbnail_scale_down_pixbuf (snapshot,
+                                                        EPHY_THUMBNAIL_WIDTH,
+                                                        EPHY_THUMBNAIL_HEIGHT);
+  }
+
+  g_object_unref (snapshot);
+
+  return scaled;
 }

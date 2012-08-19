@@ -78,6 +78,9 @@ void ephy_snapshot_service_get_snapshot_async (EphySnapshotService *service,
 GdkPixbuf * ephy_snapshot_service_get_snapshot_finish (EphySnapshotService *service,
                                                        GAsyncResult *result,
                                                        GError **error);
+
+GdkPixbuf*  ephy_snapshot_service_crop_snapshot (cairo_surface_t *surface);
+
 G_END_DECLS
 
 #endif /* _EPHY_SNAPSHOT_SERVICE_H */
