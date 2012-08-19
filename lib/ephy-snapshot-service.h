@@ -79,6 +79,14 @@ GdkPixbuf * ephy_snapshot_service_get_snapshot_finish (EphySnapshotService *serv
                                                        GAsyncResult *result,
                                                        GError **error);
 
+void ephy_snapshot_service_save_snapshot_async (EphySnapshotService *service,
+                                                GdkPixbuf *snapshot,
+                                                const char *url,
+                                                time_t mtime,
+                                                GCancellable *cancellable,
+                                                GAsyncReadyCallback callback,
+                                                gpointer user_data);
+
 GdkPixbuf*  ephy_snapshot_service_crop_snapshot (cairo_surface_t *surface);
 
 G_END_DECLS

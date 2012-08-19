@@ -379,6 +379,33 @@ ephy_snapshot_service_get_snapshot_finish (EphySnapshotService *service,
   return op->snapshot ? g_object_ref (op->snapshot) : NULL;
 }
 
+void
+ephy_snapshot_service_save_snapshot_async (EphySnapshotService *service,
+                                           GdkPixbuf *snapshot,
+                                           const char *url,
+                                           time_t mtime,
+                                           GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data)
+{
+  SnapshotOp *op;
+
+  g_return_if_fail (EPHY_IS_SNAPSHOT_SERVICE (service));
+  g_return_if_fail (GDK_IS_PIXBUF (snapshot));
+  g_return_if_fail (url != NULL);
+
+  op = g_slice_alloc0 (sizeof(SnapshotOp));
+  op->snapshot = g_object_ref (snapshot);
+  op->url = g_strdup (url);
+  op->mtime = mtime;
+  op->cancellable = cancellable ? g_object_ref (cancellable) : NULL;
+  op->callback = callback;
+  op->user_data = user_data;
+
+  g_io_scheduler_push_job (io_scheduler_save_thumbnail,
+                           op, NULL, G_PRIORITY_LOW, NULL);
+}
+
 GdkPixbuf *
 ephy_snapshot_service_crop_snapshot (cairo_surface_t *surface)
 {
