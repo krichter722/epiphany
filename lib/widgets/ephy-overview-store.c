@@ -275,6 +275,20 @@ overview_add_frame (GdkPixbuf *pixbuf) {
 }
 
 static void
+ephy_overview_store_set_snapshot_internal (EphyOverviewStore *store,
+                                           GtkTreeIter *iter,
+                                           GdkPixbuf *snapshot)
+{
+  GdkPixbuf *framed;
+
+  framed = overview_add_frame (snapshot);
+  gtk_list_store_set (GTK_LIST_STORE (store), iter,
+                      EPHY_OVERVIEW_STORE_SNAPSHOT, framed,
+                      -1);
+  g_object_unref (framed);
+}
+
+static void
 on_snapshot_retrieved_cb (GObject *object,
                           GAsyncResult *res,
                           PeekContext *ctx)
@@ -282,7 +296,7 @@ on_snapshot_retrieved_cb (GObject *object,
   GtkTreeModel *model;
   GtkTreePath *path;
   GtkTreeIter iter;
-  GdkPixbuf *snapshot, *framed_snapshot;
+  GdkPixbuf *snapshot;
   GError *error = NULL;
 
   snapshot = ephy_snapshot_service_get_snapshot_finish (EPHY_SNAPSHOT_SERVICE (object),
@@ -298,11 +312,8 @@ on_snapshot_retrieved_cb (GObject *object,
     gtk_tree_model_get_iter (model, &iter, path);
     gtk_tree_path_free (path);
     if (snapshot) {
-      framed_snapshot = overview_add_frame (snapshot);
-      gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                          EPHY_OVERVIEW_STORE_SNAPSHOT, framed_snapshot,
-                          -1);
-      g_object_unref (framed_snapshot);
+      ephy_overview_store_set_snapshot_internal (EPHY_OVERVIEW_STORE (model),
+                                                 &iter, snapshot);
       g_object_unref (snapshot);
 
     }
