@@ -85,6 +85,10 @@ gboolean ephy_overview_store_find_url             (EphyOverviewStore *store,
                                                    const char        *url,
                                                    GtkTreeIter       *iter);
 
+void     ephy_overview_store_set_snapshot         (EphyOverviewStore *store,
+                                                   GtkTreeIter       *iter,
+                                                   cairo_surface_t   *snapshot);
+
 G_END_DECLS
 
 #endif /* _EPHY_OVERVIEW_STORE_H */

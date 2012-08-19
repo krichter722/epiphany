@@ -289,6 +289,42 @@ ephy_overview_store_set_snapshot_internal (EphyOverviewStore *store,
 }
 
 static void
+history_service_get_url_for_saving (EphyHistoryService *service,
+                                    gboolean success,
+                                    EphyHistoryURL *url,
+                                    GdkPixbuf *pixbuf)
+{
+  EphySnapshotService *snapshot_service;
+  int timestamp;
+
+  snapshot_service = ephy_snapshot_service_get_default ();
+  timestamp = success ? (url->visit_count / 5) : 0;
+
+  ephy_snapshot_service_save_snapshot_async (snapshot_service,
+                                             pixbuf, url->url, timestamp,
+                                             NULL, NULL, NULL);
+  g_object_unref (pixbuf);
+}
+
+void
+ephy_overview_store_set_snapshot (EphyOverviewStore *store,
+                                  GtkTreeIter *iter,
+                                  cairo_surface_t *snapshot)
+{
+  GdkPixbuf *pixbuf;
+  char *url;
+
+  pixbuf = ephy_snapshot_service_crop_snapshot (snapshot);
+  ephy_overview_store_set_snapshot_internal (store, iter, pixbuf);
+  gtk_tree_model_get (GTK_TREE_MODEL (store), iter,
+                      EPHY_OVERVIEW_STORE_URI, &url,
+                      -1);
+  ephy_history_service_get_url (store->priv->history_service, url,
+                                NULL, (EphyHistoryJobCallback) history_service_get_url_for_saving,
+                                pixbuf);
+}
+
+static void
 on_snapshot_retrieved_cb (GObject *object,
                           GAsyncResult *res,
                           PeekContext *ctx)
