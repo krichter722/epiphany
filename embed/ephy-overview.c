@@ -20,6 +20,7 @@
  */
 
 #include "config.h"
+#include "ephy-embed-shell.h"
 #include "ephy-frecent-store.h"
 #include "ephy-snapshot-service.h"
 #include "ephy-history-service.h"
@@ -201,7 +202,7 @@ ephy_overview_constructed (GObject *object)
   g_signal_connect (self->priv->frecent_view, "item-deleted",
                     G_CALLBACK (frecent_view_item_deleted), NULL);
 
-  store = EPHY_OVERVIEW_STORE (ephy_frecent_store_new ());
+  store = ephy_embed_shell_get_frecent_store (EPHY_EMBED_SHELL (ephy_shell_get_default()));
   g_object_set (G_OBJECT (store),
                 "default-icon", default_icon,
                 NULL);
