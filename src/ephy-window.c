@@ -1686,6 +1686,51 @@ sync_tab_title (EphyEmbed *embed,
 			      ephy_embed_get_title (embed));
 }
 
+
+static void
+ephy_window_prepare_for_overview (EphyWindow *window)
+{
+	GtkAction *action;
+
+	ephy_window_set_location (window, "");
+	g_object_set (window->priv->location_controller, "show-icon", FALSE, NULL);
+	_ephy_window_set_security_state (window, FALSE, STOCK_LOCK_INSECURE);
+	_ephy_window_action_set_favicon (window, NULL);
+	_ephy_window_set_navigation_flags (window, 0);
+
+	/* Update sensitivity of actions */
+
+	action = gtk_action_group_get_action (window->priv->toolbar_action_group,
+					      "ViewCombinedStopReload");
+	ephy_combined_stop_reload_action_set_loading (EPHY_COMBINED_STOP_RELOAD_ACTION (action),
+						      FALSE);
+}
+
+static void
+ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
+{
+	if (overview_mode) {
+		/* ephy_window_disconnect_active_embed (window); */
+		ephy_window_prepare_for_overview (window);
+		ephy_window_activate_location (window);
+	} else {
+		gtk_widget_grab_focus (GTK_WIDGET(window->priv->active_embed));
+		sync_tab_address (ephy_embed_get_web_view (window->priv->active_embed),
+				  NULL, window);
+		/* ephy_window_connect_active_embed (window); */
+	}
+	_ephy_window_set_default_actions_sensitive (window, SENS_FLAG_OVERVIEW, overview_mode);
+}
+
+static void
+sync_tab_overview (EphyEmbed *embed,
+		   GParamSpec *pspec,
+		   EphyWindow *window)
+{
+	ephy_window_toggle_overview (window,
+				     ephy_embed_get_overview_mode (embed));
+}
+
 static void
 sync_network_status (EphyEmbedSingle *single,
 		     GParamSpec *pspec,
@@ -2502,6 +2547,7 @@ ephy_window_connect_active_embed (EphyWindow *window)
 	sync_tab_is_blank	(view, NULL, window);
 	sync_tab_navigation	(view, NULL, window);
 	sync_tab_title		(embed, NULL, window);
+	sync_tab_overview       (embed, NULL, window);
 	sync_tab_address	(view, NULL, window);
 	sync_tab_icon		(view, NULL, window);
 	sync_tab_popup_windows	(view, NULL, window);
@@ -2551,6 +2597,9 @@ ephy_window_connect_active_embed (EphyWindow *window)
 				 window, 0);
 	g_signal_connect_object (embed, "notify::title",
 				 G_CALLBACK (sync_tab_title),
+				 window, 0);
+	g_signal_connect_object (embed, "notify::overview-mode",
+				 G_CALLBACK (sync_tab_overview),
 				 window, 0);
 	g_signal_connect_object (view, "notify::address",
 				 G_CALLBACK (sync_tab_address),
@@ -2659,6 +2708,9 @@ ephy_window_disconnect_active_embed (EphyWindow *window)
 					      window);
 	g_signal_handlers_disconnect_by_func (embed,
 					      G_CALLBACK (sync_tab_title),
+					      window);
+	g_signal_handlers_disconnect_by_func (embed,
+					      G_CALLBACK (sync_tab_overview),
 					      window);
 	g_signal_handlers_disconnect_by_func (view,
 					      G_CALLBACK (sync_tab_address),
@@ -4097,40 +4149,6 @@ ephy_window_get_overview_mode (EphyWindow *window)
 	g_return_val_if_fail (EPHY_IS_WINDOW (window), FALSE);
 
 	return window->priv->overview_mode;
-}
-
-static void
-ephy_window_prepare_for_overview (EphyWindow *window)
-{
-	GtkAction *action;
-
-	gtk_window_set_title (GTK_WINDOW (window), _(("Web overview")));
-	ephy_window_set_location (window, "");
-	g_object_set (window->priv->location_controller, "show-icon", FALSE, NULL);
-	_ephy_window_set_security_state (window, FALSE, STOCK_LOCK_INSECURE);
-	_ephy_window_action_set_favicon (window, NULL);
-	_ephy_window_set_navigation_flags (window, 0);
-
-	/* Update sensitivity of actions */
-
-	action = gtk_action_group_get_action (window->priv->toolbar_action_group,
-					      "ViewCombinedStopReload");
-	ephy_combined_stop_reload_action_set_loading (EPHY_COMBINED_STOP_RELOAD_ACTION (action),
-						      FALSE);
-}
-
-static void
-ephy_window_toggle_overview (EphyWindow *window, gboolean overview_mode)
-{
-	if (overview_mode) {
-		ephy_window_disconnect_active_embed (window);
-		ephy_window_prepare_for_overview (window);
-		ephy_window_activate_location (window);
-	} else {
-		gtk_widget_grab_focus (GTK_WIDGET(window->priv->active_embed));
-		ephy_window_connect_active_embed (window);
-	}
-	_ephy_window_set_default_actions_sensitive (window, SENS_FLAG_OVERVIEW, overview_mode);
 }
 
 void
