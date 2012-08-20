@@ -549,6 +549,7 @@ ephy_window_open_link (EphyLink *link,
 				(ephy_shell,
 				 EPHY_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (embed))),
 				 embed, address, ntflags);
+		ephy_embed_set_overview_mode (new_embed, !!(flags & EPHY_LINK_HOME_PAGE));
 	}
 	else
 	{
@@ -556,10 +557,12 @@ ephy_window_open_link (EphyLink *link,
 
 		if (address == NULL || address[0] == '\0' || g_str_equal (address, "about:blank"))
 		{
+			ephy_embed_set_overview_mode (embed, TRUE);
 			ephy_window_activate_location (window);
 		}
 		else
 		{
+			ephy_embed_set_overview_mode (embed, FALSE);
 			gtk_widget_grab_focus (GTK_WIDGET (embed));
 		}
 
