@@ -585,7 +585,9 @@ sync_icon (EphyWebView *view,
 	   GParamSpec *pspec,
 	   GtkImage *icon)
 {
-	gtk_image_set_from_pixbuf (icon, ephy_web_view_get_icon (view));
+	EphyEmbed *embed = EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (view);
+	gtk_image_set_from_pixbuf (icon, ephy_embed_get_overview_mode (embed) ?
+				   NULL : ephy_web_view_get_icon (view));
 }
 
 static void
@@ -596,6 +598,18 @@ sync_label (EphyEmbed *embed, GParamSpec *pspec, GtkWidget *label)
 	title = ephy_embed_get_title (embed);
 
 	gtk_label_set_text (GTK_LABEL (label), title);
+}
+
+static void
+sync_overview_mode_cb (EphyEmbed *embed,
+		       GParamSpec *pspec,
+		       GtkImage *icon)
+{
+	EphyWebView *view;
+
+	view = ephy_embed_get_web_view (embed);
+	gtk_image_set_from_pixbuf (icon, ephy_embed_get_overview_mode (embed) ?
+				   NULL : ephy_web_view_get_icon (view));
 }
 
 static void
@@ -713,6 +727,9 @@ build_tab_label (EphyNotebook *nb, EphyEmbed *embed)
 				 G_CALLBACK (sync_icon), icon, 0);
 	g_signal_connect_object (embed, "notify::title",
 				 G_CALLBACK (sync_label), label, 0);
+	g_signal_connect_object (embed, "notify::overview-mode",
+				 G_CALLBACK (sync_overview_mode_cb),
+				 icon, 0);
 #ifdef HAVE_WEBKIT2
 	g_signal_connect_object (view, "load-changed",
 				 G_CALLBACK (load_changed_cb), hbox, 0);
