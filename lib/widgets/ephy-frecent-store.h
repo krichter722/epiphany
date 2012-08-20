@@ -42,6 +42,7 @@ typedef struct _EphyFrecentStorePrivate EphyFrecentStorePrivate;
 struct _EphyFrecentStore
 {
   EphyOverviewStore parent;
+  EphyFrecentStorePrivate *priv;
 };
 
 struct _EphyFrecentStoreClass
@@ -51,10 +52,15 @@ struct _EphyFrecentStoreClass
 
 GType ephy_frecent_store_get_type (void) G_GNUC_CONST;
 
-EphyFrecentStore* ephy_frecent_store_new        (void);
+EphyFrecentStore* ephy_frecent_store_new                (void);
 
-void              ephy_frecent_store_set_hidden (EphyFrecentStore *store,
-                                                 GtkTreeIter      *iter);
+void              ephy_frecent_store_set_hidden         (EphyFrecentStore *store,
+                                                         GtkTreeIter      *iter);
+
+void              ephy_frecent_store_set_history_length (EphyFrecentStore *store,
+                                                         gint              length);
+
+int               ephy_frecent_store_get_history_length (EphyFrecentStore *store);
 
 G_END_DECLS
 

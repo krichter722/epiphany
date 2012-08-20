@@ -26,6 +26,17 @@
 
 #define EPHY_FRECENT_STORE_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_FRECENT_STORE, EphyFrecentStorePrivate))
 
+struct _EphyFrecentStorePrivate
+{
+  gint history_length;
+};
+
+enum
+{
+  PROP_0,
+  PROP_HISTORY_LENGTH,
+};
+
 G_DEFINE_TYPE (EphyFrecentStore, ephy_frecent_store, EPHY_TYPE_OVERVIEW_STORE)
 
 static void
@@ -98,7 +109,7 @@ ephy_frecent_store_fetch_urls (EphyFrecentStore *store,
 
   query = ephy_history_query_new ();
   query->sort_type = EPHY_HISTORY_SORT_MV;
-  query->limit = 5;
+  query->limit = store->priv->history_length;
   query->ignore_hidden = TRUE;
 
   ephy_history_service_query_urls (service, query, NULL,
@@ -257,16 +268,67 @@ ephy_frecent_store_notify (GObject *object,
 }
 
 static void
+ephy_frecent_store_set_property (GObject *object,
+                                 guint prop_id,
+                                 const GValue *value,
+                                 GParamSpec *pspec)
+{
+  EphyFrecentStore *store = EPHY_FRECENT_STORE (object);
+
+  switch (prop_id)
+  {
+  case PROP_HISTORY_LENGTH:
+    ephy_frecent_store_set_history_length (store, g_value_get_int (value));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    break;
+  }
+}
+
+static void
+ephy_frecent_store_get_property (GObject *object,
+                                 guint prop_id,
+                                 GValue *value,
+                                 GParamSpec *pspec)
+{
+  EphyFrecentStore *store = EPHY_FRECENT_STORE (object);
+
+  switch (prop_id)
+  {
+  case PROP_HISTORY_LENGTH:
+    g_value_set_int (value, ephy_frecent_store_get_history_length (store));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    break;
+  }
+}
+
+static void
 ephy_frecent_store_class_init (EphyFrecentStoreClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->notify = ephy_frecent_store_notify;
+  object_class->set_property = ephy_frecent_store_set_property;
+  object_class->get_property = ephy_frecent_store_get_property;
+
+  g_object_class_install_property (object_class,
+                                   PROP_HISTORY_LENGTH,
+                                   g_param_spec_int ("history-length",
+                                                     "History length",
+                                                     "Length of the history list",
+                                                     0, G_MAXINT, 12,
+                                                     G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+
+  g_type_class_add_private (object_class, sizeof(EphyFrecentStorePrivate));
 }
 
 static void
 ephy_frecent_store_init (EphyFrecentStore *self)
 {
+  self->priv = EPHY_FRECENT_STORE_GET_PRIVATE (self);
 }
 
 EphyFrecentStore *
@@ -308,4 +370,34 @@ ephy_frecent_store_set_hidden (EphyFrecentStore *store,
                                        (EphyHistoryJobCallback) set_url_hidden_cb,
                                        store);
   g_free (uri);
+  g_object_unref (service);
+}
+
+void
+ephy_frecent_store_set_history_length (EphyFrecentStore *store,
+                                       gint length)
+{
+  EphyHistoryService *service;
+
+  g_return_if_fail (EPHY_IS_FRECENT_STORE (store));
+  g_return_if_fail (length > 0);
+
+  if (store->priv->history_length == length)
+    return;
+
+  store->priv->history_length = length;
+
+  g_object_get (G_OBJECT (store), "history-service", &service, NULL);
+  if (service) {
+    ephy_frecent_store_fetch_urls (store, service);
+    g_object_unref (service);
+  }
+}
+
+int
+ephy_frecent_store_get_history_length (EphyFrecentStore *store)
+{
+  g_return_val_if_fail (EPHY_IS_FRECENT_STORE (store), 0);
+
+  return store->priv->history_length;
 }
