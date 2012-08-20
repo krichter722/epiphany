@@ -589,11 +589,11 @@ sync_icon (EphyWebView *view,
 }
 
 static void
-sync_label (EphyWebView *view, GParamSpec *pspec, GtkWidget *label)
+sync_label (EphyEmbed *embed, GParamSpec *pspec, GtkWidget *label)
 {
 	const char *title;
 
-	title = ephy_web_view_get_title (view);
+	title = ephy_embed_get_title (embed);
 
 	gtk_label_set_text (GTK_LABEL (label), title);
 }
@@ -706,12 +706,12 @@ build_tab_label (EphyNotebook *nb, EphyEmbed *embed)
 	/* Hook the label up to the tab properties */
 	view = ephy_embed_get_web_view (embed);
 	sync_icon (view, NULL, GTK_IMAGE (icon));
-	sync_label (view, NULL, label);
+	sync_label (embed, NULL, label);
 	sync_load_status (view, NULL, hbox);
 
 	g_signal_connect_object (view, "notify::icon",
 				 G_CALLBACK (sync_icon), icon, 0);
-	g_signal_connect_object (view, "notify::embed-title",
+	g_signal_connect_object (embed, "notify::title",
 				 G_CALLBACK (sync_label), label, 0);
 #ifdef HAVE_WEBKIT2
 	g_signal_connect_object (view, "load-changed",
