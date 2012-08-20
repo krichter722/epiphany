@@ -197,6 +197,8 @@ ephy_overview_constructed (GObject *object)
   default_icon = ephy_overview_get_icon ("text-html");
 
   self->priv->frecent_view = GTK_WIDGET (gd_main_view_new (GD_MAIN_VIEW_ICON));
+  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (self->priv->frecent_view),
+                                       GTK_SHADOW_NONE);
   g_signal_connect (self->priv->frecent_view, "item-activated",
                     G_CALLBACK (main_view_item_activated), object);
   g_signal_connect (self->priv->frecent_view, "item-deleted",
