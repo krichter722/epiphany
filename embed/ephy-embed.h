@@ -67,6 +67,7 @@ void         ephy_embed_set_overview_mode        (EphyEmbed *embed,
                                                   gboolean   overview_mode);
 gboolean     ephy_embed_get_overview_mode        (EphyEmbed *embed);
 EphyOverview*ephy_embed_get_overview             (EphyEmbed *embed);
+const char  *ephy_embed_get_title                (EphyEmbed *embed);
 
 G_END_DECLS
 

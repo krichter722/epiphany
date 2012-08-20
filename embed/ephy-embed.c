@@ -43,12 +43,15 @@
 #include <webkit/webkit.h>
 #endif
 
-static void     ephy_embed_constructed      (GObject *object);
+static void     ephy_embed_constructed        (GObject *object);
 #ifndef HAVE_WEBKIT2
-static gboolean ephy_embed_inspect_show_cb  (WebKitWebInspector *inspector,
-                                             EphyEmbed *embed);
-static gboolean ephy_embed_inspect_close_cb (WebKitWebInspector *inspector,
-                                             EphyEmbed *embed);
+static gboolean ephy_embed_inspect_show_cb    (WebKitWebInspector *inspector,
+                                               EphyEmbed *embed);
+static gboolean ephy_embed_inspect_close_cb   (WebKitWebInspector *inspector,
+                                               EphyEmbed *embed);
+static void     ephy_embed_set_title_internal (EphyEmbed *embed,
+                                               const char *title);
+
 #endif
 
 #define EPHY_EMBED_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_EMBED, EphyEmbedPrivate))
@@ -81,6 +84,8 @@ struct _EphyEmbedPrivate
 
   GtkWidget *overview;
   guint overview_mode : 1;
+  char *title;
+
   GSList *messages;
   GSList *keys;
 
@@ -102,6 +107,7 @@ enum
 {
   PROP_0,
   PROP_OVERVIEW_MODE,
+  PROP_TITLE,
 };
 
 G_DEFINE_TYPE (EphyEmbed, ephy_embed, GTK_TYPE_BOX)
@@ -348,6 +354,20 @@ ephy_embed_leaving_fullscreen (EphyEmbed *embed)
 }
 
 static void
+notify_title_cb (GObject *object,
+                 GParamSpec *pspec,
+                 EphyEmbed *embed)
+{
+  EphyWebView *web_view = EPHY_WEB_VIEW (object);
+
+  if (embed->priv->overview_mode)
+    return;
+
+  ephy_embed_set_title_internal (embed,
+                                 ephy_web_view_get_title (EPHY_WEB_VIEW (web_view)));
+}
+
+static void
 ephy_embed_dispose (GObject *object)
 {
   EphyEmbed *embed = EPHY_EMBED (object);
@@ -435,6 +455,8 @@ ephy_embed_finalize (GObject *object)
 
   g_free (embed->priv->fullscreen_string);
 
+  g_free (embed->priv->title);
+
   G_OBJECT_CLASS (ephy_embed_parent_class)->finalize (object);
 }
 
@@ -450,6 +472,9 @@ ephy_embed_set_property (GObject *object,
   {
   case PROP_OVERVIEW_MODE:
     ephy_embed_set_overview_mode (embed, g_value_get_boolean (value));
+    break;
+  case PROP_TITLE:
+    ephy_embed_set_title_internal (embed, g_value_get_string (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -469,6 +494,9 @@ ephy_embed_get_property (GObject *object,
   {
   case PROP_OVERVIEW_MODE:
     g_value_set_boolean (value, ephy_embed_get_overview_mode (embed));
+    break;
+  case PROP_TITLE:
+    g_value_set_string (value, ephy_embed_get_title (embed));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -496,6 +524,14 @@ ephy_embed_class_init (EphyEmbedClass *klass)
                                                          "Whether the embed is showing the overview",
                                                          FALSE,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
+  g_object_class_install_property (object_class,
+                                   PROP_TITLE,
+                                   g_param_spec_string ("title",
+                                                        "Embed title",
+                                                        "Title of this embed",
+                                                        "",
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   g_type_class_add_private (G_OBJECT_CLASS (klass), sizeof(EphyEmbedPrivate));
 }
@@ -914,6 +950,7 @@ ephy_embed_constructed (GObject *object)
                     "signal::download-requested", G_CALLBACK (download_requested_cb), embed,
                     "signal::entering-fullscreen", G_CALLBACK (entering_fullscreen_cb), embed,
                     "signal::leaving-fullscreen", G_CALLBACK (leaving_fullscreen_cb), embed,
+                    "signal::notify::title", G_CALLBACK (notify_title_cb), embed,
                     NULL);
 #endif
 
@@ -1100,6 +1137,27 @@ ephy_embed_get_container (EphyEmbed *embed)
 
   return gtk_widget_get_parent (GTK_WIDGET (embed));
 }
+
+static void
+ephy_embed_set_title_internal (EphyEmbed *embed,
+                               const char *title)
+{
+  if (embed->priv->title)
+    g_free (embed->priv->title);
+
+  embed->priv->title = g_strdup (title);
+
+  g_object_notify (G_OBJECT (embed), "title");
+}
+
+const char *
+ephy_embed_get_title (EphyEmbed *embed)
+{
+  g_return_val_if_fail (EPHY_IS_EMBED (embed), NULL);
+
+  return embed->priv->title;
+}
+
 void
 ephy_embed_set_overview_mode (EphyEmbed *embed, gboolean overview_mode)
 {
@@ -1113,6 +1171,10 @@ ephy_embed_set_overview_mode (EphyEmbed *embed, gboolean overview_mode)
     return;
 
   priv->overview_mode = overview_mode;
+
+  ephy_embed_set_title_internal (embed,
+                                 overview_mode ? _("New tab") :
+                                 ephy_web_view_get_title (EPHY_WEB_VIEW (priv->web_view)));
 
   g_object_notify (G_OBJECT (embed), "overview-mode");
 }
