@@ -147,6 +147,7 @@ main_view_item_activated (GtkWidget *widget,
     gtk_tree_model_get (model, &iter,
                         EPHY_OVERVIEW_STORE_URI, &url,
                         -1);
+    g_signal_emit_by_name (overview, "open-link", url);
 #if 0
     ephy_shell_new_tab (ephy_shell, window, NULL, url,
                         EPHY_NEW_TAB_OPEN_PAGE |
@@ -243,6 +244,14 @@ ephy_overview_class_init (EphyOverviewClass *klass)
   object_class->get_property = ephy_overview_get_property;
   object_class->constructed  = ephy_overview_constructed;
 
+  g_signal_new ("open-link",
+                EPHY_TYPE_OVERVIEW,
+                G_SIGNAL_RUN_LAST,
+                0, NULL, NULL,
+                g_cclosure_marshal_generic,
+                G_TYPE_NONE,
+                1,
+                G_TYPE_STRING);
 
   g_type_class_add_private (object_class, sizeof (EphyOverviewPrivate));
 }
