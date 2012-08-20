@@ -149,10 +149,6 @@ ephy_toolbar_constructed (GObject *object)
   gtk_container_add (GTK_CONTAINER (toolbar), GTK_WIDGET (tool_item));
   gtk_widget_show_all (GTK_WIDGET (tool_item));
   gtk_widget_set_margin_right (GTK_WIDGET (tool_item), 12);
-	g_object_bind_property (priv->window, "overview-mode",
-                          tool_button, "sensitive",
-                          G_BINDING_SYNC_CREATE
-                          | G_BINDING_INVERT_BOOLEAN);
 
   /* Location and Reload/Stop */
   location_stop_reload = gtk_tool_item_new ();

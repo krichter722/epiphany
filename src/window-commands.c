@@ -1537,6 +1537,10 @@ void
 window_cmd_toggle_overview (GtkAction *action,
 			    EphyWindow *window)
 {
-	ephy_window_set_overview_mode (window,
-				       !ephy_window_get_overview_mode (window));
+	EphyEmbed *embed;
+	embed = ephy_embed_container_get_active_child
+		(EPHY_EMBED_CONTAINER (ephy_window_get_notebook (window)));
+
+	ephy_embed_set_overview_mode (embed,
+				      !ephy_embed_get_overview_mode (embed));
 }

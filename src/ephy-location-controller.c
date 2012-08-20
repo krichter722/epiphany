@@ -229,13 +229,11 @@ get_location_cb (EphyLocationEntry *entry,
 	EphyLocationControllerPrivate *priv = controller->priv;
 	EphyEmbed *embed;
 
-	if (ephy_window_get_overview_mode (priv->window))
-		return NULL;
-
 	embed = ephy_embed_container_get_active_child 
 	  (EPHY_EMBED_CONTAINER (ephy_window_get_notebook (priv->window)));
 
-	return g_strdup (ephy_web_view_get_address (ephy_embed_get_web_view (embed)));
+	return ephy_embed_get_overview_mode (embed) ? NULL :
+		g_strdup (ephy_web_view_get_address (ephy_embed_get_web_view (embed)));
 }
 
 static char *
