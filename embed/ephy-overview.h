@@ -22,8 +22,6 @@
 #ifndef _EPHY_OVERVIEW_H
 #define _EPHY_OVERVIEW_H
 
-#include "ephy-window.h"
-
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -53,7 +51,7 @@ struct _EphyOverviewClass {
 };
 
 GType       ephy_overview_get_type      (void) G_GNUC_CONST;
-GtkWidget * ephy_overview_new           (EphyWindow *parent_window);
+GtkWidget * ephy_overview_new           (void);
 
 G_END_DECLS
 

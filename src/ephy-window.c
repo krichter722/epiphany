@@ -3570,7 +3570,7 @@ ephy_window_constructor (GType type,
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
 			    GTK_WIDGET (priv->find_toolbar), FALSE, FALSE, 0);
 
-	priv->overview = ephy_overview_new (EPHY_WINDOW (window));
+	priv->overview = ephy_overview_new ();
 	gtk_box_pack_start (GTK_BOX (priv->main_vbox),
 			    priv->overview, TRUE, TRUE, 0);
 	g_object_bind_property (window, "overview-mode",
