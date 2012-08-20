@@ -31,49 +31,12 @@
 
 #define EPHY_OVERVIEW_GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_OVERVIEW, EphyOverviewPrivate))
 
-enum
-{
-  PROP_0,
-};
-
 struct _EphyOverviewPrivate
 {
   GtkWidget *frecent_view;
 };
 
 G_DEFINE_TYPE (EphyOverview, ephy_overview, GTK_TYPE_GRID)
-
-static void
-ephy_overview_set_property (GObject *object,
-                            guint prop_id,
-                            const GValue *value,
-                            GParamSpec *pspec)
-{
-  EphyOverview *overview = EPHY_OVERVIEW (object);
-
-  switch (prop_id)
-  {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    break;
-  }
-}
-
-static void
-ephy_overview_get_property (GObject *object,
-                            guint prop_id,
-                            GValue *value,
-                            GParamSpec *pspec)
-{
-  EphyOverview *overview = EPHY_OVERVIEW (object);
-
-  switch (prop_id)
-  {
-  default:
-    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    break;
-  }
-}
 
 #if 0
 static gboolean
@@ -128,7 +91,6 @@ main_view_item_activated (GtkWidget *widget,
                           GtkTreePath *path,
                           EphyOverview *overview)
 {
-  guint position;
   GtkTreeModel *model;
   GtkTreeIter iter;
   char *url;
@@ -187,7 +149,7 @@ ephy_overview_get_icon (const gchar *icon_name)
 static void
 ephy_overview_constructed (GObject *object)
 {
-  EphyOverviewStore *store;
+  EphyFrecentStore *store;
   EphyOverview *self = EPHY_OVERVIEW (object);
   GdkPixbuf *default_icon;
 
@@ -204,7 +166,7 @@ ephy_overview_constructed (GObject *object)
   g_signal_connect (self->priv->frecent_view, "item-deleted",
                     G_CALLBACK (frecent_view_item_deleted), NULL);
 
-  store = ephy_embed_shell_get_frecent_store (EPHY_EMBED_SHELL (ephy_shell_get_default()));
+  store = ephy_embed_shell_get_frecent_store (EPHY_EMBED_SHELL (ephy_embed_shell_get_default()));
   g_object_set (G_OBJECT (store),
                 "default-icon", default_icon,
                 NULL);
@@ -243,8 +205,6 @@ ephy_overview_class_init (EphyOverviewClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->set_property = ephy_overview_set_property;
-  object_class->get_property = ephy_overview_get_property;
   object_class->constructed  = ephy_overview_constructed;
 
   g_signal_new ("open-link",
