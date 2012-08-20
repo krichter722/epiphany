@@ -23,13 +23,11 @@ NOINST_H_FILES = \
 	ephy-encoding-dialog.h			\
 	ephy-encoding-menu.h			\
 	ephy-find-toolbar.h			\
-	ephy-frecent-store.h			\
 	ephy-history-window.h			\
 	ephy-home-action.h			\
 	ephy-link-action.h			\
 	ephy-lockdown.h				\
 	ephy-location-controller.h		\
-	ephy-overview.h				\
 	ephy-navigation-history-action.h	\
 	ephy-page-menu-action.h			\
 	ephy-password-info.h			\
@@ -64,14 +62,12 @@ libephymain_la_SOURCES = \
 	ephy-extension.c			\
 	ephy-extensions-manager.c		\
 	ephy-find-toolbar.c			\
-	ephy-frecent-store.c			\
 	ephy-home-action.c			\
 	ephy-history-window.c			\
 	ephy-link.c				\
 	ephy-link-action.c			\
 	ephy-location-controller.c		\
 	ephy-lockdown.c				\
-	ephy-overview.c				\
 	ephy-navigation-history-action.c	\
 	ephy-notebook.c				\
 	ephy-page-menu-action.c			\

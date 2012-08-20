@@ -65,6 +65,8 @@ nodist_libephywidgets_la_SOURCES = \
 libephywidgets_la_SOURCES = \
 	ephy-download-widget.c			\
 	ephy-download-widget.h			\
+	ephy-frecent-store.c			\
+	ephy-frecent-store.h			\
 	ephy-history-view.c			\
 	ephy-history-view.h			\
 	ephy-hosts-store.c			\
