@@ -254,6 +254,7 @@ setup_history_service (EphyFrecentStore *store)
                     G_CALLBACK (on_url_deleted), store);
   g_signal_connect (service, "host-deleted",
                     G_CALLBACK (on_host_deleted), store);
+  g_object_unref (service);
 }
 
 static void
