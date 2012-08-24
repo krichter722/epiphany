@@ -696,18 +696,27 @@ migrate_history ()
   g_object_unref (history_service);
 }
 
-static void
-migrate_tabs_visibility ()
+static gboolean
+migrate_tabs_visibility (const char *profile_dir,
+                         const char *dest_dir,
+                         gboolean dry_run,
+                         gpointer data)
 {
   gboolean always_show_tabs;
 
   always_show_tabs = g_settings_get_boolean (EPHY_SETTINGS_UI,
                                              EPHY_PREFS_UI_ALWAYS_SHOW_TABS_BAR);
 
-  if (always_show_tabs)
-    g_settings_set_enum (EPHY_SETTINGS_UI,
-                         EPHY_PREFS_UI_TABS_BAR_VISIBILITY_POLICY,
-                         EPHY_PREFS_UI_TABS_BAR_VISIBILITY_POLICY_ALWAYS);
+  if (always_show_tabs) {
+    if (dry_run)
+      LOG ("[tabs-visibility] DR: setting policy to ALWAYS");
+    else
+      g_settings_set_enum (EPHY_SETTINGS_UI,
+                           EPHY_PREFS_UI_TABS_BAR_VISIBILITY_POLICY,
+                           EPHY_PREFS_UI_TABS_BAR_VISIBILITY_POLICY_ALWAYS);
+  }
+
+  return TRUE;
 }
 
 static void
