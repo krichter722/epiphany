@@ -65,7 +65,7 @@ get_icon_rectangle (GtkWidget *widget,
     x_offset = cell_area->width - icon_size - xpad - 10;
 
   rectangle->x = cell_area->x + x_offset;
-  rectangle->y = cell_area->y + ypad + 5;
+  rectangle->y = cell_area->y + ypad + 15;
   rectangle->width = rectangle->height = icon_size;
 }
 
