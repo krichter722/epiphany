@@ -54,7 +54,7 @@ get_icon_rectangle (GtkWidget *widget,
   GtkTextDirection direction;
   gint x_offset, y_offset, xpad, ypad;
   gint icon_size;
-  gint w, h;
+  gint w = 0, h = 0;
   GdkPixbuf *pixbuf;
 
   gtk_cell_renderer_get_padding (cell, &xpad, &ypad);
@@ -62,9 +62,11 @@ get_icon_rectangle (GtkWidget *widget,
   icon_size = gdk_pixbuf_get_width (icon);
 
   g_object_get (cell, "pixbuf", &pixbuf, NULL);
-  w = gdk_pixbuf_get_width (pixbuf);
-  h = gdk_pixbuf_get_height (pixbuf);
-  g_object_unref (pixbuf);
+  if (pixbuf) {
+    w = gdk_pixbuf_get_width (pixbuf);
+    h = gdk_pixbuf_get_height (pixbuf);
+    g_object_unref (pixbuf);
+  }
 
   x_offset = (cell_area->width - w)/2 + 5;
   y_offset = (cell_area->height - h)/2 + 5;
