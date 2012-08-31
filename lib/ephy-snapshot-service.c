@@ -62,6 +62,8 @@ snapshot_op_free (SnapshotOp *op)
     g_object_unref (op->cancellable);
   if (op->webview)
     g_object_unref (op->webview);
+  if (op->snapshot)
+    g_object_unref (op->snapshot);
 
   g_slice_free (SnapshotOp, op);
 }
