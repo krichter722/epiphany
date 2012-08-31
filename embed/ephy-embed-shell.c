@@ -178,15 +178,6 @@ ephy_embed_shell_get_global_history_service (EphyEmbedShell *shell)
 	return G_OBJECT (shell->priv->global_history_service);
 }
 
-/**
- * ephy_embed_shell_get_frecent_store:
- * @shell: a #EphyEmbedShell
- *
- * Gets the #EphyFrecentStore in the shell. This can be used
- * by EphyOverview implementors.
- *
- * Returns: (transfer none): a #EphyFrecentStore
- **/
 static GdkPixbuf *
 ephy_embed_shell_get_icon (const char *icon_name)
 {
@@ -210,6 +201,15 @@ ephy_embed_shell_get_icon (const char *icon_name)
   return pixbuf;
 }
 
+/**
+ * ephy_embed_shell_get_frecent_store:
+ * @shell: a #EphyEmbedShell
+ *
+ * Gets the #EphyFrecentStore in the shell. This can be used
+ * by EphyOverview implementors.
+ *
+ * Returns: (transfer none): a #EphyFrecentStore
+ **/
 EphyFrecentStore *
 ephy_embed_shell_get_frecent_store (EphyEmbedShell *shell)
 {
