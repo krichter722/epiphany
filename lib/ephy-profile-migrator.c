@@ -870,14 +870,17 @@ migrate_web_app_links ()
   ephy_web_application_free_application_list (apps);
 }
 
-static void
-migrate_new_urls_table ()
+static gboolean
+migrate_new_urls_table (const char *profile_dir,
+                        const char *dest_dir,
+                        gboolean dry_run,
+                        gpointer data)
 {
   EphySQLiteConnection *history_database;
   char *filename;
   GError *error = NULL;
 
-  filename = g_build_filename (ephy_dot_dir (), "ephy-history.db", NULL);
+  filename = g_build_filename (profile_dir, "ephy-history.db", NULL);
   history_database = ephy_sqlite_connection_new ();
   ephy_sqlite_connection_open (history_database, filename, &error);
 
@@ -885,32 +888,46 @@ migrate_new_urls_table ()
     g_warning ("Failed to open history database: %s\n", error->message);
     g_error_free (error);
     g_free (filename);
-    return;
+
+    return FALSE;
   }
 
-  ephy_sqlite_connection_execute (history_database,
-                                  "ALTER TABLE urls "
-                                  "ADD COLUMN thumbnail_update_time INTEGER DEFAULT 0",
-                                  &error);
+  if (dry_run)
+    LOG ("[urls_table] DR: Adding thumbnail_update_time column to %s", filename);
+  else
+    ephy_sqlite_connection_execute (history_database,
+                                    "ALTER TABLE urls "
+                                    "ADD COLUMN thumbnail_update_time INTEGER DEFAULT 0",
+                                    &error);
   if (error) {
     g_warning ("Failed to add new column to table in history backend: %s\n",
                error->message);
     g_error_free (error);
     error = NULL;
+
+    return FALSE;
   }
-  ephy_sqlite_connection_execute (history_database,
-                                  "ALTER TABLE urls "
-                                  "ADD COLUMN hidden_from_overview INTEGER DEFAULT 0",
-                                  &error);
+
+  if (dry_run)
+    LOG ("[urls_table] DR: Adding hidden_from_overview column to %s", filename);
+  else
+    ephy_sqlite_connection_execute (history_database,
+                                    "ALTER TABLE urls "
+                                    "ADD COLUMN hidden_from_overview INTEGER DEFAULT 0",
+                                    &error);
   if (error) {
     g_warning ("Failed to add new column to table in history backend: %s\n",
                error->message);
     g_error_free (error);
     error = NULL;
+
+    return FALSE;
   }
 
   g_object_unref (history_database);
   g_free (filename);
+
+  return TRUE;
 }
 
 const EphyProfileMigrator migrators[] = {
