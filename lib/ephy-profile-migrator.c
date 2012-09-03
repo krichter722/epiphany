@@ -625,8 +625,11 @@ static GMarkupParser history_parse_funcs =
   NULL,
 };
 
-static void
-migrate_history ()
+static gboolean
+migrate_history (const char *profile_dir,
+                 const char *dest_dir,
+                 gboolean dry_run,
+                 gpointer data)
 {
   GFileInputStream *input;
   GMarkupParseContext *context;
@@ -635,14 +638,21 @@ migrate_history ()
   char *filename;
   char buffer[1024];
   HistoryParseData parse_data;
+  char *temporary_file;
 
-  gchar *temporary_file = g_build_filename (ephy_dot_dir (), "ephy-history.db", NULL);
+  if (dry_run) {
+    g_warning ("[history] dry-run not implemented");
+
+    return TRUE;
+  }
+
+  temporary_file = g_build_filename (dest_dir, "ephy-history.db", NULL);
   /* Do nothing if the history file already exists. Safer than wiping
    * it out. */
   if (g_file_test (temporary_file, G_FILE_TEST_EXISTS)) {
     g_warning ("Did not migrate Epiphany's history, the ephy-history.db file already exists");
     g_free (temporary_file);
-    return;
+    return FALSE;
   }
 
   history_service = ephy_history_service_new (temporary_file);
@@ -653,7 +663,7 @@ migrate_history ()
   parse_data.title = NULL;
   parse_data.visits = NULL;
 
-  filename = g_build_filename (ephy_dot_dir (),
+  filename = g_build_filename (profile_dir ,
                                "ephy-history.xml",
                                NULL);
 
@@ -668,7 +678,7 @@ migrate_history ()
       g_warning ("Could not load Epiphany history data, migration aborted: %s", error->message);
 
     g_error_free (error);
-    return;
+    return FALSE;
   }
 
   context = g_markup_parse_context_new (&history_parse_funcs, 0, &parse_data, NULL);
@@ -694,6 +704,8 @@ migrate_history ()
   }
 
   g_object_unref (history_service);
+
+  return TRUE;
 }
 
 static gboolean
