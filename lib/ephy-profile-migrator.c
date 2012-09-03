@@ -61,7 +61,10 @@ static int version = -1;
  *  - Add your function at the end of the 'migrators' array
  */
 
-typedef void (*EphyProfileMigrator) (void);
+typedef gboolean (*EphyProfileMigrator) (const char *profile_dir,
+                                         const char *dest_dir,
+                                         gboolean dry_run,
+                                         gpointer data);
 
 static gboolean
 profile_dir_exists ()
