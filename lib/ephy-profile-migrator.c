@@ -52,6 +52,7 @@
 #include <sys/types.h>
 
 static int do_step_n = -1;
+static gboolean do_dry_run = FALSE;
 static int version = -1;
 
 /*
@@ -967,9 +968,14 @@ const EphyProfileMigrator migrators[] = {
 };
 
 static gboolean
-ephy_migrator ()
+ephy_migrator (const char *source,
+               const char *dest,
+               gboolean dry_run,
+               gpointer data)
 {
   int latest, i;
+  const char *profile_dir;
+  const char *dest_dir;
   EphyProfileMigrator m;
 
   /* Always try to migrate the data from the old profile dir at the
@@ -982,15 +988,24 @@ ephy_migrator ()
   if (!profile_dir_exists ())
     return TRUE;
 
+  profile_dir = (source == NULL) ? ephy_dot_dir () : source;
+  dest_dir = profile_dir;
+  //dest_dir = (dest == NULL) ? ephy_dot_dir () : dest;
+
   if (do_step_n != -1) {
-    if (do_step_n >= EPHY_PROFILE_MIGRATION_VERSION)
-      return FALSE;
+    EphyProfileMigrator m;
+
+    if (do_step_n >= EPHY_PROFILE_MIGRATION_VERSION) {
+      g_warning ("Migration step %d unknown to migrator version %d",
+                 do_step_n,
+                 EPHY_PROFILE_MIGRATION_VERSION);
+      return 1;
+    }
 
     LOG ("Running only migrator: %d", do_step_n);
     m = migrators[do_step_n];
-    m();
 
-    return TRUE;
+    return m (profile_dir, dest_dir, do_dry_run, data);
   }
 
   latest = ephy_profile_utils_get_migration_version ();
@@ -1009,7 +1024,7 @@ ephy_migrator ()
       continue;
 
     m = migrators[i];
-    m();
+    m (profile_dir, dest_dir, dry_run, data);
   }
 
   if (ephy_profile_utils_set_migration_version (EPHY_PROFILE_MIGRATION_VERSION) != TRUE) {
@@ -1024,6 +1039,8 @@ static const GOptionEntry option_entries[] =
 {
   { "do-step", 'd', 0, G_OPTION_ARG_INT, &do_step_n,
     N_("Executes only the n-th migration step"), NULL },
+  { "dry-run", 'n', 0, G_OPTION_ARG_NONE, &do_dry_run,
+    N_("Run in dry-mode, do not change a thing"), NULL },
   { "version", 'v', 0, G_OPTION_ARG_INT, &version,
     N_("Specifies the required version for the migrator"), NULL },
   { NULL }
@@ -1072,5 +1089,9 @@ main (int argc, char *argv[])
     return -1;
   }
 
-  return ephy_migrator () ? 0 : 1;
+  if (do_dry_run) {
+    g_print ("ephy-profile-migrator in dry-run mode\n");
+  }
+
+  return ephy_migrator (NULL, NULL, do_dry_run, NULL) ? 0 : 1;
 }
