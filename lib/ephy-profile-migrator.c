@@ -767,8 +767,11 @@ migrate_profile (const char *old_dir,
   g_free (updated);
 }
 
-static void
-migrate_profile_gnome2_to_xdg ()
+static gboolean
+migrate_profile_gnome2_to_xdg (const char *profile_dir,
+                               const char *dest_dir,
+                               gboolean dry_run,
+                               gpointer data)
 {
   char *old_dir;
   char *new_dir;
@@ -781,10 +784,15 @@ migrate_profile_gnome2_to_xdg ()
                               "epiphany",
                               NULL);
 
-  migrate_profile (old_dir, new_dir);
+  if (dry_run)
+    LOG ("[gnome2_to_xdg] DR: Moving from %s to %s", old_dir, new_dir);
+  else
+    migrate_profile (old_dir, new_dir);
 
   g_free (new_dir);
   g_free (old_dir);
+
+  return TRUE;
 }
 
 static char *
@@ -966,7 +974,7 @@ ephy_migrator ()
 
   /* Always try to migrate the data from the old profile dir at the
    * very beginning. */
-  migrate_profile_gnome2_to_xdg ();
+  migrate_profile_gnome2_to_xdg (NULL, NULL, FALSE, NULL);
 
   /* If after this point there's no profile dir, there's no point in
    * running anything because Epiphany has never run in this sytem, so
