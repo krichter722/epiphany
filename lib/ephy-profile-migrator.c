@@ -985,8 +985,10 @@ ephy_migrator (const char *source,
   /* If after this point there's no profile dir, there's no point in
    * running anything because Epiphany has never run in this sytem, so
    * exit here. */
-  if (!profile_dir_exists ())
+  if (!profile_dir_exists ()) {
+    g_warning ("No Epiphany profile detected, can not migrate");
     return TRUE;
+  }
 
   profile_dir = (source == NULL) ? ephy_dot_dir () : source;
   dest_dir = profile_dir;
