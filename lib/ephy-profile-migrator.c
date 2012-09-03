@@ -820,8 +820,11 @@ fix_desktop_file_and_return_new_location (const char *dir)
   return result;
 }
 
-static void
-migrate_web_app_links ()
+static gboolean
+migrate_web_app_links (const char *profile_dir,
+                       const char *dest_dir,
+                       gboolean dry_run,
+                       gpointer data)
 {
   GList *apps, *p;
 
@@ -851,11 +854,19 @@ migrate_web_app_links ()
           /* FIXME: Updating the file info and setting it again should
            * work, but it does not? Just delete and create the link
            * again. */
-          g_file_delete (file, 0, 0);
+          if (dry_run)
+            LOG ("[web_app_links] DR: Deleting old link %s", app_link);
+          else
+            g_file_delete (file, 0, 0);
+
           g_object_unref (file);
 
           file = g_file_new_for_path (app_link);
-          g_file_make_symbolic_link (file, new_target, NULL, NULL);
+
+          if (dry_run)
+            LOG ("[web_app_links] DR: Creating new link %s -> %s", app_link, new_target);
+          else
+            g_file_make_symbolic_link (file, new_target, NULL, NULL);
 
           g_object_unref (info);
           g_free (new_target);
@@ -868,6 +879,8 @@ migrate_web_app_links ()
   }
 
   ephy_web_application_free_application_list (apps);
+
+  return TRUE;
 }
 
 static gboolean
