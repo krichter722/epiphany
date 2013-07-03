@@ -77,6 +77,7 @@ struct _EphyWebViewPrivate {
   guint is_setting_zoom : 1;
   guint load_failed : 1;
   guint history_frozen : 1;
+  guint is_custom_http_errors_management : 1;
 
   char *address;
   char *typed_address;
@@ -2174,6 +2175,28 @@ load_changed_cb (WebKitWebView *web_view,
       g_free (history_uri);
     }
 
+    if (priv->is_custom_http_errors_management) {
+       WebKitWebResource *web_resource;
+       WebKitURIResponse *response;
+       guint status_code;
+
+       web_resource = webkit_web_view_get_main_resource (WEBKIT_WEB_VIEW (view));
+       response = webkit_web_resource_get_response (web_resource);
+       status_code = webkit_uri_response_get_status_code (response);
+
+       if (SOUP_STATUS_IS_CLIENT_ERROR (status_code) ||
+           SOUP_STATUS_IS_SERVER_ERROR (status_code)) {
+           GError *error = g_error_new (g_quark_from_static_string ("ephy-http-error"),
+                                        status_code,
+                                        "%d",
+                                        status_code);
+           ephy_web_view_load_error_page (EPHY_WEB_VIEW (view),
+                                          uri,
+                                          EPHY_WEB_VIEW_ERROR_PAGE_HTTP_ERROR,
+                                          error);
+           g_error_free (error);
+       }
+    }
     break;
   }
   case WEBKIT_LOAD_FINISHED:
@@ -2448,6 +2471,19 @@ ephy_web_view_load_error_page (EphyWebView *view,
       html_file = ephy_file ("error.html");
       stock_icon = "dialog-error";
       break;
+    case EPHY_WEB_VIEW_ERROR_PAGE_HTTP_ERROR:
+      page_title = g_strdup_printf (_("Oops! Error loading %s"), hostname);
+
+      msg_title = g_strdup (_("Oops! A HTTP error status code has been detected"));
+      msg = g_strdup_printf (_("<p>The website at <strong>%s</strong> has returned "
+                               "the following HTTP error status code: <em>%s</em>.</p>"),
+                             uri, reason);
+
+      button_label = g_strdup (_("Try again"));
+
+      html_file = ephy_file ("error.html");
+      stock_icon = "dialog-error";
+      break;
     case EPHY_WEB_VIEW_ERROR_PAGE_CRASH:
       page_title = g_strdup_printf (_("Oops! Error loading %s"), hostname);
 
@@ -2693,6 +2729,16 @@ do_not_track_setting_changed_cb (GSettings *settings,
 #endif
 
 static void
+custom_http_errors_management_cb (GSettings *settings,
+                                  char *key,
+                                  EphyWebView *view)
+{
+  EphyWebViewPrivate *priv = view->priv;
+  priv->is_custom_http_errors_management = g_settings_get_boolean (EPHY_SETTINGS_MAIN,
+                                                                   EPHY_PREFS_CUSTOM_HTTP_ERRORS_MANAGEMENT);
+}
+
+static void
 ephy_web_view_init (EphyWebView *web_view)
 {
   EphyWebViewPrivate *priv;
@@ -2827,6 +2873,12 @@ ephy_web_view_init (EphyWebView *web_view)
                     "changed::" EPHY_PREFS_WEB_DO_NOT_TRACK,
                     G_CALLBACK (do_not_track_setting_changed_cb), web_view);
 #endif
+
+  priv->is_custom_http_errors_management = g_settings_get_boolean (EPHY_SETTINGS_MAIN,
+                                                                   EPHY_PREFS_CUSTOM_HTTP_ERRORS_MANAGEMENT);
+  g_signal_connect (EPHY_SETTINGS_MAIN,
+                    "changed::" EPHY_PREFS_CUSTOM_HTTP_ERRORS_MANAGEMENT,
+                    G_CALLBACK (custom_http_errors_management_cb), web_view);
 }
 
 /**
