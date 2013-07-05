@@ -157,7 +157,8 @@ ephy_embed_utils_url_is_empty (const char *location)
 
   if (location == NULL || 
       location[0] == '\0' || 
-      strcmp (location, "about:blank") == 0)
+      strcmp (location, "about:blank") == 0 ||
+      strcmp (location, "about:overview") == 0)
     is_empty = TRUE;
   
   return is_empty;

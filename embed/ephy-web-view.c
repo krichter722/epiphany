@@ -4099,23 +4099,40 @@ ephy_web_view_save (EphyWebView *view, const char *uri)
  * ephy_web_view_load_homepage:
  * @view: an #EphyWebView
  *
- * Loads the homepage, which is hardcoded to be "about:overview"
+ * Loads the homepage defined by EPHY_PREFS_HOMEPAGE_URL,
+ * or "about:overview" if there is none configured
+ *
+ * Returns: %TRUE if there is an empty configuration for the
+ * homepage on the gsettings preference, %FALSE otherwise
  *
  **/
-void
+gboolean
 ephy_web_view_load_homepage (EphyWebView *view)
 {
-  g_return_if_fail (EPHY_IS_WEB_VIEW (view));
+  gboolean is_empty = FALSE;
+
+  g_return_val_if_fail (EPHY_IS_WEB_VIEW (view), FALSE);
 
   g_signal_emit_by_name (view, "loading-homepage");
 
   ephy_web_view_set_visit_type (view,
                                 EPHY_PAGE_VISIT_HOMEPAGE);
   if (ephy_embed_shell_get_mode (ephy_embed_shell_get_default ())
-      == EPHY_EMBED_SHELL_MODE_INCOGNITO)
+      == EPHY_EMBED_SHELL_MODE_INCOGNITO) {
     ephy_web_view_load_url (view, "about:incognito");
-  else
-    ephy_web_view_load_url (view, "about:overview");
+  } else {
+    char *home = g_settings_get_string (EPHY_SETTINGS_MAIN, EPHY_PREFS_HOMEPAGE_URL);
+    if (home == NULL || home[0] == '\0') {
+      g_free (home);
+      home = g_strdup ("about:overview");
+    }
+
+    is_empty = ephy_embed_utils_url_is_empty (home);
+    ephy_web_view_load_url (view, home);
+    g_free (home);
+  }
+
+  return is_empty;
 }
 
 /**

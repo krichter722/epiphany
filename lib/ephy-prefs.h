@@ -125,6 +125,7 @@ typedef enum
 #define EPHY_PREFS_RESTORE_SESSION_POLICY         "restore-session-policy"
 #define EPHY_PREFS_RESTORE_SESSION_DELAYING_LOADS "restore-session-delaying-loads"
 #define EPHY_PREFS_CUSTOM_HTTP_ERRORS_MANAGEMENT  "custom-http-errors-management"
+#define EPHY_PREFS_HOMEPAGE_URL                   "homepage-url"
 
 #define EPHY_PREFS_LOCKDOWN_SCHEMA            "org.gnome.Epiphany.lockdown"
 #define EPHY_PREFS_LOCKDOWN_FULLSCREEN        "disable-fullscreen"

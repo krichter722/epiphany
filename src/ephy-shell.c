@@ -809,8 +809,7 @@ ephy_shell_new_tab_full (EphyShell *shell,
     EphyWebView *view = ephy_embed_get_web_view (embed);
     ephy_web_view_set_typed_address (view, "");
     ephy_window_activate_location (window);
-    ephy_web_view_load_homepage (view);
-    is_empty = TRUE;
+    is_empty = ephy_web_view_load_homepage (view);
   } else if (open_page) {
     ephy_web_view_load_request (ephy_embed_get_web_view (embed),
                                 request);

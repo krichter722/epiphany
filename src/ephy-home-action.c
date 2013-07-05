@@ -22,6 +22,7 @@
 #include "ephy-home-action.h"
 
 #include "ephy-link.h"
+#include "ephy-settings.h"
 
 G_DEFINE_TYPE (EphyHomeAction, ephy_home_action, EPHY_TYPE_LINK_ACTION)
 
@@ -53,11 +54,18 @@ static void
 ephy_home_action_activate (GtkAction *action)
 {
 	char *action_name;
+	char *address;
 
 	g_object_get (G_OBJECT (action), "name", &action_name, NULL);
-		
-	action_name_association (action, action_name, "about:overview");
 
+	address = g_settings_get_string (EPHY_SETTINGS_MAIN, EPHY_PREFS_HOMEPAGE_URL);
+	if (address == NULL || address[0] == '\0') {
+		action_name_association (action, action_name, "about:overview");
+	} else {
+		action_name_association (action, action_name, address);
+	}
+
+	g_free (address);
 	g_free (action_name);
 }
 

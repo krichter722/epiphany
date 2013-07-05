@@ -1292,7 +1292,8 @@ setup_ui_manager (EphyWindow *window)
 	GtkActionGroup *action_group;
 	GtkAction *action;
 	GtkUIManager *manager;
-	const char *prev_icon, *next_icon;
+	const char *prev_icon, *next_icon, *home_action_label;
+	char *address;
 
 	window->priv->main_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_show (window->priv->main_vbox);
@@ -1402,10 +1403,16 @@ setup_ui_manager (EphyWindow *window)
 	gtk_action_group_add_action_with_accel (action_group, action, "<control>T");
 	g_object_unref (action);
 
+	address = g_settings_get_string (EPHY_SETTINGS_MAIN, EPHY_PREFS_HOMEPAGE_URL);
+	if (address == NULL || address[0] == '\0')
+		home_action_label = _("Go to most visited");
+	else
+		home_action_label = _("Go to home page");
+	g_free (address);
 	action =
 		g_object_new (EPHY_TYPE_HOME_ACTION,
 			      "name", "FileHome",
-			      "label", _("Go to most visited"),
+			      "label", home_action_label,
 			      NULL);
 	gtk_action_group_add_action_with_accel (action_group, action, "<alt>Home");
 	g_signal_connect_swapped (action, "open-link",
