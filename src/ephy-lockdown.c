@@ -103,7 +103,10 @@ static const BindAction window_actions[] = {
   { EPHY_PREFS_LOCKDOWN_SAVE_TO_DISK, "FileSaveAs", "sensitive" },
 
   { EPHY_PREFS_LOCKDOWN_FULLSCREEN, "ViewFullscreen", "sensitive" },
-  { EPHY_PREFS_LOCKDOWN_FULLSCREEN, "TabsDetach", "sensitive" }
+  { EPHY_PREFS_LOCKDOWN_FULLSCREEN, "TabsDetach", "sensitive" },
+
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "FileNewWindow", "sensitive" },
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "FileNewWindowIncognito", "sensitive"},
 };
 
 static const BindAction popup_actions[] = {
@@ -111,7 +114,9 @@ static const BindAction popup_actions[] = {
   { EPHY_PREFS_LOCKDOWN_SAVE_TO_DISK, "DownloadLinkAs", "sensitive" },
   { EPHY_PREFS_LOCKDOWN_SAVE_TO_DISK, "SaveImageAs", "sensitive" },
   { EPHY_PREFS_LOCKDOWN_SAVE_TO_DISK, "OpenImage", "sensitive" },
-  { EPHY_PREFS_LOCKDOWN_BOOKMARK_EDITING, "BookmarkLink", "sensitive" }
+  { EPHY_PREFS_LOCKDOWN_BOOKMARK_EDITING, "BookmarkLink", "sensitive" },
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "OpenLinkInNewTab", "sensitive" },
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "OpenLinkInNewWindow", "sensitive" },
 };
 
 static const BindAction special_toolbar_actions[] = {
@@ -119,6 +124,8 @@ static const BindAction special_toolbar_actions[] = {
   { EPHY_PREFS_LOCKDOWN_HISTORY, "NavigationBack", "sensitive" },
   { EPHY_PREFS_LOCKDOWN_HISTORY, "NavigationForward", "visible" },
   { EPHY_PREFS_LOCKDOWN_HISTORY, "NavigationForward", "sensitive" },
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "FileNewTab", "visible" },
+  { EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS, "FileNewTab", "sensitive" },
 };
 
 static gboolean

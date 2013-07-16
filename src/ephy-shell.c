@@ -247,6 +247,7 @@ static void
 ephy_shell_startup (GApplication* application)
 {
   EphyEmbedShellMode mode;
+  GAction *gaction;
 #ifdef HAVE_WEBKIT2
   char *disk_cache_dir;
 #endif
@@ -300,6 +301,19 @@ ephy_shell_startup (GApplication* application)
                                   G_MENU_MODEL (gtk_builder_get_object (builder, "app-menu")));
     g_object_unref (builder);
   }
+
+  gaction = g_action_map_lookup_action (G_ACTION_MAP (application),
+                                        "new");
+  g_settings_bind (EPHY_SETTINGS_LOCKDOWN,
+                   EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS,
+                   gaction, "enabled",
+                   G_SETTINGS_BIND_GET | G_SETTINGS_BIND_INVERT_BOOLEAN);
+  gaction = g_action_map_lookup_action (G_ACTION_MAP (application),
+                                        "new-incognito");
+  g_settings_bind (EPHY_SETTINGS_LOCKDOWN,
+                   EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS,
+                   gaction, "enabled",
+                   G_SETTINGS_BIND_GET | G_SETTINGS_BIND_INVERT_BOOLEAN);
 }
 
 static void
@@ -327,15 +341,14 @@ ephy_shell_activate (GApplication *application)
 {
   EphyShell *shell = EPHY_SHELL (application);
 
+  EphyShellStartupContext *ctx = shell->priv->startup_context;
   /*
    * We get here on each new instance (remote or not). Autoresume the
-   * session unless we are in application mode and queue the
-   * commands.
+   * session unless we are in application mode or with multiple tabs disabled,
+   * and queue the commands.
    */
-  if (ephy_embed_shell_get_mode (EPHY_EMBED_SHELL (shell)) != EPHY_EMBED_SHELL_MODE_APPLICATION) {
-    EphyShellStartupContext *ctx;
-
-    ctx = shell->priv->startup_context;
+  if ((ephy_embed_shell_get_mode (EPHY_EMBED_SHELL (shell)) != EPHY_EMBED_SHELL_MODE_APPLICATION) &&
+    (ctx->arguments == NULL || !g_settings_get_boolean (EPHY_SETTINGS_LOCKDOWN, EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS))) {
     ephy_session_resume (ephy_shell_get_session (shell),
                          ctx->user_time, NULL, session_load_cb, shell);
   } else

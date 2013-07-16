@@ -277,5 +277,10 @@
 		<key type="b" name="disable-javascript-chrome">
 			<default>false</default>
 		</key>
+		<key type="b" name="disable-multiple-tabs">
+			<default>false</default>
+			<summary>Disable multiple tabs support</summary>
+			<description>Whether to disable all the options to create new views in order to make all the browsing inside the same tab.</description>
+		</key>
 	</schema>
 </schemalist>

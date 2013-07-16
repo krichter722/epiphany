@@ -1,4 +1,5 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
+/* vim: set sw=8 ts=8 sts=8 noet: */
 /*
  *  Copyright © 2000, 2001, 2002, 2003, 2004 Marco Pesenti Gritti
  *  Copyright © 2003, 2004 Christian Persch
@@ -2390,31 +2391,37 @@ create_web_view_cb (WebKitWebView *web_view,
 	EphyNewTabFlags flags;
 	EphyWindow *parent_window;
 
-	if (g_settings_get_boolean (EPHY_SETTINGS_MAIN,
-				    EPHY_PREFS_NEW_WINDOWS_IN_TABS))
-	{
-		parent_window = window;
-		flags = EPHY_NEW_TAB_IN_EXISTING_WINDOW |
-			EPHY_NEW_TAB_JUMP |
-			EPHY_NEW_TAB_APPEND_AFTER;
-	}
-	else
-	{
-		parent_window = NULL;
-		flags = EPHY_NEW_TAB_IN_NEW_WINDOW |
-			EPHY_NEW_TAB_DONT_SHOW_WINDOW;
-	}
+	if (g_settings_get_boolean (EPHY_SETTINGS_LOCKDOWN, EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS)) {
+		flags = EPHY_NEW_TAB_OPEN_PAGE |
+			EPHY_NEW_TAB_IN_EXISTING_WINDOW |
+			EPHY_NEW_TAB_JUMP;
+		new_web_view = web_view;
+	} else {
+		if (g_settings_get_boolean (EPHY_SETTINGS_MAIN, EPHY_PREFS_NEW_WINDOWS_IN_TABS))
+		{
+			parent_window = window;
+			flags = EPHY_NEW_TAB_IN_EXISTING_WINDOW |
+				EPHY_NEW_TAB_JUMP |
+				EPHY_NEW_TAB_APPEND_AFTER;
+		}
+		else
+		{
+			parent_window = NULL;
+			flags = EPHY_NEW_TAB_IN_NEW_WINDOW |
+				EPHY_NEW_TAB_DONT_SHOW_WINDOW;
+		}
 
-	embed = ephy_shell_new_tab_full (ephy_shell_get_default (),
-					 parent_window,
-					 EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (web_view),
-					 NULL,
-					 flags,
-					 EPHY_WEB_VIEW_CHROME_ALL,
-					 FALSE, /* is popup? */
-					 0);
+		embed = ephy_shell_new_tab_full (ephy_shell_get_default (),
+						 parent_window,
+						 EPHY_GET_EMBED_FROM_EPHY_WEB_VIEW (web_view),
+						 NULL,
+						 flags,
+						 EPHY_WEB_VIEW_CHROME_ALL,
+						 FALSE, /* is popup? */
+						 0);
 
-	new_web_view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);
+		new_web_view = EPHY_GET_WEBKIT_WEB_VIEW_FROM_EMBED (embed);
+	}
 #ifdef HAVE_WEBKIT2
 	g_signal_connect (new_web_view, "ready-to-show",
 			  G_CALLBACK (web_view_ready_cb),
@@ -2547,6 +2554,12 @@ decide_policy_cb (WebKitWebView *web_view,
 
 		ephy_web_view_set_visit_type (EPHY_WEB_VIEW (web_view),
 					      EPHY_PAGE_VISIT_LINK);
+
+		/* This avoids setting NEW_TAB / NEW_WINDOW flags when multiple tabs locked down and
+		 * clicking the middle button or with CTRL or CTRL+SHIFT pressed */
+		if (g_settings_get_boolean (EPHY_SETTINGS_LOCKDOWN, EPHY_PREFS_LOCKDOWN_MULTIPLE_TABS)) {
+			return TRUE;
+		};
 
 		/* New tab in new window for control+shift+click */
 		if (button == 1 && state == (GDK_SHIFT_MASK | GDK_CONTROL_MASK))
