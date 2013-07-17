@@ -1,7 +1,5 @@
 errorpagesdir = $(pkgdatadir)/pages
 errorpages_DATA = \
-	recovery.html \
-	process_crash.html \
 	error.html
 
 stylepagesdir = $(pkgdatadir)/pages

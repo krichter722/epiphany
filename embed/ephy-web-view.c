@@ -2434,6 +2434,7 @@ ephy_web_view_load_error_page (EphyWebView *view,
   char *msg_title;
   char *msg;
   char *button_label;
+  const char *custom_class;
   const char *html_file;
   const char *stock_icon;
 
@@ -2452,6 +2453,10 @@ ephy_web_view_load_error_page (EphyWebView *view,
   lang = g_strdup (pango_language_to_string (gtk_get_default_language ()));
   g_strdelimit (lang, "_-@", '\0');
 
+  html_file = ephy_file ("error.html");
+  button_label = g_strdup (_("Try again"));
+  custom_class = "error";
+
   switch (page) {
     case EPHY_WEB_VIEW_ERROR_PAGE_NETWORK_ERROR:
       page_title = g_strdup_printf (_("Oops! Error loading %s"), hostname);
@@ -2466,9 +2471,6 @@ ephy_web_view_load_error_page (EphyWebView *view,
                                "internet connection is working correctly.</p>"),
                              uri, reason);
 
-      button_label = g_strdup (_("Try again"));
-
-      html_file = ephy_file ("error.html");
       stock_icon = "dialog-error";
       break;
     case EPHY_WEB_VIEW_ERROR_PAGE_HTTP_ERROR:
@@ -2478,10 +2480,6 @@ ephy_web_view_load_error_page (EphyWebView *view,
       msg = g_strdup_printf (_("<p>The website at <strong>%s</strong> has returned "
                                "the following HTTP error status code: <em>%s</em>.</p>"),
                              uri, reason);
-
-      button_label = g_strdup (_("Try again"));
-
-      html_file = ephy_file ("error.html");
       stock_icon = "dialog-error";
       break;
     case EPHY_WEB_VIEW_ERROR_PAGE_CRASH:
@@ -2496,19 +2494,14 @@ ephy_web_view_load_error_page (EphyWebView *view,
                                "please report the problem to the "
                                "<strong>%s</strong> developers.</p>"),
                              LSB_DISTRIBUTOR);
-
-      button_label = g_strdup (_("Load again anyway"));
-
-      html_file = ephy_file ("recovery.html");
       stock_icon = "dialog-information";
       break;
     case EPHY_WEB_VIEW_ERROR_PROCESS_CRASH:
       page_title = g_strdup_printf (_("Oops! Something went wrong displaying %s"), hostname);
       msg_title = g_strdup (_("Oops!"));
       msg = g_strdup (_("Something went wrong while displaying this page. Please reload or visit a different page to continue."));
-      button_label = NULL;
 
-      html_file = ephy_file ("process_crash.html");
+      custom_class = "process-crash";
       stock_icon = "computer-fail-symbolic";
 
       break;
@@ -2536,6 +2529,7 @@ ephy_web_view_load_error_page (EphyWebView *view,
                    ((gtk_widget_get_default_direction () == GTK_TEXT_DIR_RTL) ? "rtl" : "ltr"),
                    page_title,
                    uri,
+                   custom_class,
                    image_data ? image_data : "",
                    msg_title, msg, button_label);
 
