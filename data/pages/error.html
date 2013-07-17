@@ -75,6 +75,14 @@
     {
       window.location = '%s';
     }
+    function go_home()
+    {
+      window.location= '%s';
+    }
+    function go_back()
+    {
+      window.history.back();
+    }
   </script>
 </head>
 <body class="%s">
@@ -89,7 +97,9 @@
           </div>
 
           <div class="buttonbox">
-            <button onclick="javascript:load_anyway()">%s</button>
+            <!-- Reload -->%s
+            <!-- Back -->%s
+            <!-- Home -->%s
           </div>
       </div>
   </div>

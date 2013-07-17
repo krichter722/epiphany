@@ -2433,7 +2433,10 @@ ephy_web_view_load_error_page (EphyWebView *view,
   char *page_title;
   char *msg_title;
   char *msg;
-  char *button_label;
+  char *button_reload;
+  char *button_home;
+  char *button_back;
+  char *home_address;
   const char *custom_class;
   const char *html_file;
   const char *stock_icon;
@@ -2453,8 +2456,25 @@ ephy_web_view_load_error_page (EphyWebView *view,
   lang = g_strdup (pango_language_to_string (gtk_get_default_language ()));
   g_strdelimit (lang, "_-@", '\0');
 
+  home_address = g_settings_get_string (EPHY_SETTINGS_MAIN, EPHY_PREFS_HOMEPAGE_URL);
+  if (home_address == NULL || home_address[0] == '\0') {
+    g_free (home_address);
+    home_address = g_strdup ("ephy-about:overview");
+  }
+
+  button_home = g_strdup_printf ("<button onclick=\"javascript:go_home()\">%s</button>",
+                                 _("Go home"));
+
+  button_reload = g_strdup_printf ("<button onclick=\"javascript:load_anyway()\">%s</button>",
+                                   _("Try again"));
+
+  if (!g_settings_get_boolean (EPHY_SETTINGS_LOCKDOWN, EPHY_PREFS_LOCKDOWN_HISTORY))
+    button_back = g_strdup_printf ("<button onclick=\"javascript:go_back()\">%s</button>",
+                                   _("Go Back"));
+  else
+    button_back = g_strdup ("");
+
   html_file = ephy_file ("error.html");
-  button_label = g_strdup (_("Try again"));
   custom_class = "error";
 
   switch (page) {
@@ -2529,16 +2549,20 @@ ephy_web_view_load_error_page (EphyWebView *view,
                    ((gtk_widget_get_default_direction () == GTK_TEXT_DIR_RTL) ? "rtl" : "ltr"),
                    page_title,
                    uri,
+                   home_address,
                    custom_class,
                    image_data ? image_data : "",
-                   msg_title, msg, button_label);
+                   msg_title, msg, button_reload, button_home, button_back);
 
   g_free (template);
   g_free (lang);
   g_free (page_title);
   g_free (msg_title);
   g_free (msg);
-  g_free (button_label);
+  g_free (home_address);
+  g_free (button_reload);
+  g_free (button_home);
+  g_free (button_back);
   g_free (image_data);
 
   if (icon_info)
