@@ -217,6 +217,7 @@ icon_loaded_cb (GObject *source, GAsyncResult *result, gpointer user_data)
   GdkPixbuf *favicon = NULL;
   cairo_surface_t *icon_surface = webkit_favicon_database_get_favicon_finish (database, result, NULL);
 
+  printf("Loaded\n");
   if (icon_surface) {
     favicon = ephy_pixbuf_get_from_surface_scaled (icon_surface, FAVICON_SIZE, FAVICON_SIZE);
     cairo_surface_destroy (icon_surface);
@@ -264,6 +265,7 @@ set_row_in_model (EphyCompletionModel *model, int position, PotentialRow *row)
   data->row_reference = gtk_tree_row_reference_new (GTK_TREE_MODEL (model), path);
   gtk_tree_path_free (path);
 
+  printf("row %s\n", row->location);
   webkit_favicon_database_get_favicon (database, row->location,
                                        NULL, icon_loaded_cb, data);
 }
