@@ -400,18 +400,14 @@ ephy_bookmark_properties_grid_destroy (GtkWidget *widget)
   /* Check if any actual changes were made to the name, address or tags. If yes,
    * set the uploaded flag to FALSE. */
 
-  if (self->prev_name != NULL) {
-    if (g_strcmp0 (self->prev_name, ephy_bookmark_get_title (self->bookmark)) != 0) {
-      ephy_bookmark_set_uploaded (self->bookmark, FALSE);
-      goto out;
-    }
+  if (g_strcmp0 (self->prev_name, ephy_bookmark_get_title (self->bookmark)) != 0) {
+    ephy_bookmark_set_uploaded (self->bookmark, FALSE);
+    goto out;
   }
 
-  if (self->prev_address != NULL) {
-    if (g_strcmp0 (self->prev_address, ephy_bookmark_get_url (self->bookmark)) != 0) {
-      ephy_bookmark_set_uploaded (self->bookmark, FALSE);
-      goto out;
-    }
+  if (g_strcmp0 (self->prev_address, ephy_bookmark_get_url (self->bookmark)) != 0) {
+    ephy_bookmark_set_uploaded (self->bookmark, FALSE);
+    goto out;
   }
 
   if (self->prev_tags != NULL) {
