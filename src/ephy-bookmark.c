@@ -352,8 +352,8 @@ ephy_bookmark_get_id (EphyBookmark *self)
 }
 
 void
-ephy_bookmark_set_modified (EphyBookmark *self,
-                            double        modified)
+ephy_bookmark_set_modification_time (EphyBookmark *self,
+                                     double        modified)
 {
   g_return_if_fail (EPHY_IS_BOOKMARK (self));
 
@@ -361,7 +361,7 @@ ephy_bookmark_set_modified (EphyBookmark *self,
 }
 
 double
-ephy_bookmark_get_modified (EphyBookmark *self)
+ephy_bookmark_get_modification_time (EphyBookmark *self)
 {
   g_return_val_if_fail (EPHY_IS_BOOKMARK (self), -1);
 
@@ -369,8 +369,8 @@ ephy_bookmark_get_modified (EphyBookmark *self)
 }
 
 void
-ephy_bookmark_set_uploaded (EphyBookmark *self,
-                            gboolean      uploaded)
+ephy_bookmark_set_is_uploaded (EphyBookmark *self,
+                               gboolean      uploaded)
 {
   g_return_if_fail (EPHY_IS_BOOKMARK (self));
 
@@ -548,8 +548,8 @@ ephy_bookmark_from_bso (JsonObject *bso)
 
   bookmark = EPHY_BOOKMARK (object);
   ephy_bookmark_set_id (bookmark, json_object_get_string_member (bso, "id"));
-  ephy_bookmark_set_modified (bookmark, json_object_get_double_member (bso, "modified"));
-  ephy_bookmark_set_uploaded (bookmark, TRUE);
+  ephy_bookmark_set_modification_time (bookmark, json_object_get_double_member (bso, "modified"));
+  ephy_bookmark_set_is_uploaded (bookmark, TRUE);
 
 out:
   g_free (decoded);
