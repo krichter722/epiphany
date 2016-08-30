@@ -966,11 +966,8 @@ ephy_embed_attach_notification_manager (EphyEmbed *embed)
 
   g_return_if_fail (EPHY_IS_EMBED (embed));
 
-  manager = ephy_notification_manager_dup_singleton ();
+  manager = ephy_notification_manager_get_default ();
   gtk_overlay_add_overlay (GTK_OVERLAY (embed->overlay), GTK_WIDGET (manager));
-
-  if (ephy_notification_manager_get_children_num (manager) == 0)
-    gtk_widget_hide (GTK_WIDGET (manager));
 }
 
 void
@@ -980,6 +977,10 @@ ephy_embed_detach_notification_manager (EphyEmbed *embed)
 
   g_return_if_fail (EPHY_IS_EMBED (embed));
 
-  manager = ephy_notification_manager_dup_singleton ();
-  gtk_container_remove (GTK_CONTAINER (embed->overlay), GTK_WIDGET (manager));
+  manager = ephy_notification_manager_get_default ();
+  /* Since the overlay container will own the one and only reference to the
+   * notification widget, removing it from the container will destroy the
+   * singleton. To prevent this, add a reference to it before removing it
+   * from the container. */
+  gtk_container_remove (GTK_CONTAINER (embed->overlay), g_object_ref (manager));
 }

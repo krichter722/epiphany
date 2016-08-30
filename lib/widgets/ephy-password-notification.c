@@ -160,6 +160,6 @@ ephy_password_notification_show (EphyPasswordNotification *self)
 {
   g_return_if_fail (EPHY_IS_PASSWORD_NOTIFICATION (self));
 
-  ephy_notification_manager_add_notification (ephy_notification_manager_dup_singleton (),
+  ephy_notification_manager_add_notification (ephy_notification_manager_get_default (),
                                               GTK_WIDGET (self));
 }

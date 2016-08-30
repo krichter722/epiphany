@@ -38,12 +38,10 @@ typedef struct _EphyNotificationManagerClass EphyNotificationManagerClass;
 
 GType                    ephy_notification_manager_get_type         (void) G_GNUC_CONST;
 
-EphyNotificationManager *ephy_notification_manager_dup_singleton    (void);
+EphyNotificationManager *ephy_notification_manager_get_default      (void);
 
 void                     ephy_notification_manager_add_notification (EphyNotificationManager *self,
                                                                      GtkWidget               *notification);
-
-guint                    ephy_notification_manager_get_children_num (EphyNotificationManager *self);
 
 G_END_DECLS
 

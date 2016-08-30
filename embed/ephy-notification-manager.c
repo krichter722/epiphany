@@ -31,42 +31,18 @@ struct _EphyNotificationManagerClass {
 
 G_DEFINE_TYPE (EphyNotificationManager, ephy_notification_manager, GD_TYPE_NOTIFICATION);
 
-static GObject *
-ephy_notification_manager_constructor (GType                  type,
-                                       guint                  n_construct_params,
-                                       GObjectConstructParam *construct_params)
-{
-  static GObject *self = NULL;
-
-  if (self == NULL) {
-    self = G_OBJECT_CLASS (ephy_notification_manager_parent_class)->constructor (type,
-                                                                                 n_construct_params,
-                                                                                 construct_params);
-    g_object_add_weak_pointer (self, (gpointer) &self);
-  }
-
-  return g_object_ref_sink (self);
-}
-
-static void
-ephy_notification_manager_dispose (GObject *object)
-{
-  EphyNotificationManager *self = EPHY_NOTIFICATION_MANAGER (object);
-
-  if (ephy_notification_manager_get_children_num (self) > 0)
-    g_list_free (gtk_container_get_children (GTK_CONTAINER (self->grid)));
-
-  G_OBJECT_CLASS (ephy_notification_manager_parent_class)->dispose (object);
-}
+static EphyNotificationManager *notification_manager = NULL;
 
 static void
 ephy_notification_manager_init (EphyNotificationManager *self)
 {
-  g_return_if_fail (EPHY_IS_NOTIFICATION_MANAGER (self));
+  /* Globally accessible singleton */
+  g_assert (notification_manager == NULL);
+  notification_manager = self;
+  g_object_add_weak_pointer (G_OBJECT (notification_manager), (gpointer *)&notification_manager);
 
   gtk_widget_set_halign (GTK_WIDGET (self), GTK_ALIGN_CENTER);
   gtk_widget_set_valign (GTK_WIDGET (self), GTK_ALIGN_START);
-  gtk_widget_set_visible (GTK_WIDGET (self), TRUE);
 
   self->grid = gtk_grid_new ();
   gtk_orientable_set_orientation (GTK_ORIENTABLE (self->grid), GTK_ORIENTATION_VERTICAL);
@@ -77,15 +53,14 @@ ephy_notification_manager_init (EphyNotificationManager *self)
 static void
 ephy_notification_manager_class_init (EphyNotificationManagerClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->constructor = ephy_notification_manager_constructor;
-  object_class->dispose = ephy_notification_manager_dispose;
 }
 
 EphyNotificationManager *
-ephy_notification_manager_dup_singleton (void)
+ephy_notification_manager_get_default (void)
 {
+  if (notification_manager != NULL)
+    return notification_manager;
+
   return g_object_new (EPHY_TYPE_NOTIFICATION_MANAGER,
                        "show-close-button", TRUE,
                        "timeout", -1,
@@ -101,12 +76,4 @@ ephy_notification_manager_add_notification (EphyNotificationManager *self,
 
   gtk_container_add (GTK_CONTAINER (self->grid), notification);
   gtk_widget_show_all (GTK_WIDGET (self));
-}
-
-guint
-ephy_notification_manager_get_children_num (EphyNotificationManager *self)
-{
-  g_return_val_if_fail (EPHY_IS_NOTIFICATION_MANAGER (self), 0);
-
-  return g_list_length (gtk_container_get_children (GTK_CONTAINER (self->grid)));
 }
