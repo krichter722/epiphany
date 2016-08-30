@@ -25,6 +25,10 @@ G_BEGIN_DECLS
 
 #define EPHY_TYPE_NOTIFICATION_MANAGER (ephy_notification_manager_get_type ())
 
+/* FIXME: Replace this boilerplate with G_DECLARE_FINAL_TYPE. This won't prove
+ * trivial, since G_DECLARE_FINAL_TYPE requires that an autocleanup function
+ * has been declared for the parent type, and libgd doesn't have one yet.
+ */
 #define EPHY_NOTIFICATION_MANAGER(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
    EPHY_TYPE_NOTIFICATION_MANAGER, EphyNotificationManager))
