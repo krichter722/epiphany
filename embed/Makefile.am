@@ -43,8 +43,8 @@ libephyembed_la_SOURCES = \
 	ephy-file-monitor.h		\
 	ephy-find-toolbar.c		\
 	ephy-find-toolbar.h		\
-	ephy-notification-manager.c	\
-	ephy-notification-manager.h	\
+	ephy-notification-container.c	\
+	ephy-notification-container.h	\
 	ephy-embed-prefs.c		\
 	ephy-web-view.c			\
 	ephy-web-view.h			\

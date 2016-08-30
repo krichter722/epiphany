@@ -17,29 +17,30 @@
  */
 
 #include "config.h"
-#include "ephy-notification-manager.h"
+#include "ephy-notification-container.h"
 
-struct _EphyNotificationManager {
+struct _EphyNotificationContainer {
   GdNotification  parent_instance;
 
   GtkWidget      *grid;
 };
 
-struct _EphyNotificationManagerClass {
+struct _EphyNotificationContainerClass {
   GdNotificationClass parent_class;
 };
 
-G_DEFINE_TYPE (EphyNotificationManager, ephy_notification_manager, GD_TYPE_NOTIFICATION);
+G_DEFINE_TYPE (EphyNotificationContainer, ephy_notification_container, GD_TYPE_NOTIFICATION);
 
-static EphyNotificationManager *notification_manager = NULL;
+static EphyNotificationContainer *notification_container = NULL;
 
 static void
-ephy_notification_manager_init (EphyNotificationManager *self)
+ephy_notification_container_init (EphyNotificationContainer *self)
 {
   /* Globally accessible singleton */
-  g_assert (notification_manager == NULL);
-  notification_manager = self;
-  g_object_add_weak_pointer (G_OBJECT (notification_manager), (gpointer *)&notification_manager);
+  g_assert (notification_container == NULL);
+  notification_container = self;
+  g_object_add_weak_pointer (G_OBJECT (notification_container),
+                             (gpointer *)&notification_container);
 
   gtk_widget_set_halign (GTK_WIDGET (self), GTK_ALIGN_CENTER);
   gtk_widget_set_valign (GTK_WIDGET (self), GTK_ALIGN_START);
@@ -51,27 +52,27 @@ ephy_notification_manager_init (EphyNotificationManager *self)
 }
 
 static void
-ephy_notification_manager_class_init (EphyNotificationManagerClass *klass)
+ephy_notification_container_class_init (EphyNotificationContainerClass *klass)
 {
 }
 
-EphyNotificationManager *
-ephy_notification_manager_get_default (void)
+EphyNotificationContainer *
+ephy_notification_container_get_default (void)
 {
-  if (notification_manager != NULL)
-    return notification_manager;
+  if (notification_container != NULL)
+    return notification_container;
 
-  return g_object_new (EPHY_TYPE_NOTIFICATION_MANAGER,
+  return g_object_new (EPHY_TYPE_NOTIFICATION_CONTAINER,
                        "show-close-button", TRUE,
                        "timeout", -1,
                        NULL);
 }
 
 void
-ephy_notification_manager_add_notification (EphyNotificationManager *self,
-                                            GtkWidget               *notification)
+ephy_notification_container_add_notification (EphyNotificationContainer *self,
+                                              GtkWidget                 *notification)
 {
-  g_return_if_fail (EPHY_IS_NOTIFICATION_MANAGER (self));
+  g_return_if_fail (EPHY_IS_NOTIFICATION_CONTAINER (self));
   g_return_if_fail (GTK_IS_WIDGET (notification));
 
   gtk_container_add (GTK_CONTAINER (self->grid), notification);
