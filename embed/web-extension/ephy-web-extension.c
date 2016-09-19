@@ -36,6 +36,7 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <httpseverywhere.h>
 #include <libsoup/soup.h>
 #include <string.h>
 #include <webkit2/webkit-web-extension.h>
@@ -114,13 +115,13 @@ web_page_send_request (WebKitWebPage     *web_page,
 {
   const char *request_uri;
   const char *page_uri;
+  char *new_uri;
   gboolean ret;
 
   request_uri = webkit_uri_request_get_uri (request);
 
   if (g_settings_get_boolean (EPHY_SETTINGS_WEB, EPHY_PREFS_WEB_DO_NOT_TRACK)) {
     SoupMessageHeaders *headers;
-    char *new_uri;
 
     headers = webkit_uri_request_get_http_headers (request);
     if (headers) {
@@ -137,6 +138,14 @@ web_page_send_request (WebKitWebPage     *web_page,
     }
     g_free (new_uri);
   }
+
+  /* Rewrite URL to use HTTPS if directed by HTTPS Everywhere */
+  new_uri = https_everywhere_rewrite (g_strdup (request_uri));
+  if (g_strcmp0 (request_uri, new_uri) != 0) {
+    webkit_uri_request_set_uri (request, new_uri);
+    request_uri = webkit_uri_request_get_uri (request);
+  }
+  g_free (new_uri);
 
   if (!g_settings_get_boolean (EPHY_SETTINGS_WEB, EPHY_PREFS_WEB_ENABLE_ADBLOCK))
     return FALSE;
@@ -1398,6 +1407,8 @@ ephy_web_extension_initialize (EphyWebExtension   *extension,
     return;
 
   extension->initialized = TRUE;
+
+  https_everywhere_init ();
 
   extension->extension = g_object_ref (wk_extension);
   extension->uri_tester = ephy_uri_tester_new (dot_dir);
