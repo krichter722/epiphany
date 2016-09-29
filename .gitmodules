@@ -1,6 +1,6 @@
 [submodule "libgd"]
-	path = libgd
+	path = https://github.com/GNOME/libgd
 	url = ../libgd
 [submodule "gvdb/gvdb"]
-	path = gvdb/gvdb
+	path = https://github.com/gvdb/gvdb
 	url = ../gvdb
