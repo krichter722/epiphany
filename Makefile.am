@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = help libgd gvdb lib embed src data po doc
 
 if ENABLE_TESTS

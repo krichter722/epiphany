@@ -31,6 +31,7 @@ AX_REQUIRE_DEFINED([GLIB_GSETTINGS])
 AX_REQUIRE_DEFINED([YELP_HELP_INIT])
 
 AC_INIT([GNOME Web Browser],[epiphany_version],[http://bugzilla.gnome.org/enter_bug.cgi?product=epiphany],[epiphany])
+AC_CONFIG_MACRO_DIR([m4])
 AX_IS_RELEASE([git-directory])
 
 AC_PREREQ([2.69])
@@ -64,7 +65,7 @@ dnl it is a bug after all, and updating for bugfixes is just how software works.
 dnl Note also: the issue is that a directory _literally_ named $(top_srcdir)
 dnl will be created under embed/web-extension, and the build will fail due to
 dnl misplaced .Plo files (used for dependency tracking).
-AM_INIT_AUTOMAKE([1.11 foreign dist-xz no-dist-gzip tar-ustar])
+AM_INIT_AUTOMAKE([1.11 foreign dist-xz no-dist-gzip tar-ustar subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([enable])
 
